@@ -51,9 +51,10 @@ Die Vergleiche mit realen Daten beziehen sich auf die Bearbeitung von Hand, nich
 Zwei Wege, ausführlich in [docs/INSTALLATION.md](docs/INSTALLATION.md):
 
 - **Fertiges Programm (Windows):** unter [Releases](https://github.com/htw9056/jag3d-klein-methode/releases/latest) die Datei `JAG3D_Klein_Methode_V1.00_RC3_Windows.zip` herunterladen, entpacken und `jag3d.exe` starten. Das Paket enthält JAG3D mit der Klein'schen Methode samt Java – keine Installation nötig.
+- **Fertiges Programm (Linux, macOS):** unter [Releases](https://github.com/htw9056/jag3d-klein-methode/releases/latest) `JAG3D_Klein_Methode_V1.00_RC3_Linux.zip` bzw. `…_MacOSX.zip` herunterladen, entpacken und `jag3d.sh` bzw. `jag3d.command` starten. Voraussetzung ist ein installiertes **Java 25 oder neuer**; JavaFX ist enthalten.
 - **Aus den Quellen bauen:** Dieses Repository ist ein Fork von [applied-geodesy/jag3d](https://github.com/applied-geodesy/jag3d) mit bereits eingebauter Erweiterung. Repository herunterladen, den Ordner `JAG3D` in Eclipse importieren, übersetzen und als JAR exportieren.
 
-Getestet mit JAG3D v20260622 und Java 21 bzw. dem mitgelieferten OpenJDK.
+Grundlage: JAG3D v20260906. Erforderlich ist Java 25 oder neuer (im Windows-Paket enthalten).
 
 ## Aufbau dieses Repositorys
 
