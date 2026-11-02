@@ -18,6 +18,12 @@
 * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            *
 *                                                                      *
 ***********************************************************************/
+/*
+ * GEAENDERTE DATEI aus JAG3D (Java Applied Geodesy 3D) von Michael Loesler, https://software.applied-geodesy.org
+ * Geaendert 2025/2026 von Dipl.-Ing. (FH) Stefan Klein fuer die Erweiterung "Klein'sche Methode":
+ * Anbindung des Reiters "Klein'sche Methode". Lizenz unveraendert: GNU GPL v3 (siehe LICENSE).
+ */
+
 
 package org.applied_geodesy.jag3d.ui.tabpane;
 
@@ -27,6 +33,7 @@ import java.util.Map;
 
 import org.applied_geodesy.jag3d.ui.graphic.UIGraphicPaneBuilder;
 import org.applied_geodesy.jag3d.ui.metadata.UIMetaDataPaneBuilder;
+import org.applied_geodesy.klein_method.Klein_Method;
 import org.applied_geodesy.jag3d.ui.propertiespane.UICongruenceAnalysisPropertiesPaneBuilder;
 import org.applied_geodesy.jag3d.ui.propertiespane.UIObservationPropertiesPaneBuilder;
 import org.applied_geodesy.jag3d.ui.propertiespane.UIPointPropertiesPaneBuilder;
@@ -125,6 +132,12 @@ public class UITabPaneBuilder {
 				TabType.GRAPHIC, null
 				);
 
+		Tab kleinMethodTab = this.createTab(
+				"Klein'sche Methode",
+				"Eigene Erweiterung \"Klein'sche Methode\"",
+				TabType.KLEIN_METHOD, null
+				);
+
 		this.createTab(
 				i18n.getString("UITabPaneBuilder.tab.raw.label", "Raw data"), 
 				i18n.getString("UITabPaneBuilder.tab.raw.tooltip", "Table of raw data"), 
@@ -165,6 +178,8 @@ public class UITabPaneBuilder {
 		this.tabPane.setSide(Side.BOTTOM);
 
 		this.tabPane.getSelectionModel().selectedItemProperty().addListener(this.tabSelectionChangeListener);
+
+		Klein_Method.getInstance().registerTab(kleinMethodTab, this.tabPane);
 	}
 
 	private Tab createTab(String name, String tooltip, TabType type, Node node) {
@@ -189,6 +204,8 @@ public class UITabPaneBuilder {
 		case ROOT:
 			if (tabType == TabType.META_DATA)
 				node = UIMetaDataPaneBuilder.getInstance().getNode();
+			else if (tabType == TabType.KLEIN_METHOD)
+				node = Klein_Method.getInstance().getNode();
 			else if (tabType == TabType.RESULT_DATA)
 				node = UIGlobalResultPaneBuilder.getInstance().getNode();
 			else if (tabType == TabType.GRAPHIC) {

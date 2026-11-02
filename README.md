@@ -1,72 +1,83 @@
-# Java·Applied·Geodesy·3D
+# Klein'sche Methode für JAG3D
 
-Java·Applied·Geodesy·3D (JAG3D) is one of the most popular open source least-squares software package for geodetic sciences. The Java-based application is distributed under the terms of the GNU General Public License (version 3). JAG3D is designed to combine hybrid terrestrial observations like leveling, directions, distances or vertical angles in a uniform and rigorous mathematical model. Moreover, GNSS baselines that are derived by Global Navigation Satellite System (GNSS) techniques are supported. Some reference projects are the [deformation analysis](https://software.applied-geodesy.org/en/deformation_analysis) at the Onsala Space Observatory, the rigorous adjustment of laser tracker measurements on the observation level at the [electron accelerator](https://software.applied-geodesy.org/en/electron_accelerator) S‑DALINAC, or the analysis of local tie networks at [fundamental stations](https://software.applied-geodesy.org/en/fundamental_station) to improve global products like the International Terrestrial Reference Frame (ITRF). More information about the least-squares software package JAG3D can be found at [software.applied-geodesy.org](https://software.applied-geodesy.org/)</a>.
+**Automatische, nachvollziehbare Kalibrierung des stochastischen Modells in der geodätischen Netzausgleichung – als Erweiterung für [JAG3D (Java·Applied·Geodesy·3D)](https://software.applied-geodesy.org).**
 
-![Java Applied Geodesy 3D (JAG3D)](/.images/jag3d.png?raw=true "Java·Applied·Geodesy·3D (JAG3D)")
+Verfasser: **Dipl.-Ing. (FH) Stefan Klein** · Version **V1.00 RC3** · Lizenz **GNU GPL v3**
 
+> **Hinweis:** Dies ist eine **inoffizielle Erweiterung** von JAG3D. Sie wird vom Autor von JAG3D, Michael Lösler, weder entwickelt noch unterstützt oder geprüft. Fragen und Fehlermeldungen bitte ausschließlich hier über die [Issues](https://github.com/htw9056/jag3d-klein-methode/issues) stellen, nicht im JAG3D-Forum.
 
-## Evaluation of Compatibility among Network Adjustment Software
+![Reiter „Klein'sche Methode“ in JAG3D](docs/screenshot_klein_methode.png)
 
-Together with colleagues from Conservatoire National des Arts et Métiers (CNAM), European Organization for Nuclear Research (CERN), and School of Management and Engineering Vaud (HEIG-VD), we evaluated the compatibility among network adjustment software packages. A detailed description of the procedure and the results was presented at the 5th Joint International Symposium on Deformation Monitoring [JISDM 2022](https://jisdm2022.webs.upv.es). 
+---
 
-We compared the results of several geodetic networks using software packages developed by the authors' institutions, namely Compensation de Mesures Topographiques (CoMeT), Logiciel Général de Compensation (LGC), Trinet+ as well as JAG3D. Moreover, we included further commercial software packages such as Columbus, Geolab, Move3 and Star*Net. The networks differ mainly in their extent, i.e. the side length and the height. Whereas the smallest network is about 30 m, the largest network under consideration is about 40 km. The height component varies in a range from 30 m to 2.5 km. The raw data and the obtained results can be found on the official [CNAM website](https://comet.esgt.cnam.fr/comparisons).
+## Worum geht es?
 
-It is a very important initiative to ensure the quality of adjustment packages. For that reason, the results obtained by JAG3D are available. The largest network extent is about 40 km, and the curvature of the Earth can no longer be neglected. The results obtained by JAG3D differ by about 20 µm for the horizontal and the vertical component w.r.t. the designed values. [JAG3D offers comparable results](https://doi.org/10.5281/zenodo.7468733) to reputable software packages.
+In jeder Netzausgleichung entscheidet das stochastische Modell – die angesetzten Genauigkeiten der Beobachtungen und Anschlusspunkte – darüber, wie Messungen gewichtet, grobe Fehler aufgedeckt und Genauigkeiten der Ergebnisse angegeben werden. In der Praxis wird es meist von Hand und schrittweise angepasst: Varianzkomponenten schätzen, auffällige Beobachtungen prüfen, Anschlusspunkte bewerten, neu rechnen. Das kostet Zeit und hängt stark von der Erfahrung des Bearbeiters ab.
 
+Die **Klein'sche Methode** führt diesen Weg in drei Stufen geführt und protokolliert durch:
 
-## Verified according to ISO 10360-6
+1. **Freie Ausgleichung** – Kalibrierung der Messungen: Gruppengenauigkeiten werden iterativ und gedämpft nachgeführt (Varianzkomponentenschätzung mit Untergrenzen je Geräteklasse), danach werden einzelne Beobachtungen anhand ihrer Teststatistik so lange abgewichtet, bis jede für sich unauffällig ist (feste Grenze |logPost| ≤ 2,45 je Beobachtung).
+2. **Dynamische Ausgleichung** – Analyse der Anschlusspunkte: Die Anschlusspunkte werden stochastisch eingeführt und ihre Genauigkeiten kalibriert. Punkte, die mit den vorhandenen Messungen nicht prüfbar sind, werden ausdrücklich so ausgewiesen.
+3. **Fixe Ausgleichung** – abschließende Kalibrierung der Messungen mit den geprüften Anschlusspunkten.
 
-The calibration of measuring equipment is essential in geodesy and metrology. In length metrology, for instance, the calibration enables the traceability of measured values to the SI base unit of the meter. High demands are placed on the standards used to provide reference values in order to ensure conformity with national and international standards and norms such as DIN or ISO. In Germany, the [Physikalisch-Technische Bundesanstalt](https://www.ptb.de/) (PTB) as the national metrology institute and supreme technical authority for metrology is responsible for this task.
+Die Erweiterung nutzt ausschließlich die vorhandenen Rechen- und Testverfahren von JAG3D (Teststatistiken, Redundanzanteile, Varianzkomponenten); der Ausgleichungskern bleibt unverändert.
 
-The calibration of measuring instruments has a certain self-image at least in geodesy. However, the traceability of adjustment algorithms in software packages used is often not taken into account. According to the ISO 10360-6, which deals with the _estimation of errors in computing Gaussian associated features_, the PTB offers a service to certify metrological adjustment algorithms called _Traceability for Computational-Intensive Metrology_ (TraCIM).
+**Einordnung:** Das Abwichten einzelner Beobachtungen ist im Kern eine **robuste Schätzung** (iterativ umgewichtete kleinste Quadrate, vgl. Wicki 1998; verwandt mit der Dänischen Methode). Es wirkt damit implizit auch auf die Beobachtungen, auch wenn keine Messwerte in der Datenbank verändert werden. Die Automatik ersetzt keine fachliche Netzanalyse – sie nimmt die Routinearbeit ab, benennt Auffälligkeiten mit Ursache und legt jeden Schritt offen, damit der Bearbeiter entscheiden kann.
 
-JAG3D's module JUniForm, short for Java·Unified·Form·Fitting, has successfully passed the verification test of the algorithms for computing Gaussian associated features. Several synthetic generated data sets with modeled random and systematic deviations were used to test the implemented algorithms for basic features such as straight line, plane, circle, cylinder, sphere and cone. The resulting maximum permissible errors (MPE) of the estimated parameters were always less than the specified threshold values 0.1 μm and 0.1 μrad.
+## Funktionen
 
-Proper handling of measured values is complex and requires not only the consideration of calibrated measuring instruments but also the use of reliable adjustment algorithms for a holistic evaluation of the full measuring process. More details can be found in the full [TraCIM report](https://software.applied-geodesy.org/doc/PTB_TraCIM_Test_Report_JAG3D.pdf).
+- **Dreistufige Kalibrierung** (frei → dynamisch → fix) mit Abbruchkriterium, Wächter gegen Schwingen und Kaskaden-Mehrfachlauf
+- **Grobe Fehler** werden ohne Eingriff erkannt und entschärft, mit Angabe der Beobachtung und der Fehlergröße
+- **GNSS-Massendaten:** Epochen-Basislinien (z. B. alle 5 s über 30 min) werden vor der ersten Ausgleichung je Punktpaar robust zusammengefasst – getestet mit über 300 000 Basislinien
+- **Wiederholte Messungen** je Messart zusammenfassen, regewichten oder kalibrieren
+- **Plausibilitätsprüfungen** beim Import: Näherungskoordinaten (auch für Netze mit GNSS), Projektion, Höhensysteme, GNSS-Stützung am Netzrand
+- **Koordinatenumrechnung** WGS84 ↔ lokales System
+- **Gitterdateien** (z. B. GCG2016) für die Umrechnung zwischen ellipsoidischen Höhen und Normalhöhen
+- **Koordinatenexport** in vielen Varianten, z. B. ETRS89/UTM, Gauß-Krüger oder eigene Systeme mit NTv2-Gitterdatei
+- **Karte:** Netzplot auf OpenStreetMap-Hintergrund mit Punkten, Beobachtungslinien und Konfidenzellipsen
+- **Protokoll** jedes Schritts, Kalibrierungsnachweis, Importbericht, Ablauf-Assistent
+- **Hilfe** (F1) und Oberfläche in 7 Sprachen: Deutsch, Englisch, Französisch, Spanisch, Portugiesisch, Polnisch, Tschechisch
+- optional **Schwarmwissen:** anonyme Laufberichte (ohne Koordinaten, Punkt- oder Projektnamen) und daraus abgeleitete Erfahrungswerte, siehe [schwarmwissen](schwarmwissen)
 
+## Erprobung
 
-## Adaptable and Flexible
+- Synthetische Netze mit bekannter Wahrheit: Nivellement, 2D-Lage, 3D-Tachymeter, GNSS, kombinierte Netze, Netze mit groben Fehlern und mit Massendaten.
+- Elf reale Projekte aus der Praxis: Tachymeternetze, GNSS-Netze und kombinierte Netze aus GNSS-Massendaten, Tachymeter und Nivellement mit bis zu 487 Neupunkten und über 300 000 GNSS-Basislinien. Alle erreichten in der fixen Stufe das Abbruchkriterium; die Ergebnisse stimmen mit der Handbearbeitung auf wenige Millimeter überein.
 
-The JAG3D report uses the powerful [FreeMarker](https://freemarker.apache.org) Template Language to generate text output via customized templates. Users have the option of creating specific templates for their individual workflow – without programming experience in Java. In addition to column-based flat files, complex HTML or XML files are also supported. In software packages for computer-aided design (CAD), the Drawing Interchange Format (DXF) is often used for the exchange between different applications. As these examples are pure text files, specific FreeMarker templates can be defined to generate the content of the files. The JAG3D [download package](https://github.com/applied-geodesy/jag3d/releases/latest) contains an template for creating the standard HTML report. Sample templates for creating simple ASCII or DXF files can be found in the [template collection](https://github.com/loesler/jag3d_templates).
+Die Vergleiche mit realen Daten beziehen sich auf die Bearbeitung von Hand, nicht auf eine unabhängige Kontrolle. Rückmeldungen mit eigenen Netzen – gern mit unabhängigen Kontrollmessungen – sind ausdrücklich erwünscht.
 
+## Installation
 
-## System Requirements
+Zwei Wege, ausführlich in [docs/INSTALLATION.md](docs/INSTALLATION.md):
 
-JAG3D is written in the platform-independent programming language Java and, therefore, the software is runnable at each platform and operation system that provides a Java Runtime Environment (JRE) and the [JavaFX](https://openjfx.io). JavaFX is included to the provided bundles. Moreover, the windows download package of JAG3D contains [OpenJDK](https://openjdk.java.net). For that reason, neither Java nor the platform dependent FX extension must be provided by the windows operating system. To run JAG3D on other platforms such as Linux or MacOS, the platform dependent JRE must be installed at the operating system. The JRE can be found for several platforms at Oracles [download page](https://java.oracle.com) or at the [OpenJDK](https://openjdk.java.net)-project pages.
+- **Fertiges Programm (Windows):** unter [Releases](https://github.com/htw9056/jag3d-klein-methode/releases/latest) die Datei `JAG3D_Klein_Methode_V1.00_RC3_Windows.zip` herunterladen, entpacken und `jag3d.exe` starten. Das Paket enthält JAG3D mit der Klein'schen Methode samt Java – keine Installation nötig.
+- **Aus den Quellen bauen:** Dieses Repository ist ein Fork von [applied-geodesy/jag3d](https://github.com/applied-geodesy/jag3d) mit bereits eingebauter Erweiterung. Repository herunterladen, den Ordner `JAG3D` in Eclipse importieren, übersetzen und als JAR exportieren.
 
+Getestet mit JAG3D v20260622 und Java 21 bzw. dem mitgelieferten OpenJDK.
 
-## Support, Training and Installation
+## Aufbau dieses Repositorys
 
-JAG3D is a portable least-squares software package - no need to install or uninstall. Just [download the latest version](https://github.com/applied-geodesy/jag3d/releases/latest), unpack and run. The JAG3D manual is organized by a [Wiki](https://software.applied-geodesy.org/wiki/). Training videos are compiled in a [playlist](https://www.youtube.com/playlist?list=PLyOqiH7SWWC94Zmi5TVT7ClDqQWNrjbJ1). Moreover, a [support forum](https://software.applied-geodesy.org/forum/) is available for technical support. 
+| Ordner / Datei | Inhalt |
+|---|---|
+| `JAG3D` | JAG3D-Quelltext (Fork von applied-geodesy/jag3d) mit eingebauter Erweiterung |
+| `JAG3D/src/org/applied_geodesy/klein_method` | Quelltext der Erweiterung (28 Klassen), Hilfe (7 Sprachen), Oberflächentexte (6 Sprachen) |
+| `JAG3D/src/org/applied_geodesy/jag3d/ui/…` | vier angepasste JAG3D-Dateien, die den Reiter einbinden (siehe `NOTICE.md`) |
+| `schwarmwissen` | optionaler Austausch von Erfahrungswerten: Vermittlungsdienst (Cloudflare Worker), GitHub-Action, Auswerteskript, Anleitungen |
+| `docs` | Installation, Fachwörterbuch, Screenshot |
+| `LICENSE` | GNU General Public License v3 |
+| `NOTICE.md` | Urheber, Herkunft und Änderungen |
 
+Das ursprüngliche JAG3D mit seiner Beschreibung: [applied-geodesy/jag3d](https://github.com/applied-geodesy/jag3d).
 
-### International Course on Engineering Surveying 2026
+## Lizenz und Urheber
 
-The method of least-squares developed by Gauss is one of the most important analytical tools in geodesy and metrology for ensuring accurate and reliable data analysis and results. In modern engineering geodesy, it plays a crucial role in analyzing both planned and existing geodetic networks as well as in verifying their congruence. Beside the coordinates of a network, the method provides the dispersion of the estimated parameters and essential quantities for quality evaluation.
-At the *21th International Course on Engineering Surveying*, the principles of geodetic network adjustment are recapitulated within the specific tutorial named _network analysis_. The conference will be held at TU Graz from February 10 to 13, 2026 - save the date. The network analysis tutorial offers a practical introduction to the fundamentals of adjustment calculations. Through guided case studies, participants will explore how adjustment methods work and gain a deeper understanding of the key parameters involved. Based on this knowledge, the congruence of networks is evaluated within the framework of deformation analysis. Moreover, the tutorial demonstrates how the adjustment results can be integrated into existing workflows and further processed. For the practical part, the powerful open source least-squares software package Java·Applied·Geodesy·3D is used. 
-Join fellow users, get hands-on experience with JAG3D, get directly in touch with the developer, and expand your professional network during the [Course on Engineering Surveying](https://ingenieurvermessungskurs.com/tutorium-netzanalyse/). See you soon in Graz!
+- **Klein'sche Methode** (Ordner `JAG3D/src/org/applied_geodesy/klein_method`, `schwarmwissen`, `docs`): © Dipl.-Ing. (FH) Stefan Klein, veröffentlicht unter der **GNU General Public License v3**.
+- **JAG3D**: © Michael Lösler, [software.applied-geodesy.org](https://software.applied-geodesy.org), GNU GPL v3. Alle übrigen Dateien im Ordner `JAG3D` stammen aus JAG3D; vier davon wurden für die Einbindung geändert, die Änderung ist in jeder dieser Dateien vermerkt.
 
-[![International Course on Engineering Surveying](https://raw.githubusercontent.com/applied-geodesy/jag3d/master/.images/ingenieurvermessung26.png?raw=true "International Course on Engineering Surveying 2026")](https://ingenieurvermessungskurs.com/)
+Die Software wird ohne jede Gewährleistung bereitgestellt (siehe LICENSE). Ergebnisse sind vor ihrer Verwendung fachlich zu prüfen.
 
+---
 
-### International Course on Engineering Surveying 2023
+### English summary
 
-Diagnosis adjustment of planned networks as well as the analysis of existing geodetic networks by means of least-squares adjustment is a principal task in geodetic and metrological sciences such as surveying engineering. The network adjustment yields not only the estimated coordinates and the related fully populated dispersion but also parameters to evaluate the reliability of the network. At the *20th International Course on Engineering Surveying*, the principles of geodetic network adjustment were recapitulated within the specific tutorial named network analysis. The conference was held at ETH Zurich from April 11 to 14, 2023. The open source least-squares software package Java·Applied·Geodesy·3D was used to analyse local terrestrial networks, to interpret the adjustment results, and to evaluate network reliability. The principles of Baarda's DIA approach for detection, identification and adaptation of misspecified models were generalised and applied to evaluate network deformations. In complex analysis procedures, the network adjustment is only a cog in the wheel. For that reason, interfaces for data exchange and processing of adjustment results in external applications was addressed.
-
-[![International Course on Engineering Surveying](https://raw.githubusercontent.com/applied-geodesy/jag3d/master/.images/ingenieurvermessung23.png?raw=true "International Course on Engineering Surveying 2023")](https://ingenieurvermessungskurs.com/)
-
-
-
-# References
-
-- Lösler, M., Eschelbach, C., Mähler, S., Guillory, J., Truong, D., Wallerand, J.-P.: Operator-Software Impact in Local Tie Networks: Case study at Geodetic Observatory Wettzell. Applied Geomatics, 15, pp. 77-95, 2023. [10.1007/s12518-022-00477-5](https://doi.org/10.1007/s12518-022-00477-5)
-
-- Heißelmann, D., Franke, M.: Java·Applied·Geodesy·3D - Evaluation software based on least-squares method for coordinate measuring machines. Traceability for Computational-Intensive Metrology, No. Y4QG8HDUOS76HT5S, Physikalisch-Technische Bundesanstalt, Braunschweig, 2023. [10.5281/zenodo.8217114](https://doi.org/10.5281/zenodo.8217114)
-
-- Lösler, M.: Evaluation of Compatibility among Network Adjustment Software - Results from the JAG3D software package. Data-Set, 2023. [10.5281/zenodo.7468733](https://doi.org/10.5281/zenodo.7468733)
-
-- Durand, S., Lösler, M., Jones, M., Cattin, P.-H., Guillaume, S., Morel, L.: Quantification of the dependence of the results on several network adjustment applications. In: García-Asenjo, L., Lerma, J. L. (eds.): 5th Joint International Symposium on Deformation Monitoring (JISDM), Editorial Universitat Politècnica de València, Spain, pp. 69-77, 2022. [10.4995/JISDM2022.2022.13671](https://doi.org/10.4995/JISDM2022.2022.13671)
-
-- Herrmann, C., Lösler, M., Bähr, H.: Comparison of SpatialAnalyzer and Different Adjustment Programs. In: Kutterer, H., Seitz, F., Schmidt, M. (eds.): Proceedings of the 1st International Workshop on the Quality of Geodetic Observation and Monitoring Systems (QuGOMS'11) International Association of Geodesy Symposia, Vol. 140, Springer, pp. 79-84, 2015. DOI: [10.1007/978-3-319-10828-5_12](https://doi.org/10.1007/978-3-319-10828-5_12)
-
-- Lösler, M., Bähr, H.: Vergleich der Ergebnisse verschiedener Netzausgleichungsprogramme. In: Zippelt, K. (ed.): Vernetzt und ausgeglichen - Festschrift zur Verabschiedung von Prof. Dr.-Ing. habil. Dr.-Ing. E.h. Günter Schmitt, KIT Scientific Publishing, pp. 205-214, 2010. DOI: [10.5445/KSP/1000020074](https://doi.org/10.5445/KSP/1000020074)
+*Klein'sche Methode* is an **unofficial extension** of the least-squares adjustment software [JAG3D](https://software.applied-geodesy.org) by Dipl.-Ing. (FH) Stefan Klein. It calibrates the stochastic model automatically and traceably in three stages (free, dynamic with analysis of connection points, fixed): iterative variance component estimation with lower bounds, followed by robust down-weighting of individual observations until every observation passes its test (|logPost| ≤ 2.45). It also condenses GNSS mass baselines, checks imports, handles height grids and NTv2 grids, exports coordinates in many systems and shows the network on OpenStreetMap. User interface and help are available in seven languages. Licensed under GNU GPL v3; not developed or supported by the author of JAG3D.

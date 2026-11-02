@@ -18,6 +18,12 @@
 * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            *
 *                                                                      *
 ***********************************************************************/
+/*
+ * GEAENDERTE DATEI aus JAG3D (Java Applied Geodesy 3D) von Michael Loesler, https://software.applied-geodesy.org
+ * Geaendert 2025/2026 von Dipl.-Ing. (FH) Stefan Klein fuer die Erweiterung "Klein'sche Methode":
+ * Anbindung des Reiters "Klein'sche Methode". Lizenz unveraendert: GNU GPL v3 (siehe LICENSE).
+ */
+
 
 package org.applied_geodesy.jag3d.ui.dialog;
 
@@ -34,6 +40,7 @@ import org.applied_geodesy.jag3d.sql.PointTypeMismatchException;
 import org.applied_geodesy.jag3d.sql.SQLManager;
 import org.applied_geodesy.jag3d.sql.UnderDeterminedPointException;
 import org.applied_geodesy.jag3d.ui.tree.UITreeBuilder;
+import org.applied_geodesy.klein_method.Klein_Method;
 import org.applied_geodesy.ui.dialog.OptionDialog;
 import org.applied_geodesy.jag3d.ui.i18n.I18N;
 import org.applied_geodesy.version.jag3d.DatabaseVersionMismatchException;
@@ -88,29 +95,57 @@ public class NetworkAdjustmentDialog {
 
 				SQLManager.getInstance().checkNumberOfObersvationsPerUnknownParameter();
 
-				this.adjustment = this.dataBaseManager.getNetworkAdjustment();
-				this.updateProgressOnIterate = !(this.adjustment.getEstimationType() == EstimationType.SPHERICAL_SIMPLEX_UNSCENTED_TRANSFORMATION || this.adjustment.getEstimationType() == EstimationType.MODIFIED_UNSCENTED_TRANSFORMATION);
-				this.finalStepProcesses = 0.25 / (this.adjustment.hasAdjustmentResultWriter() ? 5.0 : 4.0);
-				this.adjustment.addPropertyChangeListener(this);
+				// Absicherung: dasselbe Lock wie Klein_Method.java verwendet,
+				// damit sich unser eigener Hintergrund-F5, diese manuelle
+				// Netzausgleichung (F5 / "Netzausgleichung starten") und die
+				// Klein_Method-Automatik niemals gleichzeitig auf dieselbe
+				// Projektdatenbank stuerzen. ReentrantLock statt synchronized,
+				// damit z.B. eine wartende Automatik hier sauber blockiert
+				// und danach automatisch weiterlaeuft.
+				Klein_Method.getAdjustmentLock().lock();
+				try {
+					long klein_Method_GuardianStartMillis = System.currentTimeMillis();
 
-				this.processState = 0.0;
-				this.updateProgress(this.processState, 1.0);
+					this.adjustment = this.dataBaseManager.getNetworkAdjustment();
+					this.updateProgressOnIterate = !(this.adjustment.getEstimationType() == EstimationType.SPHERICAL_SIMPLEX_UNSCENTED_TRANSFORMATION || this.adjustment.getEstimationType() == EstimationType.MODIFIED_UNSCENTED_TRANSFORMATION);
+					this.finalStepProcesses = 0.25 / (this.adjustment.hasAdjustmentResultWriter() ? 5.0 : 4.0);
+					this.adjustment.addPropertyChangeListener(this);
 
-				if (this.isCancelled())
-					return EstimationStateType.INTERRUPT;
+					this.processState = 0.0;
+					this.updateProgress(this.processState, 1.0);
 
-				EstimationStateType returnType = this.adjustment.estimateModel();
+					if (this.isCancelled())
+						return EstimationStateType.INTERRUPT;
 
-				if (this.isCancelled())
-					return EstimationStateType.INTERRUPT;
+					EstimationStateType returnType = this.adjustment.estimateModel();
 
-				this.updateProgress(ProgressIndicator.INDETERMINATE_PROGRESS, ProgressIndicator.INDETERMINATE_PROGRESS);
-				this.updateMessage(i18n.getString("NetworkAdjustmentDialog.save.label", "Save results\u2026"));
-				this.updateIterationProgressMessage(i18n.getString("NetworkAdjustmentDialog.pleasewait.label", "Please wait\u2026"));
-				this.updateConvergenceProgressMessage(null);
-				this.dataBaseManager.saveResults();
-				this.dataBaseManager.clear();
-				return returnType;
+					if (this.isCancelled())
+						return EstimationStateType.INTERRUPT;
+
+					this.updateProgress(ProgressIndicator.INDETERMINATE_PROGRESS, ProgressIndicator.INDETERMINATE_PROGRESS);
+					this.updateMessage(i18n.getString("NetworkAdjustmentDialog.save.label", "Save results\u2026"));
+					this.updateIterationProgressMessage(i18n.getString("NetworkAdjustmentDialog.pleasewait.label", "Please wait\u2026"));
+					this.updateConvergenceProgressMessage(null);
+					this.dataBaseManager.saveResults();
+					this.dataBaseManager.clear();
+
+					// Waechter (Klein_Method_Guardian) misst laut Vorgabe JEDE
+					// Netzausgleichung, egal ob manuell (hier) oder automatisch
+					// ausgeloest (siehe Klein_Method.runHeadlessAdjustmentSynchronously()).
+					try {
+						long klein_Method_GuardianDurationMillis = System.currentTimeMillis() - klein_Method_GuardianStartMillis;
+						long klein_Method_GuardianObservationCount = Klein_Method.getInstance().getDatabaseHandler().readObservationCount();
+						Klein_Method.getInstance().getGuardian().recordMeasurement(klein_Method_GuardianDurationMillis, klein_Method_GuardianObservationCount);
+						javafx.application.Platform.runLater(() -> Klein_Method.getInstance().refreshGuardianAppearance());
+					} catch (Exception klein_Method_GuardianException) {
+						// reine Zusatzfunktion - darf das eigentliche Ausgleichungsergebnis nicht beeinflussen
+					}
+
+					return returnType;
+				}
+				finally {
+					Klein_Method.getAdjustmentLock().unlock();
+				}
 			}
 			finally {
 				this.destroyNetworkAdjustment();
@@ -334,6 +369,24 @@ public class NetworkAdjustmentDialog {
 	private NetworkAdjustmentDialog() {}
 
 	public static void show() {
+		// User-Vorgabe: solange der Klein_Method-Tab geoeffnet/ausgewaehlt ist
+		// (auch wenn gerade nichts laeuft), sind "Netzausgleichung starten"
+		// UND die F5-Taste gesperrt - BEIDE laufen ueber diesen einen
+		// Einstiegspunkt, daher reicht die Pruefung genau hier. Klein_Method
+		// fuehrt ohnehin bei jedem Tab-Oeffnen und jeder Automatik-Iteration
+		// selbst ein Hintergrund-F5 aus, ein manuelles F5 waere redundant und
+		// koennte durch den sichtbaren Dialog nur verwirren.
+		if (Klein_Method.getInstance().isKleinMethodTabActive()) {
+			OptionDialog.showInformationDialog(
+					"Klein_Method - Netzausgleichung gesperrt",
+					"Netzausgleichung ist gesperrt, solange Klein_Method aktiv ist",
+					"Solange der Klein_Method-Tab ge\u00F6ffnet ist, f\u00FChrt Klein_Method die Netzausgleichung selbst\u00E4ndig "
+					+ "im Hintergrund aus. Bitte verlassen Sie den Klein_Method-Tab, um die Netzausgleichung manuell "
+					+ "(F5 / \"Netzausgleichung starten\") auszuf\u00FChren."
+					);
+			return;
+		}
+
 		adjustmentDialog.init();
 		adjustmentDialog.reset();
 
@@ -440,6 +493,7 @@ public class NetworkAdjustmentDialog {
 	private void process() {
 		this.reset();
 
+		Klein_Method.getInstance().setValidAdjustmentResultsAvailable(false);
 		this.adjustmentTask = new AdjustmentTask(SQLManager.getInstance().getAdjustmentManager());
 		this.adjustmentTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
@@ -481,9 +535,16 @@ public class NetworkAdjustmentDialog {
 						break;
 
 					default:
-//						System.out.println(NetworkAdjustmentDialog.class.getSimpleName() + " Fishied " + result);
+						if (result == EstimationStateType.ERROR_FREE_ESTIMATION)
+							Klein_Method.getInstance().setValidAdjustmentResultsAvailable(true);
 						break;
 					}
+
+					// Bei JEDEM Nicht-Erfolg (egal welcher Fall oben) Klein_Method
+					// benachrichtigen - falls der Klein_Method-Tab gerade aktiv ist,
+					// wird er automatisch verlassen und gesperrt (siehe dort).
+					if (result != EstimationStateType.ERROR_FREE_ESTIMATION)
+						Klein_Method.getInstance().handleFailedAdjustment(result);
 				}
 				UITreeBuilder.getInstance().handleTreeSelections();
 			}

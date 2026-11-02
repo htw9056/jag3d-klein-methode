@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<!-- V1.00 RC3 Klein_Method - Hilfe (tschechisch) -->
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klein_Method – Nápověda</title>
+<style>
+  :root { --text:#1d2430; --muted:#5b6575; --line:#d9dee6; --accent:#1565c0; --bg:#ffffff; --box:#f4f7fb; --warn:#fff6e5; --warnline:#e6a700; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--text); background: var(--bg); margin: 0; line-height: 1.5; }
+  header { background: #12345a; color: #fff; padding: 18px 28px; }
+  header h1 { margin: 0; font-size: 1.6em; }
+  header p { margin: 4px 0 0; color: #c9d6e8; }
+  header .lang a { color: #ffffff; }
+  header .lang b { color: #ffffff; }
+  .wrap { display: flex; max-width: 1200px; margin: 0 auto; }
+  nav { width: 270px; flex: none; padding: 18px; border-right: 1px solid var(--line); position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; font-size: 0.93em; }
+  nav a { display: block; color: var(--text); text-decoration: none; padding: 3px 0; }
+  nav a:hover { color: var(--accent); }
+  nav .sub { padding-left: 14px; color: var(--muted); }
+  main { padding: 10px 32px 60px; flex: 1; min-width: 0; }
+  h2 { border-bottom: 2px solid var(--line); padding-bottom: 4px; margin-top: 2.2em; }
+  h3 { margin-bottom: 0.3em; }
+  .ver { display: inline-block; font-size: 0.75em; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; margin-left: 8px; vertical-align: middle; }
+  .box { background: var(--box); border-left: 4px solid var(--accent); padding: 10px 14px; margin: 12px 0; }
+  .warn { background: var(--warn); border-left: 4px solid var(--warnline); padding: 10px 14px; margin: 12px 0; }
+  .where { color: var(--muted); font-size: 0.92em; }
+  table { border-collapse: collapse; margin: 10px 0; }
+  td, th { border: 1px solid var(--line); padding: 5px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--box); }
+  code { background: var(--box); padding: 1px 4px; border-radius: 3px; }
+  pre { background: var(--box); border: 1px solid var(--line); padding: 8px 12px; overflow-x: auto; font-size: 0.9em; margin: 4px 0 10px; }
+  h4 { margin: 1.1em 0 0.2em; }
+  ol li, ul li { margin: 3px 0; }
+  @media (max-width: 800px) { .wrap { display: block; } nav { width: auto; position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Klein_Method – Nápověda</h1>
+  <p>Rozšíření „Kleinova metoda“ pro JAG3D · Nápověda k verzi V1.00 RC3 · první vydání (doplňuje se s každou verzí)</p>
+  <p class="lang"><a href="Klein_Method_Hilfe_de.html">Deutsch</a> · <a href="Klein_Method_Hilfe_en.html">English</a> · <a href="Klein_Method_Hilfe_pl.html">Polski</a> · <b>Čeština</b> · <a href="Klein_Method_Hilfe_fr.html">Français</a> · <a href="Klein_Method_Hilfe_es.html">Español</a> · <a href="Klein_Method_Hilfe_pt.html">Português</a></p>
+</header>
+<div class="wrap">
+<nav>
+  <a href="#workflow"><b>0. Krok za krokem: data a import</b></a>
+  <a href="#ablauf">1. Typický postup</a>
+  <a href="#import">2. Import a převod do místního systému</a>
+  <a href="#naeherung">3. Přibližné souřadnice</a>
+  <a href="#mittel">4. Průměrování (JAG3D)</a>
+  <a href="#sitzungen">5. Opakovaná měření (nadváha)</a>
+  <a href="#automatik">6. Automatický běh a kalibrace</a>
+  <a href="#grob">7. Hrubé chyby</a>
+  <a href="#stuetzung">8. Podpora GNSS na okraji sítě</a>
+  <a href="#planung">9. Prognóza a plánování měření</a>
+  <a href="#hoehen">10. Výšky a kvazigeoid</a>
+  <a href="#export">11. Export souřadnic</a>
+  <a href="#karte">12. Mapa (OpenStreetMap)</a>
+  <a href="#protokoll">13. Protokol, log a zprávy</a>
+  <a href="#fehler">14. Problémy a řešení</a>
+  <a class="sub" href="#fziel">Mnoho zenitových úhlů „hrubě chybných“</a>
+  <a class="sub" href="#f200">200 gon při průměrování</a>
+  <a class="sub" href="#fdrift">Okraj sítě „ujíždí“</a>
+  <a class="sub" href="#fz">Z není výška</a>
+  <a class="sub" href="#fsperre">Zámek horní meze</a>
+  <a class="sub" href="#fneustart">Tvar sítě po změně zkreslen</a>
+  <a href="#begriffe">15. Pojmy</a>
+  <a href="#versionen">16. Historie verzí</a>
+</nav>
+<main>
+
+<div class="box"><p style="margin:0">Aktuální verze: <b>V1.00 RC3</b>. Co je nového a celý vývoj: <a href="#versionen">kapitola 16 Historie verzí</a>.</p></div>
+
+<h2 id="workflow">0. Krok za krokem: příprava a import dat (1D, 2D, 3D) <span class="ver">V0.472</span></h2>
+<p>Tato kapitola vysvětluje, <b>co</b> patří do kterého souboru, <b>jak</b> vypadá každý řádek, <b>jaký systém</b> platí a <b>v jakém pořadí</b> klikat v JAG3D a Klein_Method. Ukázkové řádky pocházejí z testovacích dat Klein_Method (sady 01 a 05) – lze je tam sledovat 1:1. Kdo dodrží pravidla, nemá chyby systému. (Názvy nabídek JAG3D jsou uvedeny anglicky.)</p>
+<h3 id="wf-regeln">Zlatá pravidla</h3>
+<div class="warn"><ol><li><b>Jeden projekt = jeden souřadnicový systém.</b> Buď jsou <i>všechny</i> soubory ve WGS84 (geocentricky, u bodů 1D UTM/zeměpisně) a Klein_Method převede vše společně do místního systému – <i>nebo</i> jsou všechny soubory už místní a vytvořené se <i>stejným</i> P0. <b>Nikdy</b> nepřevádět jednotlivé soubory předem vlastním nástrojem nebo s jiným P0: body pak leží kilometry vedle a výšky jsou chybné o metry až desítky metrů.</li><li><b>Jeden výškový systém.</b> GNSS dává elipsoidické výšky (ETRS89). Výšky NHN (výškové body) se po importu převedou přes <i>Spravovat kvazigeoidy … → Přepočítat výškové body …</i> (GCG2016). Čistě terestrické sítě bez GNSS zůstávají celé v NHN.</li><li><b>Vždy dodat výšku přístroje a cíle</b> (sloupce 3 a 4 tachymetrických souborů). Výška cíle 0 jen při zacílení přímo na značku.</li><li><b>Jednotky:</b> úhly v gonech, délky a výšky v metrech (JAG3D: <i>Properties → Formatter preferences</i>). Desetinná tečka, bez oddělovačů tisíců; sloupce oddělené mezerou nebo tabulátorem.</li><li><b>Nemíchat druhy bodů:</b> v jednom vyrovnání buď pevné body, <i>nebo</i> body data – jinak JAG3D skončí hlášením „reference points as well as datum points“. Všechny určované body jsou nové body.</li><li><b>Názvy bodů</b> musí být ve všech souborech napsány stejně (bez mezer; „1001“ není „01001“).</li><li><b>Teprve když zpráva o importu neukazuje červenou</b>, odstraňovat hrubé chyby a spustit automatiku.</li></ol></div>
+<h3 id="wf-art">Jakou konstelaci mám?</h3>
+<table>
+<tr><th>Konstelace</th><th>Měření</th><th>Souřadnice dodat jako</th><th>Zobrazení v JAG3D</th><th>Převod Klein_Method</th></tr>
+<tr><td><b>A – 1D nivelace</b></td><td>Leveling data</td><td>Výškové body: název, výška (poloha volitelně)</td><td>libovolné (místní kartézské)</td><td>ne</td></tr>
+<tr><td><b>B – 2D poloha</b></td><td>Směry, vodorovné délky</td><td>Y/X v UTM nebo Gauss-Krüger, nebo místně</td><td>UTM nebo Gauss-Krüger (s redukcemi) nebo místní kartézské</td><td>ne</td></tr>
+<tr><td><b>C – 3D terestrická</b> (tachymetr, případně nivelace)</td><td>Směry, šikmé délky, zenitové úhly (+ nivelace)</td><td>místně: východ, sever, výška (např. 200000 / 400000 / NHN)</td><td>místní kartézské</td><td>ne (od V0.468 jen s GNSS)</td></tr>
+<tr><td><b>D – 3D GNSS</b></td><td>Základnice GNSS 3D</td><td>geocentricky X/Y/Z (WGS84/ETRS89)</td><td>automaticky „místní elipsoidické“</td><td>ano, po kliknutí na kartu</td></tr>
+<tr><td><b>E – 3D kombinovaná</b> (GNSS + tachymetr + nivelace)</td><td>všechna výše uvedená</td><td>body 3D geocentricky; výškové body 1D s polohou UTM/zeměpisně a výškou NHN</td><td>automaticky „místní elipsoidické“</td><td>ano – vše s jedním P0, pak přepočítat výškové body</td></tr>
+</table>
+<p>Pravidlo: <b>jakmile jsou v projektu základnice GNSS, dodat vše ve WGS84</b> (konstelace D nebo E). Bez GNSS (A–C) Klein_Method nemění ani zobrazení, ani souřadnice.</p>
+<h3 id="wf-beispiele">Ukázková data ke stažení <span class="ver">V0.473</span></h3>
+<p>Pro každou konstelaci je úplný příklad jako ZIP: <b>surová data</b> ve správném formátu, soubor <b>LIESMICH</b> (německy: který soubor do které nabídky importu, systém, postup), <b>skutečné souřadnice</b> a <b>výsledky</b> běhu (zpráva o importu, protokol Klein_Method, vyrovnané souřadnice, srovnání se skutečnými). Sítě jsou syntetické – skutečné souřadnice jsou známé, vlastní výsledek lze tedy hned zkontrolovat.</p>
+<table>
+<tr><th>ZIP</th><th>Výsledek v testovacím prostředí – body / RMS (max) v mm</th></tr>
+<tr><td><a href="Klein_Method_Beispiel_A_1D_Nivellement.zip" download>A – 1D nivelace</a></td><td>14 / H 0,5 (1,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_B_2D_Lage.zip" download>B – 2D poloha</a></td><td>22 / O 1,8 (4,4) · N 2,8 (4,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip" download>C – 3D tachymetr + nivelace</a></td><td>25 / O 1,3 (3,7) · N 2,9 (5,8) · H 3,1 (11,6)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_D_3D_GNSS.zip" download>D – 3D GNSS</a></td><td>10 / O 0,8 (1,5) · N 1,2 (2,2) · H 1,3 (2,5)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_E_3D_GNSS_Tachymeter_Nivellement.zip" download>E – 3D GNSS + tachymetr + nivelace</a></td><td>22 / O 1,3 (2,5) · N 1,4 (3,3) · H 2,1 (7,6)</td></tr>
+</table>
+
+<h3 id="bsp508">Příklad C: očekávané hodnoty ze skutečného rozhraní JAG3D <span class="ver">V0.508</span></h3>
+<p class="where">Kapitola 0 · ukázková data · Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip</p>
+<p>Dosavadní hodnoty příkladu C (sever 1,4 mm) pocházely ze staršího testovacího prostředí bez rozhraní JAG3D a v JAG3D nebyly dosažitelné – ani s V0.473. Tabulka, LIESMICH a složka výsledků nyní ukazují výpočet s V0.508 v JAG3D.</p>
+<ul>
+  <li>Volné vyrovnání: východ 1,3 mm, sever 2,9 mm, výška 3,1 mm RMS. Sever je v průměru posunut asi o 2 mm, protože volné řešení je uloženo na chybami zatížených bodech data G1–G4.</li>
+  <li>Dynamické a pevné vyrovnání: sever 1,4–1,5 mm RMS.</li>
+</ul>
+<h3 id="wf-format">Formáty souborů – každý řádek vysvětlen</h3>
+<p>Jeden řádek = jeden bod nebo jedno měření. Pořadí sloupců přesně podle uvedení. Import v JAG3D přes nabídku <i>Import</i> → podnabídka (v závorce).</p>
+<h4>Souřadnice</h4>
+<h4>Výškové body 1D s polohou (Import → Reference points → Reference points 1D nebo Datum points → Datum points 1D)</h4>
+<p class="where">Název · Y (UTM se zónou, zde 32…) · X · výška [m] (NHN nebo elipsoidická)</p>
+<pre>H1   32584582.4967   5549719.1388   233.7806
+H2   32587129.2665   5549910.0463   281.5391
+H3   32585905.5472   5551389.9556   254.9403</pre>
+<p>Klein_Method potřebuje polohu, aby správně umístil výšku v místním systému (zakřivení Země) a zkontroloval polohu vůči délkám záměr. Povoleno: UTM (se zónou i bez), Gauss-Krüger nebo zeměpisně (sloupec 2 = délka, sloupec 3 = šířka ve stupních). <b>Nepoužívat</b> vlastnoručně převedenou místní polohu s jiným P0.</p>
+<h4>Výškové body 1D bez polohy (jen čisté nivelační sítě, konstelace A)</h4>
+<p class="where">Název · výška [m]</p>
+<pre>H1   233.7806
+H2   281.5391
+H3   254.9403</pre>
+
+<h4>Nové body 1D: přestavové body a stanoviska (Import → New points → New points 1D)</h4>
+<p class="where">Název · Y · X · výška (0 = neznámá)</p>
+<pre>WP001        32584779.2317   5549707.0706   0.0000
+WP002        32584956.5727   5549690.2741   0.0000
+WP003        32585278.5982   5549719.0279   0.0000
+0001_H1                  0              0        0
+0002_WP001               0              0        0</pre>
+<p>Poloha 0/0 je povolena – po kliknutí na kartu Klein_Method tyto body automaticky umístí doprostřed jejich nivelačních sousedů (stanovisko mezi záměrou vzad a vpřed, přestavový bod mezi postaveními; rovnoměrně podél linie mezi body s polohou). Výška zůstává beze změny; výsledky nivelace na tom nezávisí.</p>
+<h4>Body 2D (Import → … → Reference points 2D / New points 2D)</h4>
+<p class="where">Název · Y (východ) · X (sever) [m]</p>
+<pre>G1   198500.0000   399000.0000
+G2   201550.0000   399050.0000
+G3   201450.0000   401050.0000
+G4   198600.0000   401000.0000
+N1   199100.4214   399600.8022</pre>
+<p>Y vždy první. V UTM/Gauss-Krüger s odpovídajícím zobrazením v JAG3D, místně s „Local Cartesian system“.</p>
+<h4>Body 3D místní (konstelace C; Import → … → Reference points 3D / New points 3D)</h4>
+<p class="where">Název · východ · sever · výška [m]</p>
+<pre>G1   198500.0000   399000.0000   227.7836
+G2   201550.0000   399050.0000   276.5384
+G3   201450.0000   401050.0000   274.6342
+G4   198600.0000   401000.0000   228.1030
+N1   199100.4214   399600.8022   240.3806</pre>
+<p>Východ/sever s aditivními konstantami (zde 200000/400000), výška NHN. Nové body mohou mít hrubé přiblížení nebo 0.</p>
+<h4>Body 3D geocentrické WGS84/ETRS89 (konstelace D, E; Import → … → Reference points 3D / Datum points 3D / New points 3D)</h4>
+<p class="where">Název · <b>Y</b> · <b>X</b> · Z [m] – pozor: <b>Y před X</b> (pořadí JAG3D)</p>
+<pre>G1   724615.1056   4035713.8466   4869464.5420
+G2   727616.3120   4035166.6365   4869534.0197
+G3   727245.4063   4033673.1226   4870815.5017
+G4   724442.3891   4034186.1428   4870747.7322
+N1   725126.7189   4035163.7138   4869858.9140</pre>
+<p>Ve střední Evropě Y ≈ 0,5–1,5 mil., X ≈ 3,8–4,2 mil., Z ≈ 4,7–5,0 mil. Při prohození X a Y Klein_Method body nerozpozná jako geocentrické. Body 3D <b>nedodávat</b> v UTM, je-li v projektu GNSS.</p>
+<p>Volitelně mohou za souřadnicemi stát směrodatné odchylky (1D: σH; 2D: σY σX; 3D: σY σX σZ). Bez nich platí hodnoty skupiny.</p>
+<h4>Měření</h4>
+<h4>Vodorovné směry (Import → Terrestrial observations → Direction sets)</h4>
+<p class="where">Stanovisko · cíl · výška přístroje [m] · výška cíle [m] · směr [gon] · délka [m]</p>
+<pre>N1   G1    1.397   1.560   189.66844   848.720
+N1   N2    1.397   1.503    60.13831   632.605
+N1   N6    1.397   1.328   360.14247   790.614
+N1   T01   1.397   1.389   289.66003   353.579
+N1   T02   1.397   1.531   106.60564   403.140</pre>
+<p>Jedno stanovisko = jedna osnova směrů (jedna neznámá orientace). Délka na konci je přiblížení pro přesnost – u směrů není povinná.</p>
+<h4>Vodorovné délky (Import → … → Horizontal distances; hlavně 2D)</h4>
+<p class="where">Stanovisko · cíl · výška přístroje · výška cíle · vodorovná délka [m]</p>
+<pre>N1   G1    1.397   1.560   848.5292
+N1   N2    1.397   1.503   632.4572
+N1   N6    1.397   1.328   790.5704
+N1   T01   1.397   1.389   353.5511
+N1   T02   1.397   1.531   403.1152</pre>
+<p>Ve 3D sítích místo toho použít šikmé délky a zenitové úhly.</p>
+<h4>Šikmé délky (Import → … → Slope distances)</h4>
+<p class="where">Stanovisko · cíl · výška přístroje · výška cíle · šikmá délka [m]</p>
+<pre>N1   G1    1.397   1.560   848.7214
+N1   N2    1.397   1.503   632.6066
+N1   N6    1.397   1.328   790.6146
+N1   T01   1.397   1.389   353.5766
+N1   T02   1.397   1.531   403.1419</pre>
+
+<h4>Zenitové úhly (Import → … → Zenith angles)</h4>
+<p class="where">Stanovisko · cíl · výška přístroje · výška cíle · zenitový úhel [gon] · délka [m]</p>
+<pre>N1   G1    1.397   1.560   101.00937   848.720
+N1   N2    1.397   1.503    99.04468   632.605
+N1   N6    1.397   1.328    99.63233   790.614
+N1   T01   1.397   1.389   100.26453   353.579
+N1   T02   1.397   1.531   100.14426   403.140</pre>
+<p>Poloha I (pod 200 gon). Výšky přístroje a cíle musí odpovídat šikmým délkám – chybějící výšky cíle jsou nejčastější chybou (viz <a href="#fziel">chybový obraz</a>).</p>
+<h4>Nivelace (Import → … → Leveling data)</h4>
+<p class="where">Od (stanovisko) · do (cílový bod) · převýšení [m] = H(do) − H(od) · délka záměry [m]</p>
+<pre>0001_H1      H1      -2.44582   98.570
+0001_H1      WP001   -0.75429   98.570
+0002_WP001   WP001   -2.65508   89.083
+0002_WP001   WP002   -0.54535   89.083
+0003_WP002   WP002   -2.96676   88.508</pre>
+<p>Každé postavení je samostatný nový bod 1D (zde „0001_H1“): záměra vzad a vpřed jako dva řádky. Alternativně JAG3D přijímá 6 sloupců (od · do · výška přístroje · výška cíle · hodnota · délka záměry).</p>
+<h4>Základnice GNSS 3D (Import → GNSS baselines → GNSS baselines 3D)</h4>
+<p class="where">Počátek · konec · <b>dY</b> · <b>dX</b> · dZ [m] geocentricky (Y před X)</p>
+<pre>G1   G4   -172.7117   -1527.7059   1283.1907
+G1   G4   -172.7134   -1527.6957   1283.1912
+G1   N1    510.8132    -550.5477    395.3433
+G1   N1    510.8166    -550.5545    395.3328
+G1   N2   1129.6394    -499.7800    274.2554</pre>
+<p>Více relací téže základnice jsou samostatné řádky – Klein_Method je na přání sloučí (kapitola 5).</p>
+<p>Zkrácené formy: bez výšky přístroje a cíle stačí „stanovisko cíl hodnota“ – smysluplné jen ve 2D sítích, ve 3D pak chybí výšky.</p>
+<h3 id="wf-ablauf">Postup krok za krokem (konstelace E – úplný případ)</h3>
+<p class="where">Pro A–D platí stejné kroky bez nepotřebných souborů – rozdíly v další části.</p>
+<ol><li><i>Project → Create new project</i>. Nastavení zobrazení a redukcí <b>neměnit</b>.</li><li><i>Import → Reference points → Reference points 3D</i> (nebo <i>Datum points → Datum points 3D</i>): pevné body GNSS, geocentricky.</li><li><i>Import → New points → New points 3D</i>: všechny nové body 3D (GNSS i tachymetrické), geocentricky; přiblížení mohou být hrubá.</li><li><i>Import → GNSS baselines → GNSS baselines 3D</i>.</li><li><i>Import → Terrestrial observations</i>: Direction sets, Slope distances, Zenith angles – vždy s výškou přístroje a cíle.</li><li><i>Import → … → Reference points 1D</i> nebo <i>Datum points 1D</i>: výškové body s polohou (UTM nebo zeměpisně) a výškou NHN – <b>stejný druh bodu jako v kroku 2</b>.</li><li><i>Import → New points → New points 1D</i>: přestavové body a stanoviska (poloha 0/0 povolena); pak <i>Leveling data</i>.</li><li><b>Kliknout na kartu Klein_Method.</b> Na dotaz „Převést projekt do místního systému (ENh)?“ odpovědět <b>Převést</b> – všechny body, základnice a body 1D se převedou s jedním P0, zobrazení se stane „místní elipsoidické“.</li><li><i>Spravovat kvazigeoidy …</i> (na kartě Klein_Method): jednorázově importovat GCG2016, pak <b>Přepočítat výškové body …</b> (h = NHN + ζ).</li><li><b>Přečíst zprávu o importu</b> (při červené se objeví sama, jinak nabídka <i>Klein_Method → Zpráva o importu …</i>). Každý červený bod uvádí příčinu – nejprve odstranit, pak pokračovat. U „Poloha nových bodů 1D“ použít tlačítko <i>Převzít polohu …</i>.</li><li>Dotazy na <b>přibližné souřadnice</b> a <b>sloučení relací GNSS</b> zodpovědět podle doporučení.</li><li>Prohlédnout <i>Klein_Method → Předběžná kontrola hrubých chyb</i>, pak na kartě <b>Odstranit hrubé chyby</b> (kapitola 7).</li><li><b>Spustit automatiku</b> (kapitola 6) a na konci exportovat (kapitola 11).</li></ol>
+<h3 id="wf-anders">Rozdíly u ostatních konstelací</h3>
+<ul><li><b>A – 1D:</b> importovat jen výškové body (název, výška), nové body 1D a nivelaci. Bez převodu, výšky zůstávají NHN, bez kroku kvazigeoidu. Pokračovat krokem 10.</li><li><b>B – 2D:</b> body 2D, osnovy směrů a vodorovné délky. Před importem <i>Properties → Projection &amp; reductions</i>: zvolit UTM nebo Gauss-Krüger a redukce (místní síť: „Local Cartesian system“). Bez převodu Klein_Method.</li><li><b>C – 3D terestrická:</b> body 3D místně (východ, sever, NHN), směry, šikmé délky, zenitové úhly, případně nivelace. Zobrazení „místní kartézské“ – bez GNSS Klein_Method nic nemění. Pozor: místní kartézské počítá v rovině; u sítí nad cca 1 km působí zakřivení Země (1 km ≈ 8 cm, 3 km ≈ 70 cm) – pak raději zapojit GNSS nebo použít UTM/Gauss-Krüger.</li><li><b>D – 3D GNSS:</b> kroky 1–4 a 8, 10–13. Bez nivelace odpadá krok 9.</li><li><b>Soubory již převedené místně</b> (např. vlastním nástrojem): použít jen, pokud <i>všechny</i> vznikly se stejným P0. V pochybnostech importovat originály WGS84.</li></ul>
+<h3 id="wf-fehler">Typické chyby, účinek a řešení</h3>
+<table>
+<tr><th>Chyba</th><th>Co je vidět</th><th>Řešení</th></tr>
+<tr><td>Jeden soubor předem převeden do místního systému s jiným P0 nebo vlastním nástrojem</td><td>Zpráva o importu červeně „Poloha výškových bodů … jiný P0?“ (km místo m); výškový systém mimo o metry až desítky metrů</td><td>Všechny soubory ve WGS84, převod společně v Klein_Method</td></tr>
+<tr><td>Výšky NHN nepřevedeny (s GNSS)</td><td>Zpráva o importu červeně „Výškový systém“ o cca ζ (v Německu cca 36–50 m)</td><td><i>Spravovat kvazigeoidy … → Přepočítat výškové body …</i></td></tr>
+<tr><td>Chybí výšky cíle (0)</td><td>Velmi mnoho zenitových úhlů jako hrubé chyby (1,3–1,7 m); zpráva červeně „Výšky cíle“ / „Vzájemné zenitové úhly“</td><td>Měření znovu exportovat a importovat s výškami cíle – neodstraňovat</td></tr>
+<tr><td>Prohozené Y a X (geocentricky)</td><td>Převod nenabídnut, body „v jiném systému“</td><td>Pořadí sloupců název · Y · X · Z</td></tr>
+<tr><td>Body 3D v UTM místo geocentricky (s GNSS)</td><td>Přibližné souřadnice „jiný systém“, vyrovnání diverguje</td><td>Body 3D geocentricky (jen body 1D smí být v UTM)</td></tr>
+<tr><td>Úhly ve stupních místo gonů</td><td>Zpráva červeně „Jednotky … stupně jako gony?“</td><td>Nastavit formátování nebo export na gony</td></tr>
+<tr><td>Pevné body a body data smíchány</td><td>JAG3D: „reference points as well as datum points“</td><td>Všechny připojovací body jednoho druhu</td></tr>
+<tr><td>Různě napsané názvy bodů</td><td>Zpráva „body bez souřadnic“ nebo „bez měření“</td><td>Sjednotit názvy</td></tr>
+<tr><td>Nová data importována do staršího projektu (nebo jeho kopie)</td><td>Výškové body na 200000 / 400000 (P0) s chybnou výškou; zpráva červeně „P0 leží … km mimo síť“</td><td>Založit nový projekt (od V0.475 Klein_Method zastaralý P0 rozpozná sám)</td></tr>
+</table>
+
+<h2 id="ablauf">1. Typický postup</h2>
+<ol>
+  <li><b>Importujte data</b> jako obvykle v JAG3D (body, terestrická měření, GNSS vektory).</li>
+  <li><b>Otevřete projekt</b> – Klein_Method na pozadí zkontroluje, zda je nutný převod do místního systému, a nabídne jej (<a href="#import">kapitola 2</a>).</li>
+  <li><b>Vypočítejte a zkontrolujte přibližné souřadnice</b> (<a href="#naeherung">kapitola 3</a>) – především před průměrováním (<a href="#mittel">kapitola 4</a>).</li>
+  <li><b>Klikněte na kartu „Klein_Method“</b> – na pozadí proběhne vyrovnání; případně se sloučí GNSS seance (<a href="#sitzungen">kapitola 5</a>) a zobrazí se upozornění k podpoře GNSS (<a href="#stuetzung">kapitola 8</a>).</li>
+  <li><b>Odstraňte hrubé chyby</b>, pokud jsou podezřelé (<a href="#grob">kapitola 7</a>).</li>
+  <li><b>„Spustit Klein_Method“</b> – automatický běh kalibruje přesnosti (<a href="#automatik">kapitola 6</a>).</li>
+  <li><b>Prohlédněte prognózu a plánování měření:</b> kde je síť slabá, co by se mělo přeměřit? (<a href="#planung">kapitola 9</a>)</li>
+  <li><b>Exportujte souřadnice</b> v požadovaném souřadnicovém a výškovém systému (<a href="#export">kapitola 11</a>).</li>
+</ol>
+
+<h3 id="assistent">Průvodce postupem <span class="ver">V0.480</span></h3>
+<p class="where">Karta „Klein_Method“ → Řízení: „Průvodce postupem …“ · nabídka <i>Klein_Method → Průvodce postupem …</i></p>
+<p>Chyba v postupu (špatný souřadnicový systém, smíšené výšky NHN a elipsoidické, pevný bod bez souřadnic) může zničit celé vyrovnání. Průvodce proto kontroluje sedm kroků od importu po automatiku a u každého kroku zobrazí semafor, zdůvodnění a vhodnou akci:</p>
+<ul>
+  <li><b>1 Import a věrohodnost</b> – zpráva o importu; <b>pevné body 0/0/0</b> (např. název importován dvakrát, souřadnice GNSS přeskočeny) jsou červené a lze je jedním tlačítkem převést na nové body (skupina „Klein_Method Neupunkte (aus Festpunkten 0/0/0)“, vratné).</li>
+  <li><b>2 Souřadnicové systémy</b> – počet geocentrických, UTM a místních bodů; směsi jsou červené.</li>
+  <li><b>3 Přepočet</b> (jen s GNSS) – přepočteno? geocentrické zbytky? P0 více než 50 km mimo síť?</li>
+  <li><b>4 Výškový systém</b> – výška GNSS minus nivelační výška ve společných bodech; smíšené NHN je červené (<a href="#hoehen">kapitola 10</a>).</li>
+  <li><b>5 Přibližné souřadnice</b> – měřené body bez přiblížení (<a href="#naeherung">kapitola 3</a>).</li>
+  <li><b>6 Opakovaná měření</b> – sloučená nebo otevřená (<a href="#sitzungen">kapitola 5</a>).</li>
+  <li><b>7 Uvolnění</b> – zelené, když žádný krok není červený a existuje platné vyrovnání.</li>
+</ul>
+<div class="box"><b>Žádné okno při startu:</b> je-li krok červený, „Spustit Klein_Method“ spustí bez dotazu – červené kroky se protokolují; zkontrolujte je prosím předem zde. <b>Protokol stavu:</b> přepočty, zobrazení, přepočet výšek, přiblížení, slučování, výška z 1D, převod 0/0/0 a odstranění hrubých chyb se ukládají s časovým razítkem v projektu a zobrazují v průvodci – je tak dohledatelné, co se s daty stalo.</div>
+
+<h3 id="start502">Start bez okna „Postup není volný“ <span class="ver">V0.502</span></h3>
+<p class="where">Karta Klein: „Spustit Klein_Method“ · pole „Deaktivované BL:“</p>
+<p>Dosud se při červených krocích zobrazilo okno s dotazem.</p>
+<ul>
+  <li>Okno odpadá; červené kroky se zapíší do protokolu a dál jsou vidět v průvodci postupem – před startem je zkontrolujte.</li>
+  <li>Pole „Deaktivované BL:“ je širší (např. 3000000 / 3000100).</li>
+</ul>
+
+<h3 id="lade504">Indikátor načítání při práci na pozadí <span class="ver">V0.504</span></h3>
+<p class="where">Okno JAG3D: záhlaví karty „Klein_Method“ · karta Klein: pod stavovým řádkem</p>
+<p>Mnoho úloh Klein_Method běží na pozadí; dosud nebylo vidět, zda ještě něco běží.</p>
+<ul>
+  <li>Během takové práce se otáčí indikátor ve stylu Windows 11 – v záhlaví karty a v kartě Klein s názvem úlohy.</li>
+  <li>Objeví se po 300 ms a sám zmizí po dokončení (i po chybě); nezobrazuje se během automatiky ani když okno čeká na odpověď.</li>
+</ul>
+
+<h3 id="start505">Oprava: spuštění JAG3D s V0.504 <span class="ver">V0.505</span></h3>
+<p class="where">Spuštění JAG3D</p>
+<p>V0.504 přerušila spuštění JAG3D („Cannot bind to null“).</p>
+<ul>
+  <li>Opraveno – indikátor načítání funguje jako ve V0.504.</li>
+</ul>
+
+<h2 id="import">2. Import a převod do místního systému</h2>
+<p class="where">Menu <i>Klein_Method → Převod souřadnic WGS84 ↔ místní (ENh) …</i> · Karta: „Zkontrolovat a převést projekt …“, „Vrátit převod projektu“, „Přesunout P0 do sítě a znovu převést …“</p>
+<p>Jsou-li souřadnice a GNSS vektory geocentrické (ECEF/WGS84), Klein_Method převede projekt do <b>místního elipsoidického systému</b> kolem vztažného bodu <b>P0</b> (těžiště nových bodů, aditivní konstanty 200000 / 400000 / 1000 m). V něm JAG3D počítá GNSS a totální stanici společně.</p>
+<div class="warn"><b>Důležité:</b> V místním systému sloupec Z v JAG3D <b>není výška</b>, ale kartézská souřadnice kolmá k tečné rovině v P0. Se vzdáleností klesá oproti výšce asi o r²/2R (10 km ≈ 8 m, 30 km ≈ 71 m). Tak je to v JAG3D zamýšleno. Skutečné výšky poskytuje export (<a href="#export">kapitola 11</a>). Viz též <a href="#fz">problém „Z není výška“</a>.</div>
+<div class="warn"><b>Jen se základnicemi GNSS</b> <span class="ver">V0.468</span>: převod, přesun P0 a každá změna zobrazení a redukce (i „místní kartézská → místní elipsoidická“ a vztažný bod) proběhnou jen tehdy, obsahuje-li projekt aktivní základnice GNSS. Bez základnic zůstane vše, jak je nastaveno v JAG3D; volání z nabídky uvede důvod. Vrácení dřívějšího převodu je nadále možné.</div>
+<p>Převod lze vrátit; sloučení GNSS seancí se přitom předem automaticky vrátí.</p>
+
+<p><b>Výškové body (1D)</b> <span class="ver">V0.465</span>: převádějí se také – i když jsou importovány po převodu. V místním systému závisí Z na poloze (zakřivení Země), proto každý výškový bod potřebuje polohu: ze zadané polohy v UTM (se zónou i bez), Gauss-Krüger (DHDN) nebo zeměpisné (délka/šířka ve stupních), nejvýše 100 km od P0. Bez použitelné polohy (např. 0/0) se předpokládá P0 a bod se uvede v dotazu – zadejte prosím polohu (při 2 km od P0 asi 0,3 m chyby výšky). Výška se převede tak, jak je zadána; výšky NHN poté pomocí „Přepočítat výškové body …“ (kvazigeoid) na elipsoidické. Vrácení převodu obnoví i body 1D.</p>
+
+<h3 id="importbericht">Zpráva o importu (věrohodnost dat) <span class="ver">V0.467</span></h3>
+<p class="where">Automaticky po kliknutí na kartu po každém novém importu · Nabídka <i>Klein_Method → Zpráva o importu (věrohodnost dat) …</i></p>
+<p>Chyby v importovaných datech se jinak ve vyrovnání projeví jako zdánlivé hrubé chyby. Zpráva je zkontroluje předem a pro každou kontrolu ukáže semafor: <b>[ZELENÁ]</b> v pořádku, <b>[ŽLUTÁ]</b> upozornění, <b>[ČERVENÁ]</b> prosím vyjasnit před vyrovnáním. Po kliknutí na kartu se okno objeví jen při červených bodech; zpráva se vždy zapíše do protokolu a do souboru <i>&lt;čas&gt;_Importbericht.txt</i> ve složce protokolu.</p>
+<ul>
+<li><b>Názvy:</b> body v měřeních bez souřadnic, body bez měření, pomocné body/stanoviska „Č_Bod“.</li>
+<li><b>Vzájemné zenitové úhly:</b> převýšení tam (s·cos z + i − t) plus zpět má být 0 (tolerance 3 cm + 0,1 mm/m). Liší-li se mnoho dvojic o 1–3 m, nesouhlasí výšky přístroje nebo cíle.</li>
+<li><b>Poloha I/II:</b> indexová chyba pro každý cíl, jsou-li zenitové úhly v obou polohách.</li>
+<li><b>Výšky přístroje a cíle:</b> více výšek přístroje na stanovisku, výška cíle 0 při zadané výšce přístroje (viz <a href="#fziel">chybový obraz</a>).</li>
+<li><b>Jednotky:</b> medián zenitových úhlů kolem 85–94 gon ukazuje na stupně místo gonů; délky ≤ 0 nebo nad 5 km; pevné body s výškou 0.</li>
+<li><b>Systémy:</b> geocentrické základnice vedle lokálních bodů; výška GNSS minus nivelační výška nad 1 m (NHN a elipsoidické smíšené).</li>
+<li><b>Body 1D bez vlastní polohy:</b> 0/0 nebo více různých bodů na stejném místě.</li>
+<li><b>Poloha bodů 1D vůči délkám záměr</b> <span class="ver">V0.471</span>: cesta přes nivelaci (součet délek záměr) je horní mezí vzdálenosti k sousedním bodům s vlastní polohou (přednost mají body 3D). Leží-li výškový bod zřetelně dále, byl převeden s jiným P0 nebo v jiném systému – červeně.</li>
+</ul>
+<p><b>Poloha bodů 1D z nivelace:</b> Tlačítkem ve zprávě dostanou nové body 1D bez vlastní polohy polohu: stanoviska „Č_X“ polohu X, ostatní průměr svých sousedů v nivelaci (vycházeje z bodů s polohou). Výška zůstává beze změny. Upřímně: výsledky nivelace v JAG3D na této poloze nezávisí. Je potřeba pro převod bodů 1D do lokálního systému (Z závisí na poloze), pro mapu a pro kontroly věrohodnosti.</p>
+
+<h3 id="sperre">Zámek proti vícenásobnému přepočtu <span class="ver">V0.482</span></h3>
+<p class="where">Převodník souborů (režim 1) a průvodce postupem, krok 3</p>
+<p>Druhý přepočet nebo jiné P0 zkreslí celou síť, aniž by to bylo na číslech vidět. Klein_Method proto zamyká na třech úrovních:</p>
+<ul>
+  <li><b>Soubory:</b> každý přepočtený soubor dostane záhlaví <code># Klein_Method: lokal (ENh) umgerechnet am …, P0 …</code> (import JAG3D ho přeskočí). Soubor s tímto záhlavím se znovu nepřepočte ve stejném směru, zpět jen se stejným P0. Jsou-li všechny body souboru už v cílovém systému, je přepočet také zablokován.</li>
+  <li><b>Projekt:</b> Klein_Method přepočítává jen geocentrické hodnoty a zálohuje každý přepočtený řádek – nikdy se nepřepočte podruhé.</li>
+  <li><b>Místní data importovaná po přepočtu</b> (pevné/připojovací body, vektory GNSS), která Klein_Method sám nepřepočítal, pocházejí z cizího přepočtu s neznámým P0: krok 3 průvodce postupem zčervená, automatika je zablokována. Řešení: tato data smazat a znovu importovat geocentricky. Nové body s takovými přiblíženími se hlásí žlutě.</li>
+</ul>
+
+<h3 id="umbenennen">Přejmenovat body <span class="ver">V0.489</span></h3>
+<p class="where">Menu Klein: „Přejmenovat body …“</p>
+<p>Přejmenuje body a názvy bodů ve všech měřeních společně – se šablonami v rozbalovací nabídce, náhledem, kontrolou vzdálenosti při slučování a přesným vrácením. Příklad: 043.905-A, -B, -C → 043.905.</p>
+<ul>
+  <li><b>Šablony:</b> odstranit koncovku „-písmeno“ nebo „-číslo/_číslo“, připojit koncovku, odstranit předponu, nahradit text, odstranit úvodní nuly, doplnit nulami na n číslic, posunout číslo o n, vlastní regulární výraz; vlastní šablony lze uložit. Rozsah: body a měření, jen měření, jen body.</li>
+  <li><b>Slučování:</b> každý bod se porovná s referenčním bodem (existující bod s tímto názvem, jinak pevný před novým). Zelená: v toleranci (výchozí poloha 3 cm, výška 5 cm) – sloučit. <b>Červená „excentr?“</b>: dál – nezaškrtnuto, ponechá si název. Pevné body s odlišnými souřadnicemi se nikdy neslučují. Žlutá: chybí souřadnice.</li>
+  <li><b>„Vrátit poslední přejmenování“</b> vše přesně obnoví včetně smazaných bodů. Poté znovu vyrovnat; záznam v protokolu stavu („PUNKTE UMBENANNT“).</li>
+  <li><b>Test (syntetická síť 01):</b> koncovka u 14 bodů (149 měření) → vyrovnání bez chyb, vrácení přesné; T05-B 1 cm → sloučen; T05-C 50 cm → červená, ponechán; G1-B (pevný bod, 20 cm) → červená; X9-A/-B → X9, vrácení obnoví oba.</li>
+</ul>
+
+<h2 id="naeherung">3. Přibližné souřadnice <span class="ver">přepracováno od V0.448</span></h2>
+<p class="where">Menu <i>Klein_Method → Vypočítat a zkontrolovat přibližné souřadnice …</i> a <i>… Vrátit poslední převzetí přibližných souřadnic …</i> · Karta: „Zkontrolovat přibližné souřadnice nyní“</p>
+<p>Klein_Method vypočítá ze všech měření přibližné souřadnice pro body bez hodnot (0/0) a zkontroluje existující hodnoty. Výsledky nabídne k převzetí, záloha umožňuje vrácení.</p>
+<ul>
+  <li><b>GNSS seance s driftem nebo posunem &gt; 0,10 m</b> se hlásí; jsou-li vektory bodu převážně zamítnuty, nabídne se jejich vypnutí <span class="ver">V0.449</span>.</li>
+  <li>Aproximace zohledňuje zakřivení Země v místním systému a uloženou polohu výškových bodů <span class="ver">V0.448</span>.</li>
+</ul>
+<div class="box"><b>Doporučení:</b> přibližné souřadnice vždy vypočítejte před průměrováním nebo vyrovnáním – zejména po přidání nových bodů z totální stanice do GNSS sítě.</div>
+
+<h2 id="mittel">4. Průměrování (JAG3D) <span class="ver">kontrola od V0.458</span></h2>
+<p class="where">Menu JAG3D „Average observations“ (průměrování měření) nebo Ctrl+G</p>
+<p>Průměrování je funkcí JAG3D. Zenitové úhly a směry ve <b>II. poloze dalekohledu</b> rozpozná jen pomocí přibližných souřadnic. Pokud chybí, např. 302,06 gon se neredukuje na 97,94 gon a JAG3D hlásí odchylky kolem 200 gon (<a href="#f200">problém</a>).</p>
+<p>Klein_Method proto <b>před</b> průměrováním kontroluje, zda existují měřené body bez přibližných souřadnic, a zeptá se:</p>
+<ul>
+  <li><b>Nejprve vypočítat přibližné hodnoty (doporučeno)</b> – poté se otevře průměrování.</li>
+  <li><b>Přesto průměrovat</b> – jako dosud.</li>
+  <li><b>Zrušit</b>.</li>
+</ul>
+<p>Žádný soubor JAG3D se nemění; nenajde-li Klein_Method položku menu (např. po aktualizaci JAG3D), zůstane vše jako dosud.</p>
+
+<h2 id="sitzungen">5. Opakovaná měření (nadváha) <span class="ver">GNSS od V0.452, všechny druhy od V0.477, automaticky od V0.478</span></h2>
+<p class="where">Karta (oblast přibližných souřadnic): „Opakovaná měření (nadváha):“ s volbou pro každý druh „Sloučit / Vyp.“, „Použít nyní …“, „Vrátit vše …“ · Nabídka <i>Klein_Method → Zpracovat opakovaná měření …</i> / <i>Vrátit zpracování opakovaných měření …</i></p>
+<p>Bezprostředně po sobě jdoucí měření ze stejného stanoviska na stejný cíl <b>nejsou nezávislá</b>: epochy GNSS jedné seance, několik skupin směrů, dvakrát měřené délky, měřické řady laser trackeru. Jako jednotlivá pozorování váží asi √n-krát více a odsouvají ostatní měření stranou. <b>Skupinu opakování</b> tvoří po sobě jdoucí aktivní řádky stejné skupiny pozorování se stejným stanoviskem a cílem (terestrická: také stejná výška přístroje a cíle).</p>
+<ul>
+  <li><b>Sloučit</b>: jedno průměrné pozorování na skupinu opakování; jednotlivé hodnoty se deaktivují (nemažou). Přesnost průměru = jednoho měření (bez √n), <b>nejméně však rozptyl skupiny</b> – silně rozptýlené seance tak váží méně. Průměr automatika kalibruje normálně.</li>
+  <li><b>Sloučit + kalibrovat</b> (výchozí od V0.490): jako Sloučit; průměry s vlastní přesností (silně rozptýlené nebo driftující) začínají s rozptylem a automatika je dokalibruje z jejich oprav.</li>
+  <li><b>Vyp.</b>: všechna měření jednotlivě, jak byla importována.</li>
+  <li>Předtím se každá skupina kontroluje na <b>skok</b> (rozdělení v místě skoku) a <b>drift</b> (přesnost = polovina driftu). Mez = max(3 × σ jednotlivě, minimum): GNSS 0,10 m, délky 5 mm, nivelace 2 mm, směry/zenitové úhly 5 mgon.</li>
+  <li><b>Automaticky</b>: Klein_Method použije nastavení bez dotazu – při kliknutí na kartu, po změně volby a před spuštěním automatiky – a pak oznámí, co bylo sloučeno. <b>Vrácení</b> kdykoli; po vrácení Klein_Method slučuje znovu až u nových dat.</li>
+  <li>Po každé změně se objeví poznámka v protokolu a stavovém řádku, pokud automatika již běžela – v případě potřeby ji spusťte znovu (<a href="#fneustart">příznak</a>).</li>
+  <li><b>Převážení</b> (σ jednotlivě × √n, V0.477) bylo zrušeno: na skutečné síti (GNSS a totální stanice) byly body až 46 cm mimo, se slučováním 1–2 cm – zmrazené počáteční přesnosti (25 mm + 50 ppm) se nikdy nekalibrovaly. Převážené projekty se při kliknutí na kartu automaticky přepnou.</li>
+  <li>Na konci každé dokončené automatiky vznikne ve složce protokolů <b>srovnávací soubor</b> „…_Vergleich_Wiederholungen_….txt“ s etapou vyrovnání, max. logPost, zpracováním podle druhu, podílem na celkové nadbytečnosti a vyrovnanými souřadnicemi.</li>
+</ul>
+<div class="box"><b>Výsledek na skutečné síti</b> (5914 vektorů v 199 seancích, 6000 měření totální stanicí): po sloučení se body GNSS v bloku totální stanice shodují s čistým řešením GNSS na 1–2 cm; pevné body GNSS v průměru 9 mm.</div>
+
+<h3 id="wdh501">Žádné okno pro nové spuštění po sloučení/vrácení <span class="ver">V0.501</span></h3>
+<p class="where">Karta Klein: „Opakovaná měření“</p>
+<p>Dosud okno nabízelo okamžité nové spuštění automatiky bez F5.</p>
+<ul>
+  <li>Okno odpadá; automatika se spouští jen přes „Spustit Klein_Method“.</li>
+  <li>Poznámka v protokolu a ve stavovém řádku.</li>
+</ul>
+
+<h3 id="zuskal">Sloučit + kalibrovat (srovnávací varianta) <span class="ver">V0.481</span></h3>
+<p class="where">Karta: volba pro druh měření „Sloučit + kalibrovat“</p>
+<p>Jako „Sloučit“. Navíc: průměry s vlastní přesností (silně rozptýlené nebo driftující skupiny) nesou individuální σ a v JAG3D se nezapočítávají do variační složky druhu měření. V této variantě je rozptyl jen <b>výchozí hodnotou</b>. Automatika pro tyto průměry určí vlastní variační faktor F = Σω / Σr z jejich oprav a upraví jejich přesnost stejným vzorcem jako u skupin (koridor, dolní mez σ<sub>a</sub> druhu). Při příliš malé nadbytečnosti zůstane rozptyl.</p>
+<ul>
+  <li>Pevný faktor (√n) se nepoužije, protože sloučení už nadváhu odstraňuje. Druhé snížení by druh měření trestalo dvakrát.</li>
+  <li>Protokol: řádky „WIEDERHOLUNGSMITTEL …“ s F, faktorem a počtem změněných průměrů.</li>
+  <li>Testovací data (syntetická): stejně dobré jako „Sloučit“ – RMS rozdílů délek 1,4/1,4 mm (rozptýlené seance), 1,3/1,3 mm (silně zašuměné epochy, dobrý průměr), 1,1/1,2 mm (běžná opakování). Zda varianta pomůže u skutečných dat se špatnými seancemi, ukáže srovnání na skutečných sítích; poté se určí standard.</li>
+</ul>
+
+<h3 id="massen">Hromadné vektory (epochové vektory) <span class="ver">V0.488</span></h3>
+<p class="where">Karta Klein_Method, oblast přibližných souřadnic: přepínač „Automaticky protřídit hromadné vektory“ · průvodce postupem krok 6</p>
+<p>Zpracování GNSS často dává jeden vektor na epochu – např. 30 min každých 1–5 s k 8 stanicím SAPOS, celkem rychle 100 000 až 300 000 vektorů. To JAG3D na běžném PC nespočítá a epochy jsou silně časově korelované (jako jednotlivá měření zhruba odmocnina(n)-krát příliš těžké). Klein_Method taková data rozpozná a protřídí je <b>před prvním výpočtem</b>.</p>
+<ul>
+  <li><b>Rozpoznání:</b> více než 20 000 vektorů GNSS nebo od 1 000 vektorů v průměru alespoň 20 na dvojici bodů. Epochy mohou být v libovolném pořadí a v libovolném počtu skupin (JAG3D při importu s dělením skupin zakládá novou skupinu při každé změně stanoviska) – sbírají se podle dvojice bodů.</li>
+  <li><b>Protřídění:</b> jeden <b>robustní průměr</b> na dvojici bodů – medián a robustní rozptyl každé složky, epochy s odchylkou nad 3 rozptyly (alespoň 1 mm) se vyřadí, průměr ze zbytku; skoky a drift se kontrolují jako u „Shrnout“. Přesnost průměru se <b>nedělí</b> odmocninou(n). Jednotlivé hodnoty zůstanou v databázi deaktivované – vrácení kdykoli („Vrátit vše …“).</li>
+  <li><b>Přepínač zap. (výchozí):</b> automaticky při kliknutí na kartu nebo před každým vyrovnáním. <b>Vyp.:</b> při více než 20 000 aktivních vektorech zůstane vyrovnání zablokované (upozornění, krok 6 červený) až do „Protřídit nyní“ v průvodci postupem.</li>
+  <li>Zůstanou jen <b>statisticky</b> dobré epochy: JAG3D při importu vektorů nepřebírá údaje fix/float ani RMS. Je-li celá relace chybná (špatný fix po 30 min, špatná výška antény), ukáže to až vyrovnání přes ostatní stanice nebo statistický test.</li>
+  <li><b>Test (syntetický, 299 300 vektorů, 41 dvojic bodů, 2 relace, korelovaný šum, 3 066 odlehlých 5–50 cm):</b> import a kliknutí na kartu bez pádu, protřídění asi 1 min → 41 průměrů, všechny odlehlé a několik krajních epoch vyřazeno; poté vyrovnání bez chyb. S vypnutým přepínačem zablokováno, „Protřídit nyní“ funguje; vrácení obnoví všech 299 300.</li>
+</ul>
+
+<h3 id="massen493">Přesnost sloučených GNSS průměrů <span class="ver">V0.493</span></h3>
+<p class="where">Opakovaná měření / hromadné vektory</p>
+<p>Oprava: přesnost průměru se už nezmrazuje z modelu skupiny mezistavu.</p>
+<ul>
+  <li><b>Jen dotčená složka</b> dostane vlastní přesnost (rozptyl nebo polovina driftu); ostatní ponechají hodnotu skupiny a kalibrují se dál.</li>
+  <li><b>Hromadné vektory:</b> přesnost průměru po složkách = robustní rozptyl epoch (1,4826 · MAD, min. 1 mm).</li>
+  <li><b>Upozornění „silně rozptýlené“</b>: dvojice bodů s rozptylem v poloze nad 10 cm se hlásí.</li>
+  <li><b>Stávající projekty:</b> u opakovaných měření „Vrátit vše …“, pak znovu použít.</li>
+</ul>
+
+<h2 id="automatik">6. Automatický běh a kalibrace</h2>
+<p class="where">Karta Klein_Method: „Spustit Klein_Method“, „Stop“, „Jednotlivý krok“, „Reset“, „Zrušit zámek“</p>
+<p>Automatický běh kalibruje přesnosti měření krok za krokem, dokud není dosaženo mezní hodnoty největší hodnoty logPost. Probíhá v průchodech:</p>
+<ul>
+  <li><b>Průchod 1</b>: skupinová kalibrace (σa/σb/σc pro každý typ měření), poté individuální kalibrace.</li>
+  <li><b>Průchod 2</b>: individuální jemná kalibrace s pevnými skupinovými hodnotami. Je rozhodující – bez něj byly výsledky v testu mnohonásobně horší.</li>
+</ul>
+<p>Dosáhne-li měření <b>horní meze</b> individuální nejistoty měření, deaktivuje se jako hrubá chyba a automatický běh pokračuje (nejvýše 10 na krok, nad to zámek) <span class="ver">V0.454</span>.</p>
+<p>Na konci vznikne <b>zpráva o běhu</b> a na přání <b>kalibrační protokol</b>.</p>
+
+<h3 id="nachlauf497">Doběh: tlumení a zaokrouhlení u mezní hodnoty <span class="ver">V0.497</span></h3>
+<p class="where">Automatika · kaskáda průchod 2</p>
+<p>V doběhu průchodu 2 max. logPost často kmital kolem mezní hodnoty.</p>
+<ul>
+  <li><b>Tlumení:</b> když max. logPost opět vzroste, další korekční krok se zmenší na polovinu (nejvýše na 25 %).</li>
+  <li><b>Zaokrouhlení:</b> mezní hodnota je dosažena, když max. logPost zaokrouhlený na 3 desetinná místa není vyšší.</li>
+</ul>
+
+<h3 id="grenzen">Meze metody <span class="ver">V1.00 RC1</span></h3>
+<p class="where">platí pro všechny stupně vyrovnání</p>
+<p>Kleinova metoda činí síť statisticky konzistentní. Měření tím nezlepší. Tyto meze je dobré znát:</p>
+<ul>
+  <li><b>Pevná mez:</b> |logPost| ≤ 2,45 odpovídá p ≤ 0,086. I v bezchybné síti ji náhodně překročí asi 8 % měření a dostanou menší váhu. Kde a-priori model už sedí, mohou se jednotlivé nové body odchýlit o několik milimetrů od klasického řešení (VKS). Je to záměr: žádná naměřená hodnota nemá ve výsledku zůstat nápadná.</li>
+  <li><b>Dolní meze:</b> skupinová přesnost neklesne pod 0,5 mgon resp. 0,5 mm (elektronické) a 0,1 mm (nivelace). Brání to ujíždění skupinových hodnot, ale omezuje přizpůsobení velmi přesným přístrojům.</li>
+  <li><b>Nenahrazuje opakování:</b> chyby, které stejně zasáhnou všechna měření bodu – např. chybná výška antény při jediné GNSS seanci – jsou pro každé vyrovnání neviditelné. Nezávislá opakovaná měření zůstávají nutná.</li>
+  <li><b>Kontrolovat zvýšené přesnosti:</b> protokol a doklad o kalibraci ukazují, o kolik byla každá přesnost zvýšena. Silně zvýšené skupiny nebo mnoho deaktivovaných měření ukazují na problémy měření a je třeba je prověřit, ne jen vyrovnat.</li>
+  <li><b>„nelze ověřit“:</b> u takto označených připojovacích bodů nemohou měření určit nejistotu; výsledek tam závisí na zadané hodnotě.</li>
+  <li><b>Výpočet po blocích:</b> metoda pokaždé znovu vyrovná celou síť a není určena pro reálný čas.</li>
+  <li><b>Základ testů:</b> testováno na syntetických sítích se známými požadovanými souřadnicemi a na praktických projektech. Srovnání na dalších reálných sítích s nezávislou kontrolou teprve čekají.</li>
+</ul>
+
+<h2 id="grob">7. Hrubé chyby <span class="ver">skupiny a kontrola od V0.461, předběžná kontrola a testová statistika od V0.463, hledání příčin od V0.464</span></h2>
+<p class="where">Karta: „Odstranit hrubé chyby“ · Mapa: „Max chyba“, „Odstranit hrubé chyby“</p>
+<p>Odchyluje-li se měření po vyrovnání lineárně o více než „mez hrubé chyby“ (výchozí 0,10 m), je „Spustit Klein_Method“ zablokováno, dokud nejsou chyby odstraněny. Odstranění deaktivuje dotčená měření krok za krokem, pokaždé s novým vyrovnáním.</p>
+<p><b>Proč krok za krokem?</b> Hrubá chyba se ve vyrovnání „rozmaže“ na sousední měření. Kdyby se vše nad mezí vyřadilo najednou, ztratili bychom i zdravé sousedy.</p>
+<p><b>Co se vyřadí společně v jednom kroku:</b></p>
+<ul>
+  <li><b>Nahromadění v jednom bodě</b> (nejméně 5 a 80 % odlehlých hodnot): nejsilnější z nich, od poloviny největší odchylky – obvykle je pak narušen samotný bod (postavení, výška antény, záměna).</li>
+  <li><b>Rozptýlené odlehlé hodnoty</b> <span class="ver">V0.461</span>: nejhorší měření a další nad mezí, která jsou alespoň poloviční a nemají <i>žádný společný bod</i> s již vybraným – nejvýše 10 na krok. Sousedé tak zůstanou a v dalším kroku se znovu posoudí.</li>
+</ul>
+<p><b>Kontrola</b> <span class="ver">V0.461</span>: na konci se měření vyřazená jen spolu s ostatními (ne nejhorší v daném kroku) znovu zařadí a přepočítají. Leží-li pak pod mezí a žádné jiné měření nezůstane nad ní, zůstanou zařazena; potvrzovací okno je uvádí pod „Po kontrole znovu zařazeno“. Jinak zůstane vše jako před kontrolou.</p>
+<p><b>Jednotlivá zpětná kontrola</b> <span class="ver">V0.469</span>: Selže-li společná zpětná kontrola, vrací se každé měření jednotlivě (nejvýše 30, od nejmenší odchylky). Zůstane, pokud je pak pod mezí a žádné jiné ji nepřekračuje. Tak zůstanou správná měření, která skutečná hrubá chyba (např. záměna bodů) jen strhla s sebou.</p>
+<p><b>Bezpečnost:</b> učiní-li společný krok síť neurčitelnou, Klein_Method jej vrátí a pokračuje po jednom. Nejvýše 25 kroků na průchod – poté znovu „Odstranit hrubé chyby“.</p>
+
+<h3>Předběžná kontrola před vyrovnáním <span class="ver">V0.463</span></h3>
+<p class="where">Menu <i>Klein_Method → Předběžná kontrola hrubých chyb (uzávěry smyček, opakovaná měření) …</i> · spouští se také automaticky na začátku „Odstranit hrubé chyby“</p>
+<p>Před vyrovnáním se hrubá chyba ještě nerozmazává. Předběžná kontrola nic nemění a kontroluje:</p>
+<ul>
+  <li><b>Uzávěry smyček GNSS:</b> všechny trojúhelníky z aktivních vektorů (medián pro dvojici bodů). Tolerance = mez hrubé chyby + 1 ppm obvodu. Dvojice bodů nápadná v nejméně 2 a 60 % svých trojúhelníků je <b>podezřelá</b>.</li>
+  <li><b>Jednotlivé vektory</b> vzdálené od mediánu své dvojice bodů více než mez (od 3 vektorů na dvojici).</li>
+  <li><b>Opakovaná měření:</b> délky se stejnými výškami přístroje/odrazného hranolu a nivelace tam/zpět; rozpětí nad mezí je nápadné.</li>
+</ul>
+<p>V potvrzovacím okně jsou taková pozorování označena „nápadné v předběžné kontrole“ – silný náznak skutečné hrubé chyby. Zpráva je v protokolu.</p>
+<h3>Pořadí a kontrolovatelnost <span class="ver">V0.463</span></h3>
+<p>Nejprve se vyřadí pozorování s <b>největší testovou statistikou</b> mezi těmi nad mezí – ne to s největší odchylkou v metrech. Testová statistika zohledňuje, jak dobře je pozorování kontrolováno; mez v metrech rozhoduje jen o tom, zda vůbec přichází v úvahu.</p>
+<p><b>Téměř nekontrolovaná pozorování</b> (podíl nadbytečnosti pod 5 %) se hlásí zvlášť: hrubá chyba by tam nebyla rozpoznatelná – zajistit v terénu.</p>
+<p><b>Kontrola znovuzařazení:</b> kromě pozorování vyřazených spolu s ostatními se kontrolují i jednotlivě vyřazené vektory GNSS, jejichž rozpor s novými souřadnicemi leží pod mezí.</p>
+
+<h3>Robustní předvýběr a hledání příčin <span class="ver">V0.464</span></h3>
+<p><b>Robustní předvýběr:</b> leží-li nad mezí alespoň 3 pozorování, Klein_Method nejprve v jednom kroku vyřadí všechna, která předběžná kontrola označila za nápadná <i>a</i> která leží nad mezí (nejvýše 50). Předběžná kontrola pracuje bez vyrovnání – hrubá chyba se tam nerozmazává. Všechna takto vyřazená pozorování projdou na konci kontrolou.</p>
+<p><b>Hledání příčin (GNSS):</b> pro každý vyřazený vektor se vypočte rozpor s novými souřadnicemi (počítanými bez něj, tedy nezkreslený). Potvrzovací okno a protokol pak uvádějí možné příčiny:</p>
+<ul>
+  <li><b>Výška antény:</b> několik vektorů jedné stanice se odchyluje téměř jen ve výšce se stejným znaménkem – „Stanice X: … zkontrolujte výšku antény na X“. Hlásí se i jednotlivý vektor s čistě výškovou odchylkou.</li>
+  <li><b>Záměna bodu:</b> vektor vede k jinému existujícímu bodu (vzdálenost nejvýše polovina meze, nejméně 2 cm) – „odpovídá bodu Y místo Z“.</li>
+</ul>
+<p>Upozornění jsou návrhy – rozhoduje zápisník.</p>
+
+<h3 id="stattest">Statistický test – malé hrubé chyby <span class="ver">V0.483</span></h3>
+<p class="where">Karta: „Statistický test …“ vedle „Odstranit hrubé chyby“ · nabídka <i>Klein_Method → Statistický test (malé hrubé chyby) …</i> · průvodce postupem krok 7</p>
+<p>Mez hrubé chyby (standardně 10 cm) najde jen velké chyby. Menší – chybná výška cíle 3 cm, zaměněná konstanta hranolu – dosud <b>potichu odvážila individuální kalibrace automatiky</b>: zvyšuje přesnost nápadného měření, dokud žádný test nereaguje (příklad: chyba 3 cm, σ z 1 mm na 17,8 mm, chyba zůstává).</p>
+<ul>
+  <li><b>Kdy:</b> jednou v každé automatice, jakmile jsou skupiny kalibrovány a před začátkem individuální kalibrace. Klein_Method počítá s <b>výchozími přesnostmi</b> (stav při prvním startu automatiky) a kalibrovanými skupinami; potom automatika pokračuje beze změny.</li>
+  <li><b>Co:</b> hodnoty, které JAG3D počítá pro každé měření – významnost testu, odhadnutá hrubá chyba, nejmenší odhalitelná chyba (MDB), podíl nadbytečnosti.</li>
+  <li><b>Zpráva</b> na konci automatiky (jen při nálezu) a kdykoli tlačítkem: nápadná měření s odhadnutou chybou a tím, jak silně je automatika poté odvážila; navíc slabě kontrolovaná měření, jejichž MDB překračuje mez.</li>
+  <li><b>„Odstranit statisticky nápadné …“</b> – jen tlačítkem: vrátí přesnosti na stav testu a odstraní významná měření stejným postupným odstraňováním s protizkouškou (kritérium test místo 10 cm); každé potvrdíš. Poté automatiku spusť znovu.</li>
+  <li>Významné neznamená vždy hrubé: při mnoha měřeních vyskočí i asi 1 z 1000 zdravých, vektory GNSS s chybami seancí častěji. Proto rozhoduješ u každého měření.</li>
+  <li>Projekty počítané automatikou už před V0.483: výchozím stavem jsou přesnosti přítomné při prvním běhu od V0.483.</li>
+</ul>
+<p>Odhalitelnost v testovací síti 01 (synteticky, vždy 12 vložených chyb jednotlivě):</p>
+<table>
+  <tr><th>Druh</th><th>Chyba</th><th>nalezeno (test)</th><th>nalezeno (mez 10 cm)</th></tr>
+  <tr><td>Šikmá délka</td><td>0,5 cm</td><td>58 %</td><td>0 %</td></tr>
+  <tr><td>Šikmá délka</td><td>1 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Šikmá délka</td><td>2 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Šikmá délka</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Směr (příčně u cíle)</td><td>1 cm</td><td>0 %</td><td>0 %</td></tr>
+  <tr><td>Směr (příčně u cíle)</td><td>2 cm</td><td>75 %</td><td>0 %</td></tr>
+  <tr><td>Směr (příčně u cíle)</td><td>3 cm</td><td>91 %</td><td>0 %</td></tr>
+  <tr><td>Směr (příčně u cíle)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Zenitový úhel (příčně u cíle)</td><td>1 cm</td><td>8 %</td><td>0 %</td></tr>
+  <tr><td>Zenitový úhel (příčně u cíle)</td><td>2 cm</td><td>66 %</td><td>0 %</td></tr>
+  <tr><td>Zenitový úhel (příčně u cíle)</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Zenitový úhel (příčně u cíle)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+</table>
+
+<h3 id="befundliste">Seznam nápadných měření <span class="ver">V0.484</span></h3>
+<p class="where">Karta: „Statistický test …“ · zpráva: „Otevřít seznam …“ · průvodce postupem krok 7</p>
+<p>Nálezy statistického testu jako tabulka – řaditelná, s filtrem (významné, slabě kontrolované, vše), s vícenásobným výběrem. Sloupce: druh měření, stanovisko, cíl, semafor, odhadnutá chyba, |logPost|, podíl nadbytečnosti, nejmenší odhalitelná chyba, <b>předpokládaná příčina</b>, stav.</p>
+<ul>
+  <li><b>Předpokládaná příčina:</b> více zenitových úhlů/nivelací ze stanoviska se stejným znaménkem → výška přístroje; na stejný cíl → výška cíle; více délek na stejný cíl s podobným posunem → konstanta hranolu/adiční konstanta; jednotlivá délka s ≈ 17,5 / 30 / 34,4 mm → zaměněná konstanta hranolu; více směrů ze stanoviska → orientace nebo přiřazení skupiny. Návrhy – rozhoduje zápisník.</li>
+  <li><b>Akce</b> pro vybrané řádky: <b>Deaktivovat</b> / <b>Aktivovat</b>; <b>Opravit naměřenou hodnotu</b> o odhadnutou chybu (terestricky, jen pokud zápisník chybu potvrdí); <b>Změnit výšky …</b> (přístroje/cíle); <b>Odvážit</b> (přesnost = odhadnutá chyba, měření zůstává); <b>Vrátit</b> nebo <b>Vrátit vše</b>.</li>
+  <li><b>Znovu testovat:</b> znovu vyrovná s výchozími přesnostmi a aktualizuje seznam – hned uvidíš, zda oprava zabrala. Poté automatiku spusť znovu.</li>
+  <li>Každá změna se zapamatuje (přesné vrácení) a je v protokolu stavu. <b>CSV …</b> uloží seznam pro Excel.</li>
+  <li>Automatické odvážení všech nálezů záměrně není: to dělá individuální kalibrace automatiky beztak – seznam to má zviditelnit a nechat rozhodnout.</li>
+  <li>Mez jednotlivého testu: mají-li více délek na stejný cíl stejný posun (např. konstanta hranolu 17,5 mm), cílový bod se posune s nimi a žádná jednotlivá délka nevybočí (prokázáno v testu). To najde až skupinový test.</li>
+</ul>
+
+<h3 id="gruppentest">Skupinové testy na společnou příčinu <span class="ver">V0.485</span></h3>
+<p class="where">Seznam nápadných měření: „Skupinové testy“ · zobrazení: „Skupinové testy (společná příčina)“</p>
+<p>Zkoumá, zda více měření má <b>stejnou</b> chybu – případ, který jednotlivý test nevidí. Testují se: <b>délky k jednomu cíli</b> (konstanta hranolu/adiční), <b>všechna měření z jednoho stanoviska</b> (výška přístroje) a <b>všechna měření k jednomu cíli</b> (výška cíle).</p>
+<ul>
+  <li><b>Jak:</b> společné pole skupiny se zkusmo posune o ±1 cm a znovu vyrovná. Ze tří součtů čtverců oprav plyne přísně (se všemi korelacemi, i když se cílový bod posune) odhadnutá společná chyba, testová statistika (α = 0,1 %) a nejmenší odhalitelná chyba skupiny. Test používá přesnosti statistického testu; poté je vše přesně jako předtím.</li>
+  <li><b>Výsledek</b> v seznamu: pro každou skupinu společná chyba, |ln p|, nejmenší odhalitelná chyba a příčina. U řádku skupiny „<b>Opravit naměřenou hodnotu</b>“ opraví společné pole všech měření (hodnoty délek nebo výšku přístroje/cíle); deaktivace, aktivace a vrácení působí na všechny členy.</li>
+  <li><b>Jednotlivá nebo společná chyba?</b> Vysvětlí-li skupinu lépe jednotlivá chyba (jednotlivý test silnější než skupinový), skupina se nehlásí jako společná chyba, ale zobrazí se „spíše jednotlivá chyba: …“.</li>
+  <li><b>Test na syntetických datech:</b> konstanta hranolu +17,5 mm na všech 4 délkách k cíli → odhaleno +17,8 mm; výška přístroje +2 cm na stanovisku (30 měření) → +21,6 mm, při +7 mm stále odhaleno (+8,6 mm). Po „Opravit naměřenou hodnotu“ zbytková chyba 0,0 mm. Čistá data: 50 skupin, žádný planý poplach. Skupiny, jejichž nejmenší odhalitelná chyba převyšuje posun, se právem nehlásí (např. 1 cm chyba hranolu při mezi 13 mm).</li>
+  <li><b>Doba:</b> dvě vyrovnání na skupinu, nejvýše 60 skupin (s největšími opravami). V testovací síti: 50 skupin za 13 s. Směry ze stanoviska se netestují – společné pootočení zcela pohltí neznámá orientace. Nekontrolované skupiny (nejmenší odhalitelná chyba nad 0,5 m) se neuvádějí.</li>
+</ul>
+
+<h3 id="fehlersimulation">Simulace chyb (Monte Carlo) <span class="ver">V0.486</span></h3>
+<p class="where">Seznam nápadných měření: „Simulace chyb …“</p>
+<p>Měří na <b>tvé vlastní síti</b>, jak dobře Klein_Method nachází chyby. Chyby známé velikosti se náhodně vloží, síť se vyrovná a počítá se, jak často je chyba nalezena. Každý pokus se přesně vrátí.</p>
+<ul>
+  <li><b>Zadání:</b> velikosti chyb v cm (předvoleno 1 2 3 5), pokusy na velikost (předvoleno 12) a druhy měření: délky, směry, zenitové úhly (jednotlivé chyby; u úhlů jako příčná odchylka na cíli) a konstanta hranolu na cíl a výška přístroje na stanovisko (společná chyba skupiny). Dialog ukazuje počet vyrovnání.</li>
+  <li><b>Výsledek</b> pro druh a velikost chyby: nalezeno v % (významné v jednotlivém nebo skupinovém testu), v závorce podíl největšího testu v síti, průměrná odhadnutá chyba a průměrná nejmenší odhalitelná chyba. Tabulka je i v protokolu („FEHLERSIMULATION“).</li>
+  <li>Testuje se ve stavu statistického testu (výchozí přesnosti). Poté jsou přesnosti, naměřené hodnoty a výšky přesně jako předtím, výsledky zůstávají platné. Náhoda má pevný počáteční stav – stejné zadání dá stejný výsledek.</li>
+  <li><b>Příklad (syntetická testovací síť 01, 12 pokusů, 43 s):</b> délky 0,5 / 1 / 2 cm → 17 / 100 / 100 %; směry → 8 / 17 / 75 %, 3 cm 100 %; zenitové úhly → 0 / 17 / 83 %, 3 cm 100 %; konstanta hranolu na cíl → 25 / 75 / 100 %; výška přístroje na stanovisko → 33 / 67 / 100 %.</li>
+  <li>Jak to číst: co při dané velikosti zůstává pod zhruba 80 %, není ve tvé síti spolehlivě odhalitelné – pomůže jen lepší geometrie sítě nebo další měření.</li>
+</ul>
+
+<h3 id="gewicht">Semafor poměru vah <span class="ver">V0.487</span></h3>
+<p class="where">Menu Klein: „Poměr vah druhů měření …“ · průvodce postupem krok 7</p>
+<p>Ukazuje, zda nějaký druh měření síť <b>převážně</b> určuje nebo je špatně vážen – z posledního platného vyrovnání, bez nového výpočtu.</p>
+<ul>
+  <li><b>Podíl:</b> podíl druhu na určení souřadnic (součet 1 − podíl nadbytečnosti). Nad 70 % určuje druh síť téměř sám; jeho chyby formují souřadnice téměř bez kontroly. Nivelace tvoří vlastní výškovou podsíť a do podílu se nepočítá.</li>
+  <li><b>Nadbytečnost:</b> průměrný podíl nadbytečnosti – jak dobře je druh kontrolován. Pod 20 % žlutá, pod 5 % červená (prakticky nekontrolované). U nivelace s přestavovými body je malá hodnota ze své podstaty (žlutá s poznámkou): chyby jsou tam poznatelné jen z uzávěrů.</li>
+  <li><b>Faktor:</b> varianční faktor druhu (Ω / součet podílů nadbytečnosti). 1 = váha sedí; mimo 0,5–2 žlutá, mimo 0,25–4 červená. Nad 1: přesnost příliš optimistická, pod 1: příliš pesimistická.</li>
+  <li>Krok 7 průvodce postupem jmenuje žluté a červené druhy a nabízí „Poměr vah …“. Výsledek je v protokolu („GEWICHTSVERHAELTNIS“).</li>
+  <li><b>Test (syntetická testovací síť 01):</b> po automatice žádná červená; délky uměle s 0,1 mm → faktor 339, červená „váha příliš vysoká“, podíl délek stoupne ze 46 na 59 %.</li>
+</ul>
+
+<h3 id="schlussangleichung496">Závěrečné přizpůsobení VKS: dolní meze jsou dodrženy <span class="ver">V0.496</span></h3>
+<p class="where">Nastavení: „Závěrečné přizpůsobení VKS“ · Meze nejistoty skupiny (a, b, c)</p>
+<p>Závěrečné přizpůsobení zmenšuje příliš pesimistické přesnosti jen po příslušnou dolní mez, nikdy pod ni.</p>
+<ul>
+  <li><b>Nejistoty skupiny a, b, c:</b> nejvýše po dolní mez druhu měření (např. směry 0,5 mgon); hodnoty na mezi zůstávají beze změny.</li>
+  <li><b>Individuální přesnosti:</b> nejvýše po individuální dolní mez.</li>
+</ul>
+
+<h3 id="schlussangleichung">Závěrečné přizpůsobení VKS, nové výchozí nastavení, symboly měření <span class="ver">V0.490</span></h3>
+<p class="where">Nastavení: „Závěrečné přizpůsobení VKS“ (výchozí ano) · Opakovaná měření · Mapa: „Symboly měření“</p>
+<p>Po dokončené automatice zkontroluje Klein_Method variační faktor každého druhu měření (součet Ω / součet podílů nadbytečnosti). Leží-li pod pásmem VKS, protože dolní meze drží přesnosti, jsou přesnosti příliš pesimistické – zmenší se odmocninou(faktor) a vyrovná se znovu.</p>
+<ul>
+  <li><b>Závěrečné přizpůsobení VKS:</b> u každého druhu s dostatečnou nadbytečností a faktorem pod pásmem se všechny individuální přesnosti (GNSS po osách) a nejistoty skupin vynásobí odmocninou(faktor) – nejvýše 3 kola, v každém nejvýše na polovinu. Nahoru se nic nemění. Log a protokol stavu: „SCHLUSSANGLEICHUNG VKS“. Lze vypnout v nastavení.</li>
+  <li><b>Nové výchozí „Sloučit + kalibrovat“</b> pro opakovaná měření (srovnání s referenčními souřadnicemi: poloha v průměru 7,6 místo 14,8 mm). Uložené „Sloučit“ se jednou převede, „Vyp.“ a „Převážit“ zůstávají.</li>
+  <li><b>Mapa – symboly měření:</b> JAG3D kreslí symboly ne na bod, ale kousek podél každé čáry; při mnoha GNSS vektorech ke vzdáleným stanicím SAPOS to vypadalo jako posunutý mrak bodů. Symboly jsou nyní v mapě ve výchozím stavu skryté (přepínač „Symboly měření“); body a síťový graf beze změny.</li>
+  <li><b>Test (syntetická síť 01):</b> po automatice směry 0,40 → 1,00, zenitové úhly 0,40 → 0,97; směry uměle 3× příliš pesimistické (0,12) → 1,00 v jednom kole.</li>
+</ul>
+
+<h3 id="bericht491">Protokol testu s doporučením, výška z 1D ve výchozím stavu zap. <span class="ver">V0.491</span></h3>
+<p class="where">Protokol „Statistický test“ · karta Klein: „Výška jen z nivelačních bodů (1D)“</p>
+<p>Protokol statistického testu nyní nahoře říká, co dělat, a doporučené tlačítko nese „(doporučeno)“.</p>
+<ul>
+  <li><b>Není co dělat:</b> když automatika odvážila všechna nápadná měření a v žádném bodě není nahromadění – „Zavřít (doporučeno)“.</li>
+  <li><b>Nahromadění v jednom bodě</b> (nejméně 3 a 40 %): spíše společná chyba – doporučeno „Skupinové testy …“.</li>
+  <li><b>Neodváženo</b> (► v seznamu): doporučeno čištění.</li>
+  <li><b>Výška jen z nivelačních bodů (1D)</b> je v projektech bez vlastního nastavení nyní ve výchozím stavu zapnuta; použije se jen v dynamickém/vázaném vyrovnání a jen při úspěšné kontrole. Vědomě vypnutá zůstává vypnutá.</li>
+</ul>
+
+<h3 id="karte492">Mapa: symboly měření na bodě <span class="ver">V0.492</span></h3>
+<p class="where">Mapa: přepínač „Symboly měření na bodě“</p>
+<p>Mapa už nekreslí symboly měření vedle bodů.</p>
+<ul>
+  <li><b>Zap.:</b> jeden koláč na bod ze všech druhů měření přesně na bodě. <b>Vyp.</b> (výchozí): jen body a čáry.</li>
+  <li>Po každém obrazu mapy se síťový graf JAG3D jednou překreslí, takže vždy ukazuje vlastní stav, i při otevřené mapě.</li>
+</ul>
+
+<h3 id="stattest494">Statistický test jako samostatná funkce <span class="ver">V0.494</span></h3>
+<p class="where">Menu Klein nebo karta Klein: „Statistický test …“</p>
+<p>Statistický test (malé hrubé chyby) už neběží v automatice, ale na požádání.</p>
+<ul>
+  <li>Automatika si jen tiše uloží stav pro test.</li>
+  <li><b>„Statistický test …“</b> nastaví tento stav, spočítá test, ukáže protokol s doporučením a přesně obnoví aktuální stav – výsledky automatiky zůstávají platné.</li>
+  <li>Skupinové testy a simulace chyb nyní obnovují i přesnosti skupin.</li>
+  <li>Asistent krok 7: šedé upozornění s tlačítkem; žlutá až při otevřených nálezech.</li>
+</ul>
+
+<h3 id="grob499">Hrubé chyby automaticky před průchodem 1 <span class="ver">V0.499</span></h3>
+<p class="where">Karta Klein: „Hrubé chyby automaticky vyčistit“ · „Přirážka GNSS (ppm)“</p>
+<p>Dosud se automatika spouštěla až po ručním „Vyčistit hrubé chyby“; kalibrace mohla hrubé chyby skrýt zvětšením jejich přesnosti.</p>
+<ul>
+  <li><b>Automaticky:</b> při startu automatiky se „Vyčistit hrubé chyby“ spustí samo před průchodem 1.</li>
+  <li><b>Délkově závislá mez pro GNSS:</b> mez + ppm × délka (např. 2 ppm, 40 km → 0,180 m).</li>
+  <li><b>Kontrola na konci:</b> jen poznámky, bez vypínání.</li>
+</ul>
+
+<h3 id="grob500">Hrubé chyby: kontrola s vlastním vyrovnáním <span class="ver">V0.500</span></h3>
+<p class="where">Karta Klein: „Spustit Klein_Method“ při „Hrubé chyby automaticky vyčistit“ = ano</p>
+<p>Dosud kontrola používala opravy posledního vyrovnání; po importu bez F5 se tiše přeskočila.</p>
+<ul>
+  <li><b>Nyní:</b> před kontrolou Klein_Method vždy sám provede jedno vyrovnání.</li>
+  <li><b>Protokol:</b> záznam i tehdy, když nic nepřekračuje mez nebo kontrola není možná.</li>
+</ul>
+
+<h2 id="stuetzung">8. Podpora GNSS na okraji sítě <span class="ver">od V0.451</span></h2>
+<p class="where">Menu <i>Klein_Method → Zkontrolovat podporu GNSS na okraji sítě (citlivost) …</i> · Upozornění po vyrovnání · Mapa: čárkované kruhy</p>
+<p>Leží-li části kombinované sítě mimo podporu GNSS, určují se jen totální stanicí a mohou „ujíždět“. Klein_Method takové body označí (žlutě od 10 m, červeně od 50 m mimo) a uvede body, na jejichž GNSS závisí celá okrajová oblast. <b>Citlivost</b> zkusmo počítá bez jejich GNSS a ukáže, jak daleko by se okraj posunul.</p>
+
+<h2 id="planung">9. Prognóza a plánování měření <span class="ver">od V0.455</span></h2>
+<p class="where">Menu <i>Klein_Method → Prognóza a plánování měření (přeměřit/doplnit GNSS) …</i></p>
+<p>Při neúplných datech nepomůže ani nejlepší výpočet – důležité je vědět, <b>kde</b> je síť slabá a <b>které</b> měření to napraví. Žádná data se nemění.</p>
+<ul>
+  <li><b>Prognóza pro bod:</b> relativní elipsa chyb (podíl nad nejlépe určeným novým bodem). Žlutě od 1,2násobku, červeně od 1,5násobku mediánu; v mapě jako barevný lem.</li>
+  <li><b>Plánování měření:</b> pro nejslabší body se výpočetně vloží jedna GNSS seance z referenční stanice a provede se vyrovnání. Přinese-li několik bodů stejný zisk, uvedou se společně – zvolte nejlépe přístupný.</li>
+  <li><b>Přesnost předpokládané seance:</b> „krátký vektor (5 mm poloha, 10 mm výška)“ nebo „jako dosavadní seance“. Dlouhé vektory ke vzdáleným stanicím bývají mnohem méně přesné (1 ppm je při 30 km již 30 mm).</li>
+  <li><b>Seznam k přeměření:</b> deaktivované nebo velmi nejisté průměry seancí.</li>
+  <li>Zpráva „…_Messplanung.txt“ ve složce protokolu.</li>
+</ul>
+<div class="box"><b>Doporučení:</b> vyvolat po automatickém běhu – teprve pak jsou přesnosti zkalibrovány.</div>
+
+<h2 id="hoehen">10. Výšky a kvazigeoid <span class="ver">od V0.446/V0.447</span></h2>
+<p class="where">Karta: „Importovat kvazigeoid …“, „Spravovat kvazigeoidy …“, „Přepočítat výškové body …“, „Zkontrolovat výškové systémy nyní“</p>
+<ul>
+  <li>Lze importovat <b>model kvazigeoidu</b> (např. GCG2016). Umožňuje převádět normální výšky (např. německé NHN) a elipsoidické výšky: h = H + N.</li>
+  <li>Jsou-li výškové body v normálních výškách smíšeny s GNSS (elipsoidickými), nabídne Klein_Method převod pevných výšek na elipsoidické (lze vrátit).</li>
+</ul>
+
+<h3 id="festpunkt498">Dynamické vyrovnání: dolní mez pevných bodů, samostatná výška <span class="ver">V0.498</span></h3>
+<p class="where">Karta Klein: dolní meze pevných bodů (mm) · přepínač „Výška jen z výškových bodů (1D)“</p>
+<p>Neověřitelný pevný bod dosud klesal na 0,0001 mm a byl prakticky tuhý.</p>
+<ul>
+  <li><b>Dolní mez:</b> výchozí 1,0 mm poloha/2D/3D a 0,3 mm 1D, nastavitelná od 0,01 do 50 mm.</li>
+  <li><b>Samostatná výška (jen s „Výška jen z 1D“):</b> výška 3D bodů se kalibruje zvlášť (1 mm až 10 m); nehodí-li se k síti, stane se volnou.</li>
+</ul>
+
+<h3 id="dyn509">Dynamické vyrovnání: pevné body opět končí v pásmu <span class="ver">V0.509</span></h3>
+<p class="where">Automatika v dynamickém vyrovnání · protokol</p>
+<p>Ve V0.507/V0.508 mohl pevný bod, jehož T_prio silně reaguje na σ, předčasně platit za „interval vyčerpán“ a skončit s T_prio 1,02 místo 1,00. Navíc na konci dynamického vyrovnání běželo závěrečné přizpůsobení VKS; pokud zůstalo platné, posunuly se poté hodnoty T_prio všech pevných bodů.</p>
+<ul>
+  <li>„Interval vyčerpán“ platí jen pro pevné body, které na své σ téměř nereagují (|p| &lt; 0,1). Opustí-li takový bod později toleranci, zpracovává se dál.</li>
+  <li>Dynamické vyrovnání už neprovádí závěrečné přizpůsobení VKS – měření zůstávají beze změny a konečné hodnoty T_prio odpovídají poslednímu vyhodnocení v protokolu.</li>
+</ul>
+
+<h3 id="dyn507">Dynamické vyrovnání: půlení intervalu a jasné závěrečné hlášení <span class="ver">V0.507</span></h3>
+<p class="where">Automatika v dynamickém vyrovnání · protokol a stavový řádek na konci</p>
+<p>Některé pevné body téměř nereagují na vlastní nejistotu: T_prio se v širokém rozsahu σ mění jen málo, protože je určeno hlavně zbytkem sítě. Dosud se σ pak posouvalo velmi malými kroky, dokud detekce uváznutí neukončila výpočet bez DONE.</p>
+<ul>
+  <li>Je-li pro pevný bod známo σ s T_prio nad pásmem a σ s T_prio pod pásmem, interval se půlí (geometrický průměr). Protokol: „Intervallhalbierung (Ziel zwischen … und … mm)“.</li>
+  <li>Je-li interval vyčerpán na 0,1 % a T_prio leží asi do 3 % od 1, bod se považuje za hotový – jeho σ je určeno. Protokol: „Intervall ausgeschoepft“.</li>
+  <li>Dynamické vyrovnání kalibruje jen pevné body. Leží-li Max-logPost na konci nad mezní hodnotou, stavový řádek hlásí „Pevné body kalibrovány. Max-logPost je nad mezní hodnotou – měření se kalibrují ve vyrovnání s pevnými body.“ Nejde o chybu.</li>
+</ul>
+
+<h3 id="einzel506">Dynamické vyrovnání: všechny individuální hodnoty pevných bodů vyplněny <span class="ver">V0.506</span></h3>
+<p class="where">Skupina bodů „pohyblivé připojovací body“</p>
+<p>Dosud zůstala individuální hodnota prázdná, když bod nebyl kontrolovatelný (T_prio ≈ 0).</p>
+<ul>
+  <li>Na konci se chybějící hodnoty doplní hodnotou skupiny (výsledek beze změny), protokol „EINZELWERT ERGAENZT“.</li>
+  <li>Nová poznámka „FESTPUNKT NICHT PRUEFBAR“ pro body s T_prio ≈ 0.</li>
+</ul>
+
+<h3 id="floor503">Dolní mez pevných bodů jen s GNSS <span class="ver">V0.503</span></h3>
+<p class="where">Karta Klein: „Dynamické vyrovnání: dolní mez … s GNSS (mm)“</p>
+<p>Meze 1,0 mm a 0,3 mm chrání před tuhými pevnými body při GNSS.</p>
+<ul>
+  <li>Bez aktivních základnic GNSS platí 0,01 mm.</li>
+  <li>Poznámka „VARIANZFAKTOR“ v protokolu, když se σ̂₀² liší od 1 (T_post = T_prio / σ̂₀²).</li>
+  <li>Opraveno: závěrečné škálování VKS v projektech bez GNSS.</li>
+</ul>
+
+<h3 id="hoehe1d">Výška pouze z výškových bodů (1D) <span class="ver">V0.479</span></h3>
+<p class="where">Karta „Řízení“, jen v dynamickém a pevném vyrovnání: „Výška pouze z výškových bodů (1D)“</p>
+<p>V kombinovaných sítích (GNSS, totální stanice, nivelace) s vlastními výškovými body má výška pocházet z nivelace, ne z elipsoidických výšek pevných bodů 3D. S přepínačem určují pevné/připojovací body 3D jen polohu (výška σz = 10 m, volná); výška pochází výhradně z výškových bodů (1D).</p>
+<ul>
+  <li><b>Dynamické vyrovnání:</b> analýza pevných bodů hodnotí u bodů 3D jen polohu (variační faktor a T<sub>prio</sub> z y a x).</li>
+  <li><b>Pevné vyrovnání:</b> bezvariační pevné body 3D přejdou do skupiny „Klein_Method 3D-Festpunkte Lage (Hoehe frei)“ se σ polohy 0,01 mm – působí jako bezvariační.</li>
+  <li><b>Kontrola při zapnutí:</b> alespoň jeden výškový bod s nivelací (jinak červeně), doporučeny 3; v pevném vyrovnání alespoň jeden bezvariační; stejný výškový systém (NHN nejprve přepočítat kvazigeoidem, <a href="#hoehen">kapitola 10</a>).</li>
+  <li><b>Změnu etapy</b> (dynamická → pevná) Klein_Method při kliknutí na kartu přizpůsobí automaticky. <b>Vyp.</b> obnoví všechny hodnoty přesně.</li>
+</ul>
+<div class="box">Test (výšky pevných bodů GNSS záměrně +30 mm chybné): pevné vyrovnání bez přepínače nové body v průměru +8,6 mm, s přepínačem ±0,0 mm (RMS 1,2 mm); dynamické +1,8 → 0,0 mm.</div>
+
+<h3 id="rechner495">Kalkulačka výšek: nabídka, automatické uložení, sloupce <span class="ver">V0.495</span></h3>
+<p class="where">Nabídka KleinMethod → Kalkulačka souřadnic/výšek …</p>
+<p>Kalkulačka je nyní v nabídce KleinMethod místo v nabídce Nápověda.</p>
+<ul>
+  <li><b>Automatické uložení:</b> výsledek načteného a nezměněného souboru se uloží vedle originálu s příponou, např. <i>_ellipsoidisch</i>.</li>
+  <li><b>Sloupce zarovnané doprava:</b> názvy bodů a hodnoty pod sebou.</li>
+</ul>
+
+<h3 id="rechner">Kalkulačka souřadnic/výšek (DHHN2016 ↔ elipsoidická) <span class="ver">V0.482</span></h3>
+<p class="where">Nabídka <i>KleinMethod → Kalkulačka souřadnic/výšek …</i> (pod „Převod souřadnic“, od V0.495; dříve v nabídce Nápověda) – i bez otevřeného projektu</p>
+<p>Přepočítává jednotlivé body nebo celé seznamy mezi systémy ETRS89 a výškovými systémy. Kalkulačka nemění žádný projekt; v projektu přepočítává Klein_Method sám (<a href="#import">kapitola 2</a>).</p>
+
+<pre>P1  32500000.000  5650000.000 100.0000   →   P1  32500000.000  5650000.000 (100.0000 + N)</pre>
+<ul>
+  <li><b>Výchozí a cílový systém:</b> UTM s číslem zóny ve východní souřadnici (např. 32500000.000), zeměpisné (šířka/délka ve stupních) nebo geocentrické (X/Y/Z). Zónu UTM výstupu lze zvolit (prázdné = jako vstup nebo z délky).</li>
+  <li><b>Výchozí a cílová výška:</b> DHHN2016 (normální výška nad aktivním kvazigeoidem, h = H + N) nebo elipsoidická (GRS80). Kvazigeoid (např. GCG2016) se importuje jednou a platí pro všechny projekty; import i přímo v kalkulačce.</li>
+  <li><b>Jednotlivé zadání</b> se zobrazením výškové anomálie N, <b>dávkové zpracování</b>: načíst nebo vložit soubor (mezera, tabulátor nebo středník; desetinná tečka nebo čárka), „Přepočítat vše“, uložit výsledek. Další sloupce zůstanou, volitelně se připojí N.</li>
+  <li>Přesnost: UTM ↔ zeměpisné ↔ geocentrické ověřeno nezávislým výpočtem na 0,1 mm; výška tak přesná jako model kvazigeoidu.</li>
+</ul>
+
+<h2 id="export">11. Export souřadnic <span class="ver">volba výšky od V0.450</span></h2>
+<p class="where">Karta: „Exportovat souřadnice“ s cílovým systémem a „Výška:“</p>
+<ul>
+  <li><b>Cílové systémy:</b> systém projektu, ETRS89/WGS84 geocentrický nebo zeměpisný, zóny UTM, další systémy ze souborů zobrazení.</li>
+  <li><b>Výška:</b> elipsoidická, normální výška NHN (H = h − N, s kvazigeoidem) nebo „jako v cílovém systému“.</li>
+  <li>Záhlaví uvádí systém, P0 a druh výšky; body mimo podporu GNSS jsou v záhlaví poznamenány.</li>
+</ul>
+
+<h2 id="karte">12. Mapa (OpenStreetMap) <span class="ver">panel nástrojů od V0.456</span></h2>
+<p class="where">Karta: „Mapa (OpenStreetMap)“</p>
+<p>Mapa kreslí stejné vrstvy jako graf sítě JAG3D (body, měření, elipsy, šipky) na OpenStreetMap.</p>
+<table>
+  <tr><th>Tlačítko</th><th>Účinek</th></tr>
+  <tr><td>Posunout</td><td>tažení mapy (výchozí); kolečko myši přibližuje.</td></tr>
+  <tr><td>Zoom oknem</td><td>natáhněte obdélník, mapa se na něj přiblíží.</td></tr>
+  <tr><td>Přiblížit / Oddálit</td><td>o jeden stupeň, střed zůstává.</td></tr>
+  <tr><td>Celkový pohled</td><td>všechny body včetně vzdálených stanic <span class="ver">V0.457</span>.</td></tr>
+  <tr><td>Překreslit</td><td>znovu načíst data a vrstvy.</td></tr>
+  <tr><td>Vrstvy</td><td>dialog vrstev grafu sítě; působí na graf sítě i mapu.</td></tr>
+  <tr><td>Export</td><td>mapa jako PNG s uvedením zdroje OSM.</td></tr>
+  <tr><td>Hledat bod</td><td>seznam bodů a měřítkový faktor jako zoom prvku v JAG3D (vzhledem k aktuálnímu pohledu) <span class="ver">V0.459</span>.</td></tr>
+</table>
+<p>Vzdálené body spojené měřením (např. referenční stanice GNSS) se kreslí i s vektory; jen vzdálené body <b>bez</b> měření se považují za odlehlé <span class="ver">V0.457</span>. „Zobrazit síť“ přiblíží vlastní síť.</p>
+
+<h2 id="protokoll">13. Protokol, log a zprávy</h2>
+<ul>
+  <li><b>Klein_Method.log</b> a protokol jsou ve složce projektu; od V0.453 zcela v ASCII (přehlásky jako ae/oe/ue). Log a protokol se vždy píší německy.</li>
+  <li><b>Zpráva o běhu</b> po každém automatickém běhu; pomocí „Sdílet zprávu o běhu“ anonymně do sdílených znalostí (bez souřadnic, názvů bodů a projektů).</li>
+  <li><b>Kalibrační protokol</b>, <b>zpráva o analýze pevných bodů</b>, <b>plánování měření</b> jako textové soubory ve složce protokolu („Otevřít složku zpráv“).</li>
+</ul>
+
+<h3 id="schwarm100">Znalosti roje: veřejně, odesílání bez tokenu <span class="ver">V1.00 RC1</span></h3>
+<p class="where">Oddíl „Znalosti roje“ · Sdílet zprávu o běhu · pole „Repozitář“ a „Zprostředkovací služba“</p>
+<p>Znalosti roje nyní používají veřejný repozitář <code>htw9056/klein-method-schwarm</code>. Uživatelé už nepotřebují token ani účet GitHub.</p>
+<ul>
+  <li>Stažení hodnot ze zkušenosti: přímo z veřejného repozitáře, bez tokenu.</li>
+  <li>Odeslání zprávy: s tokenovým souborem přímo na GitHub, jinak přes zprostředkovací službu. Služba uchovává token chráněný a kontroluje každou zprávu. Není-li dostupná, Klein_Method nabídne „Odeslat v prohlížeči“ – GitHub otevře vyplněný formulář; k odeslání je nutný bezplatný účet GitHub.</li>
+  <li>Uložené staré adresy (<code>klein-method-schwarm-test</code> a dřívější názvy) se jednorázově přepnou na nový standard. Kdo poté vědomě zadá cvičný repozitář, ponechá si ho.</li>
+  <li>Zřízení pro provozovatele: <code>03_Schwarm_GitHub/Schwarmwissen_Oeffentlich_mit_Vermittlungsdienst.md</code>.</li>
+</ul>
+
+<h2 id="fehler">14. Problémy a řešení</h2>
+<h3 id="fziel">Velmi mnoho zenitových úhlů jako hrubé chyby (odchylka ≈ 1,3–1,7 m) <span class="ver">V0.466</span></h3>
+<p><b>Příčina:</b> téměř vždy v importu chybí <b>výšky cíle</b> (výšky odrazného hranolu) – jsou 0, zatímco výška přístroje je zadána. Každý zenitový úhel pak míří o výšku cíle níže. <b>Řešení:</b> znovu importovat měření s výškami cíle a tyto úhly <i>nepřebírat</i> jako hrubé chyby („Zrušit (vše znovu aktivovat)“). Předběžná kontrola na to upozorní (červeně nahoře v potvrzovacím okně), hledání příčin uvádí i jednotlivé výšky cíle nebo přístroje. Zkontrolujte také výškový systém výškových bodů – nesoulad GNSS a nivelace se rovněž zobrazí červeně nahoře.</p>
+<h3 id="f200">Průměrování hlásí odchylky kolem 200 000 mgon</h3>
+<p><b>Příčina:</b> chybí přibližné souřadnice, II. poloha není rozpoznána. <b>Řešení:</b> v dotazu zvolit „Nejprve vypočítat přibližné hodnoty (doporučeno)“, případně předem menu <i>Vypočítat a zkontrolovat přibližné souřadnice …</i>. Samotná měření jsou v pořádku.</p>
+<h3 id="fdrift">Okraj sítě „ujíždí“</h3>
+<p><b>Příčina:</b> okraj je připojen jen totální stanicí (chybějící GNSS vektory). <b>Řešení:</b> <a href="#planung">Prognóza a plánování měření</a> ukáže slabé místo před výpočtem a uvede bod, na kterém dodatečná GNSS seance přinese nejvíce – často stačí jedna dobrá seance kdekoli na dotčeném okraji.</p>
+<h3 id="fz">Výšky v místním systému „chybné“</h3>
+<p>V místním elipsoidickém systému je Z kartézská souřadnice vůči tečné rovině, nikoli výška (viz <a href="#import">kapitola 2</a>). Pro výšky použijte export s „Výška: elipsoidická“ nebo „normální výška NHN“.</p>
+<h3 id="fsperre">„ZABLOKOVÁNO: dosažena horní mez individuální nejistoty měření“</h3>
+<p>Více než 10 měření dosáhlo v jednom kroku horní meze – to ukazuje na zásadní problém (např. chybné počáteční přesnosti, mnoho hrubých chyb). Zkontrolujte data, poté „Zrušit zámek“.</p>
+<h3 id="fneustart">Tvar sítě po sloučení/vrácení zkreslen</h3>
+<p>Kalibrace automatického běhu patří k dosavadním měřením. Po sloučení nebo vrácení spusťte automatiku znovu přes „Spustit Klein_Method“.</p>
+
+<h2 id="begriffe">15. Pojmy</h2>
+<table>
+  <tr><th>Pojem</th><th>Význam</th></tr>
+  <tr><td>P0</td><td>vztažný bod místního systému (tečná rovina).</td></tr>
+  <tr><td>GNSS seance</td><td>po sobě jdoucí epochy téže dvojice bodů v téže skupině.</td></tr>
+  <tr><td>Kontrola skoku/driftu</td><td>kontrola seance na skok nebo lineární drift před sloučením.</td></tr>
+  <tr><td>logPost</td><td>hodnoticí veličina Klein_Method pro kalibraci; mezní hodnota typicky 2,45.</td></tr>
+  <tr><td>Průchod (kaskáda)</td><td>úsek automatického běhu; průchod 2 kalibruje individuálně s pevnými skupinovými hodnotami.</td></tr>
+  <tr><td>Podpora GNSS</td><td>oblast sítě nesená měřeními GNSS.</td></tr>
+  <tr><td>Prognóza</td><td>relativní elipsa chyb pro bod z vyrovnání.</td></tr>
+  <tr><td>Plánování měření</td><td>výpočetně vložené seance k nalezení nejúčinnějšího doměření.</td></tr>
+  <tr><td>Referenční stanice</td><td>stanice GNSS, z níž vychází předpokládaná seance.</td></tr>
+  <tr><td>Kvazigeoid, N</td><td>výšková anomálie; h = H + N (elipsoidická = normální výška + N).</td></tr>
+</table>
+
+<h2 id="versionen">16. Historie verzí</h2>
+<table>
+  <tr><th>Verze</th><th>Hlavní změna</th></tr>
+  <tr><td><a href="#v1_00_rc3">V1.00 RC3</a></td><td>EP u nivelace · historie verzí v kapitole 16</td></tr>
+  <tr><td><a href="#v1_00_rc2">V1.00 RC2</a></td><td>Hromadné základnice: osiřelé záznamy, P0 bez nulových bodů</td></tr>
+  <tr><td><a href="#v1_00_rc1">V1.00 RC1</a></td><td>Znalosti roje: veřejně, odesílání bez tokenu · Meze metody</td></tr>
+  <tr><td><a href="#v0_509">V0.509</a></td><td>Dynamické vyrovnání: pevné body opět končí v pásmu</td></tr>
+  <tr><td><a href="#v0_508">V0.508</a></td><td>Příklad C: očekávané hodnoty ze skutečného rozhraní JAG3D</td></tr>
+  <tr><td><a href="#v0_507">V0.507</a></td><td>Dynamické vyrovnání: půlení intervalu, jasné závěrečné hlášení; podpora GNSS jen s GNSS</td></tr>
+  <tr><td><a href="#v0_506">V0.506</a></td><td>Chybějící individuální hodnoty doplněny hodnotou skupiny</td></tr>
+  <tr><td><a href="#v0_505">V0.505</a></td><td>Opraveno přerušení spuštění JAG3D s V0.504</td></tr>
+  <tr><td><a href="#v0_504">V0.504</a></td><td>Práce na pozadí v záhlaví karty a v kartě Klein, ne během automatiky</td></tr>
+  <tr><td><a href="#v0_503">V0.503</a></td><td>Mez 1,0/0,3 mm jen s GNSS, jinak 0,01 mm; poznámka k variančnímu faktoru</td></tr>
+  <tr><td><a href="#v0_502">V0.502</a></td><td>Žádné okno při červených krocích, pole „Deaktivované BL“ širší</td></tr>
+  <tr><td><a href="#v0_501">V0.501</a></td><td>Žádné okno pro nové spuštění, poznámka v protokolu a stavovém řádku</td></tr>
+  <tr><td><a href="#v0_500">V0.500</a></td><td>Kontrola před průchodem 1 s vlastním vyrovnáním, i hned po importu</td></tr>
+  <tr><td><a href="#v0_499">V0.499</a></td><td>Automaticky před průchodem 1, délkově závislá mez GNSS</td></tr>
+  <tr><td><a href="#v0_498">V0.498</a></td><td>Dolní mez pevných bodů, samostatná výška</td></tr>
+  <tr><td><a href="#v0_497">V0.497</a></td><td>Tlumení kmitání a zaokrouhlení u mezní hodnoty</td></tr>
+  <tr><td><a href="#v0_496">V0.496</a></td><td>Závěrečné přizpůsobení VKS dodržuje dolní meze</td></tr>
+  <tr><td><a href="#v0_495">V0.495</a></td><td>Kalkulačka výšek v nabídce KleinMethod, automatické uložení, sloupce doprava</td></tr>
+  <tr><td><a href="#v0_494">V0.494</a></td><td>Statistický test jako samostatná funkce, mimo automatiku</td></tr>
+  <tr><td><a href="#v0_493">V0.493</a></td><td>Přesnost GNSS průměrů z rozptylu místo zmrazeného modelu skupiny</td></tr>
+  <tr><td><a href="#v0_492">V0.492</a></td><td>Mapa: symboly měření na bodě, síťový graf stabilní při otevřené mapě</td></tr>
+  <tr><td><a href="#v0_491">V0.491</a></td><td>Protokol testu s doporučením a tlačítkem skupinových testů, výška z 1D výchozí zap.</td></tr>
+  <tr><td><a href="#v0_490">V0.490</a></td><td>Závěrečné přizpůsobení VKS, výchozí sloučit + kalibrovat, symboly měření v mapě</td></tr>
+  <tr><td><a href="#v0_489">V0.489</a></td><td>Přejmenování bodů se šablonami, náhledem, kontrolou vzdálenosti a vrácením</td></tr>
+  <tr><td><a href="#v0_488">V0.488</a></td><td>Rozpoznání hromadných vektorů a robustní protřídění před prvním výpočtem</td></tr>
+  <tr><td><a href="#v0_487">V0.487</a></td><td>Semafor poměru vah druhů měření</td></tr>
+  <tr><td><a href="#v0_486">V0.486</a></td><td>Simulace chyb (Monte Carlo) na vlastní síti</td></tr>
+  <tr><td><a href="#v0_485">V0.485</a></td><td>Skupinové testy na společnou příčinu (konstanta hranolu, výška přístroje/cíle)</td></tr>
+  <tr><td><a href="#v0_484">V0.484</a></td><td>Seznam nápadných měření (úpravy, vrácení, nový test)</td></tr>
+  <tr><td><a href="#v0_483">V0.483</a></td><td>Statistický test před individuální kalibrací (malé hrubé chyby)</td></tr>
+  <tr><td><a href="#v0_482">V0.482</a></td><td>Kalkulačka souřadnic/výšek (nabídka Nápověda), zámek proti vícenásobnému přepočtu</td></tr>
+  <tr><td><a href="#v0_481">V0.481</a></td><td>Srovnávací varianta „Sloučit + kalibrovat“</td></tr>
+  <tr><td><a href="#v0_480">V0.480</a></td><td>Průvodce postupem, blokace spuštění, protokol stavu, pevné body 0/0/0</td></tr>
+  <tr><td><a href="#v0_479">V0.479</a></td><td>Přepínač „Výška pouze z výškových bodů (1D)“ (dyn./pevné vyrovnání)</td></tr>
+  <tr><td><a href="#v0_478">V0.478</a></td><td>Automatické slučování opakovaných měření, rozptyl jako minimální přesnost, převážení zrušeno; mapa volí vhodné zobrazení</td></tr>
+  <tr><td><a href="#v0_477">V0.477</a></td><td>Opakovaná měření podle druhu: převážit (výchozí) / sloučit / vyp., srovnávací soubor</td></tr>
+  <tr><td><a href="#v0_476">V0.476</a></td><td>Strom projektu uzamčen během automatiky/odstranění; jen jedno hlášení „Automatika běží“</td></tr>
+  <tr><td><a href="#v0_475">V0.475</a></td><td>Zastaralý P0 rozpoznán a určen znovu; zpráva „P0 mimo síť“; poloha 1D vůči síti</td></tr>
+  <tr><td><a href="#v0_474">V0.474</a></td><td>Přestavové body/stanoviska bez polohy automaticky uprostřed nivelačních sousedů</td></tr>
+  <tr><td><a href="#v0_473">V0.473</a></td><td>Nápověda: ukázkové ZIP A–E (surová data, návod, výsledky) ke stažení</td></tr>
+  <tr><td><a href="#v0_472">V0.472</a></td><td>Nápověda: kapitola 0 „Krok za krokem“ – formáty dat, systémy a postup pro 1D/2D/3D</td></tr>
+  <tr><td><a href="#v0_471">V0.471</a></td><td>Zpráva o importu: poloha bodů 1D vůči délkám záměr nivelace</td></tr>
+  <tr><td><a href="#v0_470">V0.470</a></td><td>Kontrola výškového systému s polohou výškových bodů 1D (bez planého poplachu ve velkých sítích)</td></tr>
+  <tr><td><a href="#v0_469">V0.469</a></td><td>Jednotlivá zpětná kontrola, dvojice GNSS podezřelé jen pro GNSS, zakřivení Země ve zprávě o importu</td></tr>
+  <tr><td><a href="#v0_468">V0.468</a></td><td>Zobrazení, redukce, P0 a převod jen se základnicemi GNSS</td></tr>
+  <tr><td><a href="#v0_467">V0.467</a></td><td>Zpráva o importu se semaforem (názvy, vzájemné zenitové úhly, poloha I/II, výšky, jednotky, systémy), poloha bodů 1D z nivelace</td></tr>
+  <tr><td><a href="#v0_466">V0.466</a></td><td>Kontrola výšek cíle, hledání příčin u totální stanice, varování k výškovému systému</td></tr>
+  <tr><td><a href="#v0_465">V0.465</a></td><td>Výškové body (1D) při převodu; nápověda bez kopie</td></tr>
+  <tr><td><a href="#v0_464">V0.464</a></td><td>Hrubé chyby: robustní předvýběr, hledání příčin (výška antény, záměna bodu)</td></tr>
+  <tr><td><a href="#v0_463">V0.463</a></td><td>Hrubé chyby: předběžná kontrola (uzávěry smyček, opakovaná měření), testová statistika, kontrolovatelnost</td></tr>
+  <tr><td><a href="#v0_462">V0.462</a></td><td>Nápověda v 7 jazycích</td></tr>
+  <tr><td><a href="#v0_461">V0.461</a></td><td>Hrubé chyby: rozptýlené odlehlé hodnoty po skupinách, kontrola</td></tr>
+  <tr><td><a href="#v0_460">V0.460</a></td><td>Nápověda i v menu JAG3D „Help“, klávesa F1</td></tr>
+  <tr><td><a href="#v0_459">V0.459</a></td><td>Nápověda; hledání bodu s relativním měřítkovým faktorem</td></tr>
+  <tr><td>V0.458</td><td>Kontrola přibližných souřadnic před průměrováním v JAG3D</td></tr>
+  <tr><td>V0.457</td><td>Mapa: vektory ke vzdáleným stanicím, hledání bodu jako zoom prvku</td></tr>
+  <tr><td>V0.456</td><td>Mapa: panel nástrojů jako v grafu sítě</td></tr>
+  <tr><td>V0.455</td><td>Prognóza a plánování měření</td></tr>
+  <tr><td>V0.454</td><td>Správná váha seancí s driftem; horní mez → deaktivace místo zámku</td></tr>
+  <tr><td>V0.453</td><td>Kontrola skoku/driftu; nové spuštění automatického běhu po změně; log v ASCII</td></tr>
+  <tr><td>V0.452</td><td>Slučování GNSS seancí</td></tr>
+  <tr><td>V0.451</td><td>Podpora GNSS na okraji sítě</td></tr>
+  <tr><td>V0.450</td><td>Export: volba výšky (elipsoidická / NHN)</td></tr>
+  <tr><td>V0.448–V0.449</td><td>Přepracované přibližné souřadnice (zakřivení Země, drift seancí, vypínání)</td></tr>
+  <tr><td>V0.446–V0.447</td><td>Kvazigeoid, převod pevných výšek</td></tr>
+</table>
+<h3 id="v1_00_rc3">V1.00 RC3</h3>
+<ul>
+    <li><b>EP u nivelace:</b> v čistě nivelačních sítích nelze EP zvolit (poznámka „jen nivelace: jen logPost“); v nivelaci jsou podíly nadbytečnosti malé a EP je kvůli geometrii sítě vysoké. V kombinovaných sítích hodnotí EP jen ostatní druhy měření, Max-EP už nivelaci nezahrnuje – <a href="#automatik">kapitola 6</a>.</li>
+    <li><b>Nápověda:</b> vývoj už není nahoře, ale celý v této kapitole.</li>
+  </ul>
+<h3 id="v1_00_rc2">V1.00 RC2</h3>
+<ul>
+    <li><b>Hromadné základnice:</b> záznamy opakovaných měření z dřívějšího zpracování nebo ze šablony projektu, které už nepatří k žádnému existujícímu měření, se při otevření projektu zahodí. Automatické prořídnutí opět funguje a kontrola pořadí už neblokuje spuštění Se zapnutým „Automaticky protřídit hromadné vektory“ se nyní protřiďuje hned po otevření; F5 na to počká. – <a href="#sitzungen">kapitola 5</a>.</li>
+    <li><b>Místní systém:</b> nové body bez přibližných souřadnic (0/0/0) se při přesunu P0 už nezapočítávají; neplatný vztažný bod se nikdy neuloží – <a href="#import">kapitola 2</a>.</li>
+    <li><b>Ovládání:</b> pole „Deaktivované BL“ je širší a zobrazuje velká čísla celá.</li>
+  </ul>
+<h3 id="v1_00_rc1">V1.00 RC1</h3>
+<ul>
+    <li><b>Znalosti roje:</b> veřejný repozitář, stažení bez tokenu, odeslání bez tokenu přes zprostředkovací službu nebo jedním kliknutím v prohlížeči – <a href="#schwarm100">kapitola 13</a>.</li>
+    <li><b>Meze metody:</b> nový oddíl – co Kleinova metoda dokáže a co ne – <a href="#grenzen">kapitola 6</a>.</li>
+    <li><b>Ovládání:</b> „Výška pouze z výškových bodů (1D)“ a „Průvodce postupem“ jsou přímo pod tlačítky levého sloupce – v dynamickém a pevném vyrovnání už žádná mezera.</li>
+  </ul>
+<h3 id="v0_509">V0.509</h3>
+<ul>
+    <li><b>Dynamické vyrovnání:</b> „interval vyčerpán“ jen pro málo citlivé pevné body, žádné závěrečné přizpůsobení VKS v dynamickém vyrovnání – viz <a href="#dyn509">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_508">V0.508</h3>
+<ul>
+    <li><b>Příklad C:</b> očekávané hodnoty a složka výsledků z výpočtu ve skutečném rozhraní JAG3D – viz <a href="#bsp508">kapitola 0</a>.</li>
+  </ul>
+<h3 id="v0_507">V0.507</h3>
+<ul>
+    <li><b>Dynamické vyrovnání:</b> žádné uváznutí u málo citlivých pevných bodů (půlení intervalu) a jasné závěrečné hlášení – viz <a href="#dyn507">kapitola 10</a>.</li>
+    <li><b>Podpora GNSS:</b> kontrola jen v projektech s GNSS vektory – chybové hlášení v čistě nivelačních sítích odpadá.</li>
+  </ul>
+<h3 id="v0_506">V0.506</h3>
+<ul>
+    <li><b>Dynamické vyrovnání:</b> chybějící individuální hodnoty doplněny hodnotou skupiny – <a href="#einzel506">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_505">V0.505</h3>
+<ul>
+    <li><b>Start:</b> opraveno přerušení spuštění JAG3D s V0.504 – <a href="#start505">kapitola 1</a>.</li>
+  </ul>
+<h3 id="v0_504">V0.504</h3>
+<ul>
+    <li><b>Indikátor načítání:</b> práce na pozadí v záhlaví karty a v kartě Klein, ne během automatiky – <a href="#lade504">kapitola 1</a>.</li>
+  </ul>
+<h3 id="v0_503">V0.503</h3>
+<ul>
+    <li><b>Dynamické vyrovnání:</b> mez 1,0/0,3 mm jen s GNSS, jinak 0,01 mm; poznámka k variančnímu faktoru – <a href="#floor503">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_502">V0.502</h3>
+<ul>
+    <li><b>Start:</b> žádné okno při červených krocích, pole „Deaktivované BL“ širší – <a href="#start502">kapitola 1</a>.</li>
+  </ul>
+<h3 id="v0_501">V0.501</h3>
+<ul>
+    <li><b>Opakovaná měření:</b> žádné okno pro nové spuštění, poznámka v protokolu a stavovém řádku – <a href="#wdh501">kapitola 5</a>.</li>
+  </ul>
+<h3 id="v0_500">V0.500</h3>
+<ul>
+    <li><b>Hrubé chyby:</b> kontrola před průchodem 1 s vlastním vyrovnáním, i hned po importu – <a href="#grob500">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_499">V0.499</h3>
+<ul>
+    <li><b>Hrubé chyby:</b> automaticky před průchodem 1, délkově závislá mez GNSS – <a href="#grob499">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_498">V0.498</h3>
+<ul>
+    <li><b>Dynamické vyrovnání:</b> dolní mez pevných bodů, samostatná výška – <a href="#festpunkt498">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_497">V0.497</h3>
+<ul>
+    <li><b>Doběh:</b> tlumení kmitání a zaokrouhlení u mezní hodnoty – <a href="#nachlauf497">kapitola 6</a>.</li>
+  </ul>
+<h3 id="v0_496">V0.496</h3>
+<ul>
+    <li><b>Dolní meze nejistoty skupiny:</b> Závěrečné přizpůsobení VKS dodržuje dolní meze – <a href="#schlussangleichung496">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_495">V0.495</h3>
+<ul>
+    <li><b>Kalkulačka výšek:</b> v nabídce KleinMethod, automatické uložení, sloupce doprava – viz <a href="#rechner495">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_494">V0.494</h3>
+<ul>
+    <li><b>Statistický test jako samostatná funkce</b> – viz <a href="#stattest494">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_493">V0.493</h3>
+<ul>
+    <li><b>GNSS průměry:</b> přesnost jen u dotčené složky nebo z robustního rozptylu epoch – viz <a href="#massen493">kapitola 5</a>.</li>
+  </ul>
+<h3 id="v0_492">V0.492</h3>
+<ul>
+    <li><b>Mapa:</b> symboly měření na bodě místo vedle, síťový graf správně i při otevřené mapě – viz <a href="#karte492">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_491">V0.491</h3>
+<ul>
+    <li><b>Protokol testu s doporučením:</b> „Zavřít (doporučeno)“, když není co dělat; nahromadění → „Skupinové testy …“; výška z 1D ve výchozím stavu zap. – viz <a href="#bericht491">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_490">V0.490</h3>
+<ul>
+    <li><b>Závěrečné přizpůsobení VKS:</b> příliš pesimistické přesnosti na dolních mezích se po automatice přizpůsobí pásmu; nové výchozí „Sloučit + kalibrovat“; symboly měření v mapě lze skrýt – viz <a href="#schlussangleichung">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_489">V0.489</h3>
+<ul>
+    <li><b>Přejmenovat body:</b> šablony v rozbalovací nabídce, náhled, kontrola vzdálenosti (excentry se neslučují), přesné vrácení – viz <a href="#umbenennen">kapitola 2</a>.</li>
+  </ul>
+<h3 id="v0_488">V0.488</h3>
+<ul>
+    <li><b>Hromadné vektory:</b> velmi mnoho epochových vektorů se rozpozná a před prvním výpočtem protřídí na jeden robustní průměr na dvojici bodů (přepínač, vrácení kdykoli) – viz <a href="#massen">kapitola 5</a>.</li>
+  </ul>
+<h3 id="v0_487">V0.487</h3>
+<ul>
+    <li><b>Semafor poměru vah:</b> pro každý druh podíl na určení, kontrola a varianční faktor – ukazuje převahu a špatné váhy, viz <a href="#gewicht">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_486">V0.486</h3>
+<ul>
+    <li><b>Simulace chyb (Monte Carlo):</b> měří na vlastní síti, od jaké velikosti se najdou chyby délek, směrů, zenitových úhlů, konstanty hranolu a výšky přístroje – viz <a href="#fehlersimulation">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_485">V0.485</h3>
+<ul>
+    <li><b>Skupinové testy na společnou příčinu:</b> najdou konstantu hranolu/adiční, výšku přístroje a cíle společnou více měřením – s opravou celé skupiny, viz <a href="#gruppentest">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_484">V0.484</h3>
+<ul>
+    <li><b>Seznam nápadných měření:</b> řazení nálezů statistického testu, příčina, deaktivace, oprava hodnoty, změna výšek, odvážení, vrácení, nový test, CSV – viz <a href="#befundliste">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_483">V0.483</h3>
+<ul>
+    <li><b>Statistický test – malé hrubé chyby:</b> test po kalibraci skupin s výchozími přesnostmi, zpráva s odvážením, „Odstranit statisticky nápadné …“ tlačítkem – délky od 1 cm nalezeny ze 100 % místo 0 % – viz <a href="#stattest">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_482">V0.482</h3>
+<ul>
+    <li><b>Kalkulačka souřadnic/výšek:</b> DHHN2016 ↔ elipsoidická, UTM/zeměpisné/geocentrické, jednotlivě i dávkově – jen v nabídce Nápověda – viz <a href="#rechner">kapitola 10</a>. <b>Zámek proti vícenásobnému přepočtu</b> (záhlaví v souborech, cize přepočtená data červeně v průvodci postupem) – viz <a href="#sperre">kapitola 2</a>.</li>
+  </ul>
+<h3 id="v0_481">V0.481</h3>
+<ul>
+    <li><b>Sloučit + kalibrovat:</b> nová srovnávací varianta – silně rozptýlené průměry začínají s rozptylem a automatika je dokalibruje z jejich oprav – viz <a href="#zuskal">kapitola 5</a>.</li>
+  </ul>
+<h3 id="v0_480">V0.480</h3>
+<ul>
+    <li><b>Průvodce postupem:</b> 7 kontrolovaných kroků od importu po uvolnění se semaforem a akcí, blokace spuštění při červené (lze přeskočit), protokol stavu v projektu, převod pevných bodů 0/0/0 na nové body – viz <a href="#assistent">kapitola 1</a>.</li>
+  </ul>
+<h3 id="v0_479">V0.479</h3>
+<ul>
+    <li><b>Výška pouze z výškových bodů (1D):</b> přepínač v dynamickém a pevném vyrovnání – pevné/připojovací body 3D určují jen polohu – viz <a href="#hoehe1d">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_478">V0.478</h3>
+<ul>
+    <li><b>Automatické slučování opakovaných měření:</b> výchozí „Sloučit“, bez dotazu při kliknutí na kartu, po změně a před spuštěním; přesnost průměru nejméně rozptyl; „Převážit“ zrušeno – viz <a href="#sitzungen">kapitola 5</a>. Mapa: pokud zvolené zobrazení neodpovídá žádnému bodu, zvolí vhodné.</li>
+  </ul>
+<h3 id="v0_477">V0.477</h3>
+<ul>
+    <li><b>Opakovaná měření pro všechny druhy:</b> přepínač pro každý druh „Převážit (výchozí) / Sloučit / Vyp.“ – seance GNSS, skupiny směrů, délky, nivelace, řady laser trackeru; vrácení, přepnutí, srovnávací soubor – viz <a href="#sitzungen">kapitola 5</a>.</li>
+  </ul>
+<h3 id="v0_476">V0.476</h3>
+<ul>
+    <li><b>Strom projektu uzamčen:</b> během automatiky nebo „Odstranění hrubých chyb“ je strom projektu vlevo (pevné body, měření …) šedý a nelze na něj kliknout. Přepnutí karty zůstává zablokované a zobrazí nejvýše jedno hlášení „Automatika běží“.</li>
+  </ul>
+<h3 id="v0_475">V0.475</h3>
+<ul>
+    <li><b>Nová data ve starším projektu:</b> neleží-li už žádný bod v uloženém místním systému, Klein_Method starý P0 ignoruje a určí ho znovu v síti – výškové body už nekončí v P0. Zpráva o importu hlásí červeně, leží-li P0 více než 50 km mimo síť – viz <a href="#wf-fehler">kapitola 0</a>.</li>
+  </ul>
+<h3 id="v0_474">V0.474</h3>
+<ul>
+    <li><b>Přestavové body a stanoviska bez polohy:</b> po kliknutí na kartu je Klein_Method automaticky umístí doprostřed jejich nivelačních sousedů (stanovisko mezi záměrou vzad a vpřed, přestavový bod mezi postaveními) – dosud ležely všechny v P0. Výška beze změny – viz <a href="#workflow">kapitola 0</a>.</li>
+  </ul>
+<h3 id="v0_473">V0.473</h3>
+<ul>
+    <li><b>Ukázková data A–E ke stažení:</b> vždy jeden ZIP se surovými daty, návodem, skutečnými souřadnicemi a výsledky – viz <a href="#wf-beispiele">kapitola 0</a>.</li>
+  </ul>
+<h3 id="v0_472">V0.472</h3>
+<ul>
+    <li><b>Nová kapitola 0 „Krok za krokem“:</b> příprava a import dat pro 1D, 2D a 3D – zlatá pravidla, rozhodovací tabulka, všechny formáty souborů s ukázkami, postup s cestami v nabídkách, typické chyby – viz <a href="#workflow">kapitola 0</a>.</li>
+  </ul>
+<h3 id="v0_471">V0.471</h3>
+<ul>
+    <li><b>Zpráva o importu – poloha bodů 1D:</b> leží-li výškový bod dále od svých nivelačních sousedů, než dovolují délky záměr, zpráva hlásí červeně „poloha převedena v jiném systému nebo s jiným P0?“ – obvykle je pak chybná i výška – viz <a href="#importbericht">kapitola 2</a>.</li>
+  </ul>
+<h3 id="v0_470">V0.470</h3>
+<ul>
+    <li><b>Kontrola výškového systému ve velkých sítích:</b> výškové body (1D) se převádějí se svou polohou. Dosud se předpokládaly v P0 – od vzdálenosti asi 3,5 km to vedlo k planému poplachu „výškový systém“ (zakřivení Země r²/2R) – viz <a href="#hoehen">kapitola 10</a>.</li>
+  </ul>
+<h3 id="v0_469">V0.469</h3>
+<ul>
+    <li><b>Jednotlivá zpětná kontrola:</b> Nepodaří-li se společná zpětná kontrola (obvykle proto, že skutečná hrubá chyba mezi nimi zkresluje ostatní), vrací Klein_Method kandidáty jednotlivě. Podezřelé dvojice bodů GNSS činí podezřelými jen základnice GNSS, ne tachymetrická měření mezi stejnými body. <b>Zpráva o importu:</b> vzájemné zenitové úhly se zakřivením Země a refrakcí (k = 0,13) – viz <a href="#grob">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_468">V0.468</h3>
+<ul>
+    <li><b>Jen se základnicemi GNSS:</b> převod do lokálního systému, přesun P0 a každá změna zobrazení nebo vztažného bodu nastávají jen tehdy, obsahuje-li projekt aktivní základnice GNSS. Čistě tachymetrické/nivelační sítě si ponechají svá nastavení – viz <a href="#import">kapitola 2</a>.</li>
+  </ul>
+<h3 id="v0_467">V0.467</h3>
+<ul>
+    <li><b>Zpráva o importu se semaforem:</b> Po kliknutí na kartu (po každém novém importu) a v nabídce <i>Klein_Method → Zpráva o importu …</i> kontroluje Klein_Method data před vyrovnáním: názvy, vzájemné zenitové úhly, polohu I/II, výšky přístroje a cíle, jednotky, souřadnicový a výškový systém. <b>Polohu bodů 1D</b> lze odvodit z nivelace – viz <a href="#importbericht">kapitola 2</a>.</li>
+  </ul>
+<h3 id="v0_466">V0.466</h3>
+<ul>
+    <li><b>Výšky cíle a výškový systém:</b> předběžná kontrola varuje před chybějícími (0) a proměnnými výškami cíle, hledání příčin uvádí výšky cíle/přístroje a nesoulad výškového systému je červeně nahoře v potvrzovacím okně – viz <a href="#fziel">problém</a>.</li>
+  </ul>
+<h3 id="v0_465">V0.465</h3>
+<ul>
+    <li><b>Výškové body (1D) v místním systému:</b> převádějí se spolu s převodem – poloha z UTM, Gauss-Krüger nebo zeměpisná, výška jak je zadána (<a href="#import">kapitola 2</a>). <b>Nápověda</b> se otevírá přímo ze složky balíčku, bez kopie.</li>
+  </ul>
+<h3 id="v0_464">V0.464</h3>
+<ul>
+    <li><b>Hrubé chyby:</b> <i>robustní předvýběr</i> – co odhalila předběžná kontrola a leží nad mezí, se vyřadí v jednom kroku; <i>hledání příčin</i> u GNSS (výška antény, záměna bodu) – viz <a href="#grob">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_463">V0.463</h3>
+<ul>
+    <li><b>Lepší odhalování hrubých chyb:</b> nová <i>předběžná kontrola</i> před vyrovnáním (uzávěry smyček GNSS, opakovaná měření), pořadí podle testové statistiky, upozornění na téměř nekontrolovaná pozorování, kontrola znovuzařazení i pro jednotlivě vyřazené vektory GNSS – viz <a href="#grob">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_462">V0.462</h3>
+<ul>
+    <li><b>Nápověda v 7 jazycích:</b> otevře se v nastaveném jazyce uživatelského rozhraní (jinak anglicky). Jazyk lze přepnout nahoře. Překlady jsou strojové – rozhodující je německá verze.</li>
+  </ul>
+<h3 id="v0_461">V0.461</h3>
+<ul>
+    <li><b>Rychlejší odstranění hrubých chyb:</b> rozptýlené odlehlé hodnoty bez společného bodu se vyřazují po několika v jednom kroku (nejvýše 10), na konci s kontrolou – viz <a href="#grob">kapitola 7</a>.</li>
+  </ul>
+<h3 id="v0_460">V0.460</h3>
+<ul>
+    <li><b>Otevření nápovědy:</b> klávesa <b>F1</b>, v menu JAG3D <i>Help → Klein_Method – Nápověda …</i> nebo v menu <i>Klein_Method → Nápověda …</i>. Nápověda se otevře ve výchozím prohlížeči, bez internetu, i bez otevřeného projektu.</li>
+  </ul>
+<h3 id="v0_459">V0.459</h3>
+<ul>
+    <li><b>Nápověda:</b> první vydání tohoto souboru.</li>
+    <li><b>Mapa – Hledat bod:</b> měřítkový faktor nyní působí jako v grafu sítě JAG3D, <i>vzhledem k aktuálnímu pohledu</i> (1 = měřítko zůstává, jen vystředit; 0,5 = dvakrát blíže).</li>
+  </ul>
+
+<p>Podrobný popis každé verze s výsledky testů je v <i>Anleitung.md</i> (německy) v balíčku.</p>
+
+</main>
+</div>
+</body>
+</html>

@@ -18,11 +18,18 @@
 * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.            *
 *                                                                      *
 ***********************************************************************/
+/*
+ * GEAENDERTE DATEI aus JAG3D (Java Applied Geodesy 3D) von Michael Loesler, https://software.applied-geodesy.org
+ * Geaendert 2025/2026 von Dipl.-Ing. (FH) Stefan Klein fuer die Erweiterung "Klein'sche Methode":
+ * Anbindung des Reiters "Klein'sche Methode". Lizenz unveraendert: GNU GPL v3 (siehe LICENSE).
+ */
+
 
 package org.applied_geodesy.jag3d.ui.tabpane;
 
 public enum TabType {
 	META_DATA,
+	KLEIN_METHOD,
 	GRAPHIC,
 	RAW_DATA,
 	RESULT_DATA,

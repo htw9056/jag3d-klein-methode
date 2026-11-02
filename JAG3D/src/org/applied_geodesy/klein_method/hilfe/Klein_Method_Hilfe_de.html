@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<!-- V1.00 RC3 Klein_Method - Hilfe (deutsch) -->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klein_Method – Hilfe</title>
+<style>
+  :root { --text:#1d2430; --muted:#5b6575; --line:#d9dee6; --accent:#1565c0; --bg:#ffffff; --box:#f4f7fb; --warn:#fff6e5; --warnline:#e6a700; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--text); background: var(--bg); margin: 0; line-height: 1.5; }
+  header { background: #12345a; color: #fff; padding: 18px 28px; }
+  header h1 { margin: 0; font-size: 1.6em; }
+  header p { margin: 4px 0 0; color: #c9d6e8; }
+  header .lang a { color: #ffffff; }
+  header .lang b { color: #ffffff; }
+  .wrap { display: flex; max-width: 1200px; margin: 0 auto; }
+  nav { width: 270px; flex: none; padding: 18px; border-right: 1px solid var(--line); position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; font-size: 0.93em; }
+  nav a { display: block; color: var(--text); text-decoration: none; padding: 3px 0; }
+  nav a:hover { color: var(--accent); }
+  nav .sub { padding-left: 14px; color: var(--muted); }
+  main { padding: 10px 32px 60px; flex: 1; min-width: 0; }
+  h2 { border-bottom: 2px solid var(--line); padding-bottom: 4px; margin-top: 2.2em; }
+  h3 { margin-bottom: 0.3em; }
+  .ver { display: inline-block; font-size: 0.75em; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; margin-left: 8px; vertical-align: middle; }
+  .box { background: var(--box); border-left: 4px solid var(--accent); padding: 10px 14px; margin: 12px 0; }
+  .warn { background: var(--warn); border-left: 4px solid var(--warnline); padding: 10px 14px; margin: 12px 0; }
+  .where { color: var(--muted); font-size: 0.92em; }
+  table { border-collapse: collapse; margin: 10px 0; }
+  td, th { border: 1px solid var(--line); padding: 5px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--box); }
+  code { background: var(--box); padding: 1px 4px; border-radius: 3px; }
+  pre { background: var(--box); border: 1px solid var(--line); padding: 8px 12px; overflow-x: auto; font-size: 0.9em; margin: 4px 0 10px; }
+  h4 { margin: 1.1em 0 0.2em; }
+  ol li, ul li { margin: 3px 0; }
+  @media (max-width: 800px) { .wrap { display: block; } nav { width: auto; position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Klein_Method – Hilfe</h1>
+  <p>Erweiterung „Klein'sche Methode“ für JAG3D · Hilfe zu Version V1.00 RC3 · erste Fassung (wird mit jeder Version ergänzt)</p>
+  <p class="lang"><b>Deutsch</b> · <a href="Klein_Method_Hilfe_en.html">English</a> · <a href="Klein_Method_Hilfe_pl.html">Polski</a> · <a href="Klein_Method_Hilfe_cs.html">Čeština</a> · <a href="Klein_Method_Hilfe_fr.html">Français</a> · <a href="Klein_Method_Hilfe_es.html">Español</a> · <a href="Klein_Method_Hilfe_pt.html">Português</a></p>
+</header>
+<div class="wrap">
+<nav>
+  <a href="#workflow"><b>0. Schritt für Schritt: Daten und Import</b></a>
+  <a href="#ablauf">1. Typischer Ablauf</a>
+  <a href="#import">2. Import und Umrechnung ins lokale System</a>
+  <a href="#naeherung">3. Näherungskoordinaten</a>
+  <a href="#mittel">4. Mittelwertbildung (JAG3D)</a>
+  <a href="#sitzungen">5. Wiederholte Messungen (Übergewicht)</a>
+  <a href="#automatik">6. Automatik und Kalibrierung</a>
+  <a href="#grob">7. Grobe Fehler</a>
+  <a href="#stuetzung">8. GNSS-Stützung am Netzrand</a>
+  <a href="#planung">9. Prognose und Messplanung</a>
+  <a href="#hoehen">10. Höhen und Quasigeoid</a>
+  <a href="#export">11. Koordinatenexport</a>
+  <a href="#karte">12. Karte (OpenStreetMap)</a>
+  <a href="#protokoll">13. Protokoll, Log und Berichte</a>
+  <a href="#fehler">14. Fehlerbilder und Lösungen</a>
+  <a class="sub" href="#fziel">Viele Zenitwinkel „grob falsch“</a>
+  <a class="sub" href="#f200">200 gon bei der Mittelwertbildung</a>
+  <a class="sub" href="#fdrift">Wegdriften am Netzrand</a>
+  <a class="sub" href="#fz">Z ist keine Höhe</a>
+  <a class="sub" href="#fsperre">Obergrenzen-Sperre</a>
+  <a class="sub" href="#fneustart">Netzform nach Änderung verzerrt</a>
+  <a href="#begriffe">15. Fachbegriffe</a>
+  <a href="#versionen">16. Versionsgeschichte</a>
+</nav>
+<main>
+
+<div class="box"><p style="margin:0">Aktuelle Version: <b>V1.00 RC3</b>. Was neu ist und die vollständige Entwicklung: <a href="#versionen">Kapitel 16 Versionsgeschichte</a>.</p></div>
+
+<h2 id="workflow">0. Schritt für Schritt: Daten vorbereiten und importieren (1D, 2D, 3D) <span class="ver">V0.472</span></h2>
+<p>Dieses Kapitel erklärt <b>was</b> in welche Datei gehört, <b>wie</b> jede Zeile aussieht, <b>welches System</b> gilt und <b>in welcher Reihenfolge</b> in JAG3D und Klein_Method zu klicken ist. Die Beispielzeilen stammen aus den Klein_Method-Testdaten (Datensätze 01 und 05) – du kannst sie dort 1:1 nachvollziehen. Wer sich an die Regeln hält, hat keine Systemfehler.</p>
+<h3 id="wf-regeln">Die goldenen Regeln</h3>
+<div class="warn"><ol><li><b>Ein Projekt = ein Koordinatensystem.</b> Entweder liefern <i>alle</i> Dateien WGS84 (geozentrisch bzw. für 1D-Punkte UTM/geographisch) und Klein_Method rechnet alles gemeinsam ins lokale System um – <i>oder</i> alle Dateien sind schon lokal und mit <i>demselben</i> P0 erzeugt. <b>Nie</b> einzelne Dateien vorab mit einem eigenen Werkzeug oder einem anderen P0 umrechnen: dann liegen Punkte Kilometer daneben und Höhen um Meter bis Dutzende Meter falsch.</li><li><b>Ein Höhensystem.</b> GNSS liefert ellipsoidische Höhen (ETRS89). NHN-Höhen (Höhenfestpunkte) werden nach dem Import mit <i>Quasigeoide verwalten … → Höhenfestpunkte umrechnen …</i> (GCG2016) umgerechnet. Rein terrestrische Netze ohne GNSS bleiben durchgehend in NHN.</li><li><b>Instrumenten- und Zielhöhen immer mitliefern</b> (Spalten 3 und 4 der Tachymeterdateien). Zielhöhe 0 nur, wenn wirklich auf die Marke gezielt wurde.</li><li><b>Einheiten:</b> Winkel in gon, Strecken und Höhen in Meter (JAG3D: <i>Einstellungen → Formatierungseigenschaften</i>). Dezimalpunkt, keine Tausendertrennzeichen; Spalten durch Leerzeichen oder Tabulator getrennt.</li><li><b>Punktarten nicht mischen:</b> Entweder Festpunkte (varianzfrei) <i>oder</i> Datumspunkte in einer Ausgleichung – JAG3D bricht sonst mit „reference points as well as datum points“ ab. Alle zu bestimmenden Punkte sind Neupunkte.</li><li><b>Punktnamen</b> müssen in allen Dateien exakt gleich geschrieben sein (keine Leerzeichen im Namen; „1001“ ist nicht „01001“).</li><li><b>Erst wenn der Importbericht kein Rot mehr zeigt</b>, grobe Fehler bereinigen und die Automatik starten.</li></ol></div>
+<h3 id="wf-art">Welche Konstellation habe ich?</h3>
+<table>
+<tr><th>Konstellation</th><th>Messungen</th><th>Koordinaten liefern als</th><th>Projektion in JAG3D</th><th>Umrechnung durch Klein_Method</th></tr>
+<tr><td><b>A – 1D Nivellement</b></td><td>Nivellementszüge</td><td>Höhenfestpunkte: Name, Höhe (Lage optional)</td><td>beliebig (lokal kartesisch)</td><td>nein</td></tr>
+<tr><td><b>B – 2D Lage</b></td><td>Richtungen, Horizontalstrecken</td><td>Rechtswert/Hochwert in UTM oder Gauß-Krüger, oder lokal</td><td>UTM bzw. Gauß-Krüger (mit Reduktionen) oder lokal kartesisch</td><td>nein</td></tr>
+<tr><td><b>C – 3D terrestrisch</b> (Tachymeter, ggf. Nivellement)</td><td>Richtungen, Schrägstrecken, Zenitwinkel (+ Nivellement)</td><td>lokal: Ost, Nord, Höhe (z. B. 200000 / 400000 / NHN)</td><td>lokal kartesisch</td><td>nein (ab V0.468 nur mit GNSS)</td></tr>
+<tr><td><b>D – 3D GNSS</b></td><td>GNSS-Basislinien 3D</td><td>geozentrisch X/Y/Z (WGS84/ETRS89)</td><td>wird automatisch „lokal ellipsoidisch“</td><td>ja, beim Tab-Klick</td></tr>
+<tr><td><b>E – 3D kombiniert</b> (GNSS + Tachymeter + Nivellement)</td><td>alle oben genannten</td><td>3D-Punkte geozentrisch; Höhenfestpunkte 1D mit Lage UTM/geographisch und Höhe NHN</td><td>wird automatisch „lokal ellipsoidisch“</td><td>ja – alles mit einem P0, danach Höhenfestpunkte umrechnen</td></tr>
+</table>
+<p>Faustregel: <b>Sobald GNSS-Basislinien im Projekt sind, alles in WGS84 liefern</b> (Konstellation D oder E). Ohne GNSS (A–C) ändert Klein_Method weder Projektion noch Koordinaten.</p>
+<h3 id="wf-beispiele">Beispieldaten zum Herunterladen <span class="ver">V0.473</span></h3>
+<p>Für jede Konstellation gibt es ein vollständiges Beispiel als ZIP: <b>Rohdaten</b> im richtigen Format, <b>LIESMICH</b> (welche Datei in welches Importmenü, welches System, Ablauf), <b>Soll-Koordinaten</b> und die <b>Ergebnisse</b> eines Laufs (Importbericht, Klein_Method-Protokoll, ausgeglichene Koordinaten, Soll-Ist-Vergleich). Die Netze sind synthetisch – die wahren Koordinaten sind bekannt, so lässt sich das eigene Ergebnis direkt prüfen.</p>
+<table>
+<tr><th>ZIP</th><th>Ergebnis in der Testumgebung – Punkte / RMS (max) Soll-Ist in mm</th></tr>
+<tr><td><a href="Klein_Method_Beispiel_A_1D_Nivellement.zip" download>A – 1D Nivellement</a></td><td>14 / H 0,5 (1,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_B_2D_Lage.zip" download>B – 2D Lage</a></td><td>22 / O 1,8 (4,4) · N 2,8 (4,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip" download>C – 3D Tachymeter + Nivellement</a></td><td>25 / O 1,3 (3,7) · N 2,9 (5,8) · H 3,1 (11,6)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_D_3D_GNSS.zip" download>D – 3D GNSS</a></td><td>10 / O 0,8 (1,5) · N 1,2 (2,2) · H 1,3 (2,5)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_E_3D_GNSS_Tachymeter_Nivellement.zip" download>E – 3D GNSS + Tachymeter + Nivellement</a></td><td>22 / O 1,3 (2,5) · N 1,4 (3,3) · H 2,1 (7,6)</td></tr>
+</table>
+
+<h3 id="bsp508">Beispiel C: Erwartungswerte aus der echten JAG3D-Oberfläche <span class="ver">V0.508</span></h3>
+<p class="where">Kapitel 0 · Beispieldaten · Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip</p>
+<p>Die bisherigen Werte für Beispiel C (Nord 1,4 mm) stammten aus einer älteren Testumgebung ohne JAG3D-Oberfläche und waren in JAG3D nicht erreichbar – auch nicht mit V0.473. Tabelle, LIESMICH und Ergebnisordner zeigen jetzt einen Lauf mit V0.508 in JAG3D.</p>
+<ul>
+  <li>Freie Ausgleichung: Ost 1,3 mm, Nord 2,9 mm, Höhe 3,1 mm RMS. Nord liegt im Mittel etwa 2 mm neben den Sollwerten, weil die freie Lösung über die fehlerbehafteten Datumspunkte G1–G4 gelagert wird.</li>
+  <li>Dynamische und fixe Ausgleichung: Nord 1,4–1,5 mm RMS.</li>
+</ul>
+<h3 id="wf-format">Dateiformate – jede Zeile erklärt</h3>
+<p>Eine Zeile = ein Punkt bzw. eine Messung. Reihenfolge der Spalten genau wie angegeben. Import in JAG3D über das Menü <i>Import</i> → Untermenü (in Klammern angegeben).</p>
+<h4>Koordinaten</h4>
+<h4>1D-Höhenfestpunkte mit Lage (Import → Varianzfreie Festpunkte → Höhenfestpunkte bzw. Datumsgebende Neupunkte → Höhendatumspunkte)</h4>
+<p class="where">Name · Rechtswert (UTM mit Zone, hier 32…) · Hochwert · Höhe [m] (NHN oder ellipsoidisch)</p>
+<pre>H1   32584582.4967   5549719.1388   233.7806
+H2   32587129.2665   5549910.0463   281.5391
+H3   32585905.5472   5551389.9556   254.9403</pre>
+<p>Die Lage braucht Klein_Method, um die Höhe im lokalen System richtig zu setzen (Erdkrümmung) und um die Lage gegen die Zielweiten zu prüfen. Erlaubt sind UTM (mit oder ohne Zone), Gauß-Krüger oder geographisch (Spalte 2 = Länge, Spalte 3 = Breite in Grad). <b>Nicht</b> eine selbst umgerechnete lokale Lage mit anderem P0 verwenden.</p>
+<h4>1D-Höhenpunkte ohne Lage (nur reine Nivellementnetze, Konstellation A)</h4>
+<p class="where">Name · Höhe [m]</p>
+<pre>H1   233.7806
+H2   281.5391
+H3   254.9403</pre>
+
+<h4>1D-Neupunkte: Wechsel- und Aufstellpunkte (Import → Neupunkte → Höhenneupunkte)</h4>
+<p class="where">Name · Rechtswert · Hochwert · Höhe (0 = unbekannt)</p>
+<pre>WP001        32584779.2317   5549707.0706   0.0000
+WP002        32584956.5727   5549690.2741   0.0000
+WP003        32585278.5982   5549719.0279   0.0000
+0001_H1                  0              0        0
+0002_WP001               0              0        0</pre>
+<p>Lage 0/0 ist erlaubt – Klein_Method setzt diese Punkte beim Tab-Klick automatisch in die Mitte ihrer Nivellement-Nachbarn (Aufstellpunkt zwischen Rück- und Vorblick, Wechselpunkt zwischen den Aufstellungen; gleichmäßig entlang der Linie zwischen Punkten mit Lage). Die Höhe bleibt unverändert, die Nivellement-Ergebnisse hängen davon nicht ab.</p>
+<h4>2D-Lagepunkte (Import → … → Lagefestpunkte / Lageneupunkte)</h4>
+<p class="where">Name · Rechtswert (Ost) · Hochwert (Nord) [m]</p>
+<pre>G1   198500.0000   399000.0000
+G2   201550.0000   399050.0000
+G3   201450.0000   401050.0000
+G4   198600.0000   401000.0000
+N1   199100.4214   399600.8022</pre>
+<p>Rechtswert immer zuerst. In UTM/Gauß-Krüger mit passender Projektion in JAG3D, lokal mit „lokal kartesisch“.</p>
+<h4>3D-Punkte lokal (Konstellation C; Import → … → Raumfestpunkte / Raumneupunkte)</h4>
+<p class="where">Name · Ost · Nord · Höhe [m]</p>
+<pre>G1   198500.0000   399000.0000   227.7836
+G2   201550.0000   399050.0000   276.5384
+G3   201450.0000   401050.0000   274.6342
+G4   198600.0000   401000.0000   228.1030
+N1   199100.4214   399600.8022   240.3806</pre>
+<p>Ost/Nord mit Additionskonstanten (hier 200000/400000), Höhe NHN. Neupunkte dürfen grobe Näherungen oder 0 haben.</p>
+<h4>3D-Punkte geozentrisch WGS84/ETRS89 (Konstellation D, E; Import → … → Raumfestpunkte / Raumdatumspunkte / Raumneupunkte)</h4>
+<p class="where">Name · <b>Y</b> · <b>X</b> · Z [m] – Achtung: <b>Y vor X</b> (JAG3D-Reihenfolge Rechtswert, Hochwert, Höhe)</p>
+<pre>G1   724615.1056   4035713.8466   4869464.5420
+G2   727616.3120   4035166.6365   4869534.0197
+G3   727245.4063   4033673.1226   4870815.5017
+G4   724442.3891   4034186.1428   4870747.7322
+N1   725126.7189   4035163.7138   4869858.9140</pre>
+<p>In Mitteleuropa ist Y ≈ 0,5–1,5 Mio., X ≈ 3,8–4,2 Mio., Z ≈ 4,7–5,0 Mio. Stehen X und Y vertauscht, erkennt Klein_Method die Punkte nicht als geozentrisch. 3D-Punkte <b>nicht</b> in UTM liefern, wenn GNSS im Projekt ist.</p>
+<p>Optional können hinter den Koordinaten Standardabweichungen stehen (1D: σH; 2D: σY σX; 3D: σY σX σZ). Ohne sie gelten die Gruppenwerte.</p>
+<h4>Messungen</h4>
+<h4>Horizontalrichtungen (Import → Terrestrische Beobachtungen → Horizontalrichtungssätze)</h4>
+<p class="where">Standpunkt · Zielpunkt · Instrumentenhöhe [m] · Zielhöhe [m] · Richtung [gon] · Strecke [m]</p>
+<pre>N1   G1    1.397   1.560   189.66844   848.720
+N1   N2    1.397   1.503    60.13831   632.605
+N1   N6    1.397   1.328   360.14247   790.614
+N1   T01   1.397   1.389   289.66003   353.579
+N1   T02   1.397   1.531   106.60564   403.140</pre>
+<p>Eine Station = ein Richtungssatz (eine Orientierungsunbekannte). Die Strecke am Ende ist eine Näherung für die Genauigkeit – bei Richtungen nicht zwingend.</p>
+<h4>Horizontalstrecken (Import → … → Horizontalstrecken; vor allem 2D)</h4>
+<p class="where">Standpunkt · Zielpunkt · Instrumentenhöhe · Zielhöhe · Horizontalstrecke [m]</p>
+<pre>N1   G1    1.397   1.560   848.5292
+N1   N2    1.397   1.503   632.4572
+N1   N6    1.397   1.328   790.5704
+N1   T01   1.397   1.389   353.5511
+N1   T02   1.397   1.531   403.1152</pre>
+<p>In 3D-Netzen statt dessen Schrägstrecken und Zenitwinkel verwenden.</p>
+<h4>Schrägstrecken (Import → … → Schrägstrecken)</h4>
+<p class="where">Standpunkt · Zielpunkt · Instrumentenhöhe · Zielhöhe · Schrägstrecke [m]</p>
+<pre>N1   G1    1.397   1.560   848.7214
+N1   N2    1.397   1.503   632.6066
+N1   N6    1.397   1.328   790.6146
+N1   T01   1.397   1.389   353.5766
+N1   T02   1.397   1.531   403.1419</pre>
+
+<h4>Zenitwinkel (Import → … → Zenitwinkel)</h4>
+<p class="where">Standpunkt · Zielpunkt · Instrumentenhöhe · Zielhöhe · Zenitwinkel [gon] · Strecke [m]</p>
+<pre>N1   G1    1.397   1.560   101.00937   848.720
+N1   N2    1.397   1.503    99.04468   632.605
+N1   N6    1.397   1.328    99.63233   790.614
+N1   T01   1.397   1.389   100.26453   353.579
+N1   T02   1.397   1.531   100.14426   403.140</pre>
+<p>Lage I (unter 200 gon). Instrumenten- und Zielhöhe müssen zu den Schrägstrecken passen – fehlende Zielhöhen sind der häufigste Fehler (Kapitel <a href="#fziel">Fehlerbild</a>).</p>
+<h4>Nivellement (Import → … → Nivellementszüge)</h4>
+<p class="where">Von (Aufstellpunkt) · Nach (Zielpunkt) · Höhenunterschied [m] = H(Nach) − H(Von) · Zielweite [m]</p>
+<pre>0001_H1      H1      -2.44582   98.570
+0001_H1      WP001   -0.75429   98.570
+0002_WP001   WP001   -2.65508   89.083
+0002_WP001   WP002   -0.54535   89.083
+0003_WP002   WP002   -2.96676   88.508</pre>
+<p>Jede Aufstellung ist ein eigener 1D-Neupunkt (hier „0001_H1“): Rückblick und Vorblick als zwei Zeilen. Alternativ akzeptiert JAG3D 6 Spalten (Von · Nach · Instrumentenhöhe · Zielhöhe · Wert · Zielweite).</p>
+<h4>GNSS-Basislinien 3D (Import → GNSS Basislinien → GNSS Basislinien 3D)</h4>
+<p class="where">Start · Ziel · <b>dY</b> · <b>dX</b> · dZ [m] geozentrisch (Y vor X)</p>
+<pre>G1   G4   -172.7117   -1527.7059   1283.1907
+G1   G4   -172.7134   -1527.6957   1283.1912
+G1   N1    510.8132    -550.5477    395.3433
+G1   N1    510.8166    -550.5545    395.3328
+G1   N2   1129.6394    -499.7800    274.2554</pre>
+<p>Mehrere Sitzungen derselben Basislinie stehen als eigene Zeilen untereinander – Klein_Method fasst sie auf Wunsch zusammen (Kapitel 5).</p>
+<p>Kurzformen: Ohne Instrumenten- und Zielhöhe genügt „Standpunkt Zielpunkt Wert“ – nur für 2D-Netze sinnvoll, in 3D fehlen dann die Höhen.</p>
+<h3 id="wf-ablauf">Ablauf Schritt für Schritt (Konstellation E – der vollständige Fall)</h3>
+<p class="where">Für A–D gelten dieselben Schritte ohne die nicht benötigten Dateien – Unterschiede im nächsten Abschnitt.</p>
+<ol><li><i>Projekt → Neues Projekt anlegen</i>. Einstellungen zu Projektion und Reduktion <b>nicht</b> ändern.</li><li><i>Import → Varianzfreie Festpunkte → Raumfestpunkte</i> (oder <i>Datumsgebende Neupunkte → Raumdatumspunkte</i>): GNSS-Festpunkte, geozentrisch.</li><li><i>Import → Neupunkte → Raumneupunkte</i>: alle 3D-Neupunkte (GNSS- und Tachymeterpunkte), geozentrisch; Näherungen dürfen grob sein.</li><li><i>Import → GNSS Basislinien → GNSS Basislinien 3D</i>.</li><li><i>Import → Terrestrische Beobachtungen</i>: Horizontalrichtungssätze, Schrägstrecken, Zenitwinkel – jeweils mit Instrumenten- und Zielhöhe.</li><li><i>Import → … → Höhenfestpunkte</i> bzw. <i>Höhendatumspunkte</i>: Höhenfestpunkte mit Lage (UTM oder geographisch) und Höhe NHN – <b>dieselbe Punktart wie Schritt 2</b> (Festpunkte <i>oder</i> Datumspunkte).</li><li><i>Import → Neupunkte → Höhenneupunkte</i>: Wechsel- und Aufstellpunkte (Lage 0/0 erlaubt); dann <i>Nivellementszüge</i>.</li><li><b>Klein_Method-Tab anklicken.</b> Rückfrage „Projekt in lokales System (ENh) umrechnen?“ mit <b>Umrechnen</b> beantworten – alle Punkte, Basislinien und 1D-Punkte werden mit einem P0 umgerechnet, die Projektion wird „lokal ellipsoidisch“.</li><li><i>Quasigeoide verwalten …</i> (im Klein_Method-Tab): einmalig GCG2016 importieren, dann <b>Höhenfestpunkte umrechnen …</b> (h = NHN + ζ).</li><li><b>Importbericht lesen</b> (erscheint bei Rot automatisch, sonst Menü <i>Klein_Method → Importbericht …</i>). Jeder rote Punkt nennt die Ursache – erst beheben, dann weiter. Bei „Lage der 1D-Neupunkte“ den Knopf <i>Lage … übernehmen</i> nutzen.</li><li>Rückfragen zu <b>Näherungskoordinaten</b> und <b>wiederholte Messungen</b> mit der Empfehlung beantworten.</li><li><i>Klein_Method → Vorprüfung grober Fehler</i> ansehen, dann im Tab <b>Grobe Fehler bereinigen</b> (Kapitel 7).</li><li><b>Automatik starten</b> (Kapitel 6) und am Ende exportieren (Kapitel 11).</li></ol>
+<h3 id="wf-anders">Unterschiede bei den anderen Konstellationen</h3>
+<ul><li><b>A – 1D:</b> nur Höhenfestpunkte (Name, Höhe), Höhenneupunkte und Nivellementszüge importieren. Keine Umrechnung, Höhen bleiben NHN, kein Quasigeoid-Schritt. Weiter mit Schritt 10.</li><li><b>B – 2D:</b> Lagefest-/Lageneupunkte, Richtungssätze und Horizontalstrecken. Vor dem Import <i>Einstellungen → Projektion &amp; Reduktionen</i>: UTM bzw. Gauß-Krüger und die gewünschten Reduktionen wählen (lokales Netz: „lokal kartesisch“). Keine Umrechnung durch Klein_Method.</li><li><b>C – 3D terrestrisch:</b> Raumfest-/Raumneupunkte lokal (Ost, Nord, NHN), Richtungen, Schrägstrecken, Zenitwinkel, ggf. Nivellement. Projektion „lokal kartesisch“ – Klein_Method ändert ohne GNSS nichts. Achtung: lokal kartesisch rechnet eben; bei Netzen über ca. 1 km wirkt die Erdkrümmung (1 km ≈ 8 cm, 3 km ≈ 70 cm) – dann besser GNSS einbinden oder UTM/Gauß-Krüger nutzen.</li><li><b>D – 3D GNSS:</b> Schritte 1–4 und 8, 10–13. Ohne Nivellement entfällt Schritt 9.</li><li><b>Schon lokal umgerechnete Dateien</b> (z. B. aus einem eigenen Werkzeug): nur verwenden, wenn <i>alle</i> Dateien mit demselben P0 erzeugt wurden. Im Zweifel die WGS84-Originale importieren.</li></ul>
+<h3 id="wf-fehler">Typische Fehler, Wirkung und Lösung</h3>
+<table>
+<tr><th>Fehler</th><th>Was man sieht</th><th>Lösung</th></tr>
+<tr><td>Eine Datei vorab mit anderem P0 bzw. eigenem Werkzeug ins lokale System umgerechnet</td><td>Importbericht rot „Lage der Höhenfestpunkte … anderer P0?“ (km statt m); Höhensystem um Meter bis Dutzende Meter daneben</td><td>Alle Dateien in WGS84 liefern und von Klein_Method gemeinsam umrechnen lassen</td></tr>
+<tr><td>NHN-Höhen nicht umgerechnet (mit GNSS)</td><td>Importbericht rot „Höhensystem“ mit etwa ζ (in Deutschland ca. 36–50 m)</td><td><i>Quasigeoide verwalten … → Höhenfestpunkte umrechnen …</i></td></tr>
+<tr><td>Zielhöhen fehlen (0)</td><td>Sehr viele Zenitwinkel als grobe Fehler (1,3–1,7 m); Importbericht rot „Zielhöhen“ / „Gegenseitige Zenitwinkel“</td><td>Messdaten mit Zielhöhen neu exportieren und importieren – nicht bereinigen</td></tr>
+<tr><td>Y und X vertauscht (geozentrisch)</td><td>Keine Umrechnung angeboten, Punkte „in anderem System“</td><td>Spaltenfolge Name · Y · X · Z</td></tr>
+<tr><td>3D-Punkte in UTM statt geozentrisch (mit GNSS)</td><td>Näherungskoordinaten melden „anderes System“, Ausgleichung divergiert</td><td>3D-Punkte geozentrisch liefern (nur 1D-Punkte dürfen UTM sein)</td></tr>
+<tr><td>Winkel in Grad statt gon</td><td>Importbericht rot „Einheiten … Grad als gon?“</td><td>Formatierungseigenschaften bzw. Export auf gon stellen</td></tr>
+<tr><td>Festpunkte und Datumspunkte gemischt</td><td>JAG3D: „reference points as well as datum points“</td><td>Alle Anschlusspunkte derselben Art importieren</td></tr>
+<tr><td>Punktnamen unterschiedlich geschrieben</td><td>Importbericht „Punkte ohne Koordinaten“ bzw. „ohne Beobachtungen“</td><td>Namen vereinheitlichen</td></tr>
+<tr><td>Neue Daten in ein früheres Projekt (bzw. dessen Kopie) importiert</td><td>Höhenfestpunkte stehen auf 200000 / 400000 (P0) mit falscher Höhe; Importbericht rot „P0 liegt … km außerhalb des Netzes“</td><td>Neues Projekt anlegen (ab V0.475 erkennt Klein_Method einen veralteten P0 selbst)</td></tr>
+</table>
+
+<h2 id="ablauf">1. Typischer Ablauf</h2>
+<ol>
+  <li><b>Daten importieren</b> wie in JAG3D gewohnt (Punkte, terrestrische Beobachtungen, GNSS-Basislinien).</li>
+  <li><b>Projekt öffnen</b> – Klein_Method prüft im Hintergrund, ob eine Umrechnung ins lokale System nötig ist, und bietet sie an (<a href="#import">Kapitel 2</a>).</li>
+  <li><b>Näherungskoordinaten</b> berechnen und prüfen lassen (<a href="#naeherung">Kapitel 3</a>) – vor allem bevor gemittelt wird (<a href="#mittel">Kapitel 4</a>).</li>
+  <li><b>Reiter „Klein_Method“ anklicken</b> – es folgt eine Ausgleichung im Hintergrund; dabei werden ggf. GNSS-Sitzungen zusammengefasst (<a href="#sitzungen">Kapitel 5</a>) und Hinweise zur GNSS-Stützung gezeigt (<a href="#stuetzung">Kapitel 8</a>).</li>
+  <li><b>Grobe Fehler bereinigen</b>, falls vermutet (<a href="#grob">Kapitel 7</a>).</li>
+  <li><b>„Klein_Method starten“</b> – die Automatik kalibriert die Genauigkeiten (<a href="#automatik">Kapitel 6</a>).</li>
+  <li><b>Prognose und Messplanung</b> ansehen: Wo ist das Netz schwach, was sollte nachgemessen werden? (<a href="#planung">Kapitel 9</a>)</li>
+  <li><b>Koordinaten exportieren</b> im gewünschten System und Höhensystem (<a href="#export">Kapitel 11</a>).</li>
+</ol>
+
+<h3 id="assistent">Ablauf-Assistent <span class="ver">V0.480</span></h3>
+<p class="where">Reiter „Klein_Method“ → Steuerung: „Ablauf-Assistent …“ · Menü <i>Klein_Method → Ablauf-Assistent …</i></p>
+<p>Ein Fehler im Ablauf (falsches Koordinatensystem, NHN und ellipsoidische Höhen gemischt, Festpunkt ohne Koordinaten) kann die gesamte Ausgleichung zerstören. Der Assistent prüft deshalb die sieben Schritte vom Import bis zur Automatik und zeigt je Schritt eine Ampel, die Begründung und die passende Aktion:</p>
+<ul>
+  <li><b>1 Import und Plausibilität</b> – Importbericht; <b>Festpunkte mit 0/0/0</b> (z. B. Name doppelt importiert, GNSS-Koordinaten übersprungen) sind rot und lassen sich per Knopf in Neupunkte umwandeln (Gruppe „Klein_Method Neupunkte (aus Festpunkten 0/0/0)“, rücknehmbar).</li>
+  <li><b>2 Koordinatensysteme</b> – Anzahl geozentrischer, UTM- und lokaler Punkte; Mischungen sind rot.</li>
+  <li><b>3 Umrechnung</b> (nur mit GNSS) – umgerechnet? geozentrische Reste? P0 mehr als 50 km außerhalb?</li>
+  <li><b>4 Höhensystem</b> – GNSS-Höhe minus Nivellementshöhe an gemeinsamen Punkten; NHN gemischt ist rot (<a href="#hoehen">Kapitel 10</a>).</li>
+  <li><b>5 Näherungskoordinaten</b> – gemessene Punkte ohne Näherung (<a href="#naeherung">Kapitel 3</a>).</li>
+  <li><b>6 Wiederholte Messungen</b> – zusammengefasst oder offen (<a href="#sitzungen">Kapitel 5</a>).</li>
+  <li><b>7 Freigabe</b> – grün, wenn kein Schritt rot ist und eine gültige Ausgleichung vorliegt.</li>
+</ul>
+<div class="box"><b>Kein Startfenster:</b> Ist ein Schritt rot, startet „Klein_Method starten“ trotzdem ohne Rückfrage – die roten Schritte werden protokolliert („ABLAUF: Start trotz … roter Schritte“); bitte vorher hier prüfen. <b>Zustandsprotokoll:</b> Umrechnungen, Projektionen, Höhenumrechnung, Näherungen, Zusammenfassen, Höhe aus 1D, 0/0/0-Umwandlung und Bereinigung grober Fehler werden mit Zeitstempel im Projekt gespeichert und im Assistenten angezeigt – so ist nachvollziehbar, was mit den Daten geschah.</div>
+
+<h3 id="start502">Start ohne Fenster „Ablauf nicht frei“ <span class="ver">V0.502</span></h3>
+<p class="where">Klein-Tab: „Klein_Method starten“ · Feld „Deaktivierte BL:“</p>
+<p>Bisher fragte „Klein_Method starten“ bei roten Schritten im Ablauf mit dem Fenster „Ablauf nicht frei“ nach.</p>
+<ul>
+  <li>Das Fenster entfällt. Die Automatik startet immer; rote Schritte stehen im Protokoll („ABLAUF: Start trotz … roter Schritte – …“) und weiterhin mit Ampel im Ablauf-Assistenten. <b>Rote Schritte vor dem Start im Ablauf-Assistenten prüfen</b> – z. B. ein großer Unterschied GNSS-Höhe minus Nivellementshöhe verfälscht Höhen und Kalibrierung.</li>
+  <li>Das Feld „Deaktivierte BL:“ ist breiter und zeigt auch Massendaten vollständig an (z. B. 3000000 / 3000100).</li>
+</ul>
+
+<h3 id="lade504">Ladekreis bei Hintergrundarbeit <span class="ver">V0.504</span></h3>
+<p class="where">JAG3D-Fenster: Reiterkopf „Klein_Method“ · Klein-Tab: unter der Statuszeile</p>
+<p>Viele Arbeiten von Klein_Method laufen im Hintergrund, z. B. Prüfungen und Ausgleichung nach dem Tab-Klick, Näherungskoordinaten, Umrechnung, wiederholte Messungen, Bereinigung grober Fehler, statistischer Test, Export oder Quasigeoid-Import. Bisher war nicht zu sehen, ob noch etwas läuft.</p>
+<ul>
+  <li>Solange eine solche Arbeit läuft, dreht sich ein Ladekreis im Stil von Windows 11 – klein im Reiterkopf „Klein_Method“ (im ganzen JAG3D-Fenster sichtbar, auch auf anderen Reitern) und im Klein-Tab mit der Bezeichnung der Arbeit, z. B. „Näherungskoordinaten werden geprüft …“.</li>
+  <li>Er erscheint erst nach 300 ms (kurze Arbeiten flackern nicht) und verschwindet von selbst, sobald die Arbeit fertig ist – auch nach einem Fehler.</li>
+  <li>Kein Ladekreis während der Automatik („Klein_Method starten“, eigener Fortschrittsbalken) und solange ein Fenster auf deine Antwort wartet.</li>
+</ul>
+
+<h3 id="start505">Korrektur: Start von JAG3D mit V0.504 <span class="ver">V0.505</span></h3>
+<p class="where">JAG3D-Start</p>
+<p>V0.504 brach beim Start von JAG3D mit „Cannot bind to null“ ab: Die Werte des Ladekreises wurden erst nach dem Aufbau des Klein-Tabs angelegt.</p>
+<ul>
+  <li>Behoben – die Werte des Ladekreises werden beim ersten Zugriff angelegt. Der Ladekreis selbst arbeitet wie in V0.504 beschrieben.</li>
+</ul>
+
+<h2 id="import">2. Import und Umrechnung ins lokale System</h2>
+<p class="where">Menü <i>Klein_Method → Koordinatenumrechnung WGS84 ↔ lokal (ENh) …</i> · Reiter: „Projekt prüfen und umrechnen …“, „Projekt-Umrechnung zurücknehmen“, „P0 ins Netz legen und neu umrechnen …“</p>
+<p>Liegen Koordinaten und GNSS-Basislinien geozentrisch (ECEF/WGS84) vor, rechnet Klein_Method das Projekt in ein <b>lokales ellipsoidisches System</b> um einen Bezugspunkt <b>P0</b> um (Schwerpunkt der Neupunkte, Additionskonstanten 200000 / 400000 / 1000 m). Darin rechnet JAG3D GNSS und Tachymeter gemeinsam.</p>
+<div class="warn"><b>Wichtig:</b> Im lokalen System ist die Spalte Z in JAG3D <b>keine Höhe</b>, sondern die kartesische Koordinate senkrecht zur Tangentialebene in P0. Sie fällt mit der Entfernung gegenüber der Höhe um etwa r²/2R ab (10 km ≈ 8 m, 30 km ≈ 71 m). Das ist so in JAG3D vorgesehen. Echte Höhen liefert der Export (<a href="#export">Kapitel 11</a>). Siehe auch <a href="#fz">Fehlerbild „Z ist keine Höhe“</a>.</div>
+<div class="warn"><b>Nur mit GNSS-Basislinien</b> <span class="ver">V0.468</span>: Umrechnung, Verlegen von P0 und jede Änderung von Projektion und Reduktion (auch „lokal kartesisch → lokal ellipsoidisch“ und der Bezugspunkt) erfolgen nur, wenn das Projekt aktive GNSS-Basislinien enthält. Ohne Basislinien bleibt alles, wie in JAG3D eingestellt; ein Aufruf über das Menü nennt den Grund. Die Rücknahme einer früheren Umrechnung ist weiterhin möglich.</div>
+<p>Die Umrechnung ist zurücknehmbar; eine Zusammenfassung von GNSS-Sitzungen wird dabei vorher automatisch zurückgenommen.</p>
+
+<p><b>Höhenpunkte (1D)</b> <span class="ver">V0.465</span>: Sie werden mit umgerechnet – auch wenn sie nach der Umrechnung nachimportiert werden. Im lokalen System hängt Z von der Lage ab (Erdkrümmung), darum braucht jeder Höhenpunkt eine Lage: aus der eingetragenen Lage in UTM (mit oder ohne Zone), Gauß-Krüger (DHDN) oder geographisch (Länge/Breite in Grad), höchstens 100 km von P0. Ohne verwertbare Lage (z. B. 0/0) wird P0 angenommen und der Punkt in der Rückfrage genannt – dann bitte die Lage eintragen (bei 2 km Abstand zu P0 rund 0,3 m Höhenfehler). Die Höhe wird so umgerechnet, wie sie eingetragen ist; NHN-Höhen danach mit „Höhenfestpunkte umrechnen …“ (Quasigeoid) in ellipsoidische. Die Rücknahme der Umrechnung stellt auch die 1D-Punkte wieder her.</p>
+
+<h3 id="importbericht">Importbericht (Plausibilität der Daten) <span class="ver">V0.467</span></h3>
+<p class="where">Automatisch beim Tab-Klick nach jedem neuen Import · Menü <i>Klein_Method → Importbericht (Plausibilität der Daten) …</i></p>
+<p>Fehler in den Importdaten erscheinen in der Ausgleichung sonst als scheinbare grobe Fehler. Der Bericht prüft vorher und zeigt je Prüfung eine Ampel: <b>[GRÜN]</b> in Ordnung, <b>[GELB]</b> Hinweis, <b>[ROT]</b> bitte vor der Ausgleichung klären. Das Fenster erscheint beim Tab-Klick nur bei roten Punkten; der Bericht steht immer im Protokoll und als Datei <i>&lt;Zeit&gt;_Importbericht.txt</i> im Protokollordner.</p>
+<ul>
+<li><b>Namen:</b> Punkte in Beobachtungen ohne Koordinaten, Punkte ohne Beobachtungen, Hilfs-/Aufstellpunkte „Nr_Punkt“.</li>
+<li><b>Gegenseitige Zenitwinkel:</b> Höhenunterschied hin (s·cos z + i − t) plus zurück sollte 0 sein (Toleranz 3 cm + 0,1 mm/m). Widersprechen sich viele Paare um 1–3 m, stimmen Instrumenten- oder Zielhöhen nicht.</li>
+<li><b>Lage I/II:</b> Indexfehler je Ziel, wenn Zenitwinkel in beiden Lagen vorliegen.</li>
+<li><b>Instrumenten- und Zielhöhen:</b> mehrere Instrumentenhöhen je Station, Zielhöhe 0 bei gesetzter Instrumentenhöhe (siehe <a href="#fziel">Fehlerbild</a>).</li>
+<li><b>Einheiten:</b> Zenitwinkel im Median um 85–94 gon deuten auf Grad statt gon; Strecken ≤ 0 oder über 5 km; Festpunkte mit Höhe 0.</li>
+<li><b>Systeme:</b> geozentrische Basislinien neben lokalen Punkten; GNSS-Höhe minus Nivellementshöhe über 1 m (NHN und ellipsoidisch gemischt).</li>
+<li><b>1D-Punkte ohne eigene Lage:</b> 0/0 oder mehrere verschiedene Punkte an derselben Stelle.</li>
+<li><b>Lage der 1D-Punkte gegen die Zielweiten</b> <span class="ver">V0.471</span>: Der Weg über das Nivellement (Summe der Zielweiten) ist eine obere Grenze für den Abstand zu Nachbarpunkten mit eigener Lage (3D-Punkte haben Vorrang). Liegt ein Höhenfestpunkt deutlich weiter weg, ist er mit einem anderen P0 oder in einem anderen System umgerechnet – rot.</li>
+</ul>
+<p><b>Lage der 1D-Punkte aus dem Nivellement:</b> Mit dem Knopf im Bericht erhalten 1D-Neupunkte ohne eigene Lage eine Lage: Aufstellpunkte „Nr_X“ die Lage von X, alle anderen das Mittel ihrer Nachbarn im Nivellement (ausgehend von den Punkten mit Lage). Die Höhe bleibt unverändert. Ehrlich gesagt: Die Nivellement-Ergebnisse von JAG3D hängen nicht von dieser Lage ab. Sie wird gebraucht für die Umrechnung der 1D-Punkte ins lokale System (Z hängt von der Lage ab), für die Karte und für Plausibilitätsprüfungen.</p>
+
+<h3 id="sperre">Sperre gegen mehrfache Umrechnung <span class="ver">V0.482</span></h3>
+<p class="where">Datei-Umrechner (Modus 1) und Ablauf-Assistent, Schritt 3</p>
+<p>Eine zweite Umrechnung oder ein anderes P0 verfälscht das ganze Netz, ohne dass man es den Zahlen ansieht. Klein_Method sperrt deshalb auf drei Ebenen:</p>
+<ul>
+  <li><b>Dateien:</b> Jede umgerechnete Datei bekommt die Kopfzeile <code># Klein_Method: lokal (ENh) umgerechnet am …, P0 …</code> (der JAG3D-Import überspringt sie). Eine Datei mit dieser Kopfzeile wird nicht noch einmal in dieselbe Richtung umgerechnet, zurück nur mit demselben P0. Sind alle Punkte einer Datei schon im Zielsystem, ist die Umrechnung ebenfalls gesperrt.</li>
+  <li><b>Projekt:</b> Klein_Method rechnet nur geozentrische Werte um und sichert jede umgerechnete Zeile – sie wird nie ein zweites Mal umgerechnet.</li>
+  <li><b>Nach der Umrechnung importierte lokale Daten</b> (Fest-/Anschlusspunkte, GNSS-Basislinien), die Klein_Method nicht selbst umgerechnet hat, stammen aus einer fremden Umrechnung mit unbekanntem P0: Schritt 3 des Ablauf-Assistenten wird rot, die Automatik ist gesperrt. Lösung: diese Daten löschen und geozentrisch neu importieren. Neupunkte mit solchen Näherungen werden gelb gemeldet.</li>
+</ul>
+
+<h3 id="umbenennen">Punkte umbenennen <span class="ver">V0.489</span></h3>
+<p class="where">Klein-Menü: „Punkte umbenennen …“</p>
+<p>Benennt Punkte und die Punktnamen in allen Messungen gemeinsam um – mit Vorlagen im Abrollmenü, Vorschau, Abstandsprüfung beim Zusammenführen und exakter Rücknahme. Beispiel: 043.905-A, -B, -C → 043.905.</p>
+<ul>
+  <li><b>Vorlagen:</b> Endung „-Buchstabe“ bzw. „-Zahl/_Zahl“ entfernen, Endung anhängen, Präfix entfernen, Text ersetzen, führende Nullen entfernen, Nullen auffüllen auf n Stellen, Nummer um n verschieben, eigener regulärer Ausdruck. Suchen/Ersetzen lassen sich anpassen und als <b>eigene Vorlage</b> speichern. Bereich: Punkte und Messungen (normal), nur Messungen, nur Punkte; „Nur Namen mit“ grenzt ein.</li>
+  <li><b>Vorschau</b> (ohne Änderung): alter und neuer Name, Punkt ja/nein, Anzahl Messungen, Ampel und Hinweis. Ausgeführt werden nur angehakte Zeilen.</li>
+  <li><b>Zusammenführen:</b> Bekommen mehrere Punkte denselben Namen, wird jeder einzeln mit dem Bezugspunkt verglichen (vorhandener Punkt dieses Namens, sonst Festpunkt vor Neupunkt, höhere Dimension, mit Koordinaten) – mit den ausgeglichenen Koordinaten, sonst den Näherungen. Grün: innerhalb der Toleranz (Standard Lage 3 cm, Höhe 5 cm) – derselbe Punkt, zusammenführen. <b>Rot „Exzenter?“</b>: weiter entfernt – nicht angehakt, behält seinen Namen. Rot: <b>Festpunkte</b> mit abweichenden Koordinaten werden nie zusammengeführt. Gelb: Koordinaten fehlen – erst nach eigener Prüfung anhaken.</li>
+  <li>Erhalten bleibt der Bezugspunkt; wahlweise erhält ein Neupunkt das Mittel der Näherungskoordinaten. Die übrigen Punkte werden gelöscht, ihre Messungen zeigen auf den neuen Namen. <b>„Letzte Umbenennung zurücknehmen“</b> stellt alles exakt wieder her, auch gelöschte Punkte mit derselben Nummer. Danach neu ausgleichen; Eintrag im Zustandsprotokoll („PUNKTE UMBENANNT“).</li>
+  <li><b>Test (synthetisches Testnetz 01):</b> Endung an 14 Punkte angehängt (149 Messungen) → Ausgleichung fehlerfrei, Rücknahme exakt. T05-B 1 cm neben T05 → grün, zusammengeführt; T05-C 50 cm daneben → rot „Exzenter?“, blieb erhalten; G1-B (Festpunkt, 20 cm) → rot, nie zusammengeführt; X9-A/-B ohne X9 → X9, Rücknahme stellt beide wieder her.</li>
+</ul>
+
+<h2 id="naeherung">3. Näherungskoordinaten <span class="ver">seit V0.448 überarbeitet</span></h2>
+<p class="where">Menü <i>Klein_Method → Näherungskoordinaten berechnen und prüfen …</i> und <i>… Letzte Übernahme zurücknehmen …</i> · Reiter: „Näherungskoordinaten jetzt prüfen“</p>
+<p>Klein_Method berechnet aus allen Beobachtungen Näherungskoordinaten für Punkte ohne Werte (0/0) und prüft vorhandene Werte. Die Ergebnisse werden zur Übernahme angeboten, eine Sicherung erlaubt die Rücknahme.</p>
+<ul>
+  <li><b>GNSS-Sitzungen mit Drift oder Versatz &gt; 0,10 m</b> werden gemeldet; bei überwiegend verworfenen Basislinien eines Punkts wird das Abschalten angeboten <span class="ver">V0.449</span>.</li>
+  <li>Die Näherung berücksichtigt die Erdkrümmung im lokalen System und die gespeicherte Lage von Höhenpunkten <span class="ver">V0.448</span>.</li>
+</ul>
+<div class="box"><b>Empfehlung:</b> Näherungskoordinaten immer berechnen, bevor gemittelt oder ausgeglichen wird – besonders nach dem Einbinden neuer Tachymeterpunkte in ein GNSS-Netz.</div>
+
+<h2 id="mittel">4. Mittelwertbildung (JAG3D) <span class="ver">Prüfung seit V0.458</span></h2>
+<p class="where">JAG3D-Menü „Mittelwertbildung“ bzw. Strg+G</p>
+<p>Die Mittelwertbildung ist eine Funktion von JAG3D. Sie erkennt Zenitwinkel und Richtungen der <b>II. Lage</b> nur über die Näherungskoordinaten. Fehlen diese, werden z. B. 302,06 gon nicht auf 97,94 gon reduziert, und JAG3D meldet Abweichungen um 200 gon (<a href="#f200">Fehlerbild</a>).</p>
+<p>Klein_Method prüft deshalb <b>vor</b> der Mittelwertbildung, ob Punkte mit Messungen ohne Näherungskoordinaten vorhanden sind, und fragt:</p>
+<ul>
+  <li><b>Erst Näherungen berechnen (empfohlen)</b> – danach öffnet sich die Mittelwertbildung.</li>
+  <li><b>Trotzdem mitteln</b> – wie bisher.</li>
+  <li><b>Abbrechen</b>.</li>
+</ul>
+<p>Es wird keine JAG3D-Datei geändert; findet Klein_Method den Menüpunkt nicht (z. B. nach einem JAG3D-Update), bleibt alles wie bisher.</p>
+
+<h2 id="sitzungen">5. Wiederholte Messungen (Übergewicht) <span class="ver">GNSS seit V0.452, alle Messarten seit V0.477, automatisch seit V0.478</span></h2>
+<p class="where">Reiter (Bereich Näherungskoordinaten): „Wiederholte Messungen (Übergewicht):“ mit einer Auswahl je Messart „Zusammenfassen / Aus“, „Jetzt anwenden …“, „Alles zurücknehmen …“ · Menü <i>Klein_Method → Wiederholte Messungen behandeln …</i> / <i>Behandlung wiederholter Messungen zurücknehmen …</i></p>
+<p>Direkt aufeinanderfolgende Messungen desselben Standpunkts zum selben Ziel sind <b>nicht unabhängig</b>: GNSS-Epochen einer Sitzung, mehrere Richtungssätze, doppelt gemessene Strecken, Messreihen eines Lasertrackers. Als einzelne Beobachtungen wiegen sie etwa √n-fach zu schwer und drängen die übrigen Messungen an den Rand. Eine <b>Wiederholungsgruppe</b> sind aufeinanderfolgende aktive Zeilen derselben Beobachtungsgruppe mit gleichem Standpunkt und Ziel (terrestrisch zusätzlich gleiche Instrumenten- und Zielhöhe).</p>
+<ul>
+  <li><b>Zusammenfassen</b>: je Wiederholungsgruppe eine Mittelbeobachtung, die Einzelwerte werden deaktiviert (nicht gelöscht). Genauigkeit des Mittels = die einer Einzelmessung (ohne √n), <b>mindestens aber die Streuung der Gruppe</b> – stark streuende Sitzungen wiegen dadurch weniger. Das Mittel wird von der Automatik normal kalibriert.</li>
+  <li><b>Zusammenfassen + Kalibrieren</b> (Standard seit V0.490): wie Zusammenfassen; Mittel mit eigener Genauigkeit (stark streuend oder driftend) starten mit der Streuung und werden in der Automatik aus ihren Verbesserungen nachkalibriert.</li>
+  <li><b>Aus</b>: alle Messungen einzeln wie importiert.</li>
+  <li>Vorher wird jede Gruppe auf <b>Sprung</b> (Teilung an der Sprungstelle) und <b>Drift</b> (Genauigkeit = halbe Drift) geprüft. Grenze = max(3 × Einzel-σ, Mindestwert): GNSS 0,10 m, Strecken 5 mm, Nivellement 2 mm, Richtungen/Zenitwinkel 5 mgon.</li>
+  <li><b>Automatisch</b>: Klein_Method wendet die Einstellung ohne Rückfrage an – beim Tab-Klick, nach einer Änderung der Auswahl und vor dem Start der Automatik – und meldet danach, was zusammengefasst wurde. <b>Rücknahme</b> jederzeit; nach einer Rücknahme fasst Klein_Method erst bei neuen Daten wieder zusammen.</li>
+  <li>Nach jeder Änderung steht ein Hinweis in Protokoll und Statuszeile, falls die Automatik schon lief – dann bei Bedarf neu starten (<a href="#fneustart">Fehlerbild</a>).</li>
+  <li><b>Regewichten</b> (Einzel-σ × √n, V0.477) ist entfallen: An einem echten Netz (GNSS und Tachymeter) lagen die Punkte damit bis 46 cm daneben, mit Zusammenfassen 1–2 cm – die festgehaltenen Startgenauigkeiten (25 mm + 50 ppm) wurden nie kalibriert. Regewichtete Projekte stellt Klein_Method beim Tab-Klick automatisch um.</li>
+  <li>Am Ende jeder fertigen Automatik entsteht im Protokollordner eine <b>Vergleichsdatei</b> „…_Vergleich_Wiederholungen_….txt“ mit Ausgleichungsstufe, Max-logPost, Behandlung je Messart, Anteil an der Gesamtredundanz und den ausgeglichenen Koordinaten.</li>
+</ul>
+<div class="box"><b>Ergebnis an einem echten Netz</b> (5914 Basislinien in 199 Sitzungen, 6000 Tachymetermessungen): Die GNSS-Punkte im Tachymeterblock stimmen nach dem Zusammenfassen auf 1–2 cm mit der reinen GNSS-Lösung überein; GNSS-Festpunkte im Mittel 9 mm.</div>
+
+<h3 id="wdh501">Kein Neustart-Fenster mehr nach Zusammenfassen/Rücknahme <span class="ver">V0.501</span></h3>
+<p class="where">Klein-Tab: „Wiederholte Messungen“ – „Jetzt anwenden …“ / „Alles zurücknehmen …“</p>
+<p>Bisher bot ein Fenster „Automatik neu starten?“ nach jeder Änderung den sofortigen Neustart an – ohne vorheriges F5.</p>
+<ul>
+  <li>Das Fenster entfällt. Die Automatik startet nur noch über „Klein_Method starten“.</li>
+  <li>Lief die Automatik in diesem Projekt schon, stehen Protokollzeile „WIEDERHOLTE MESSUNGEN geaendert …“ und ein Hinweis in der Statuszeile.</li>
+  <li>Die Ergebnisse bleiben wie bisher gesperrt, bis F5 oder die Automatik neu gerechnet hat.</li>
+</ul>
+
+<h3 id="zuskal">Zusammenfassen + Kalibrieren (Vergleichsvariante) <span class="ver">V0.481</span></h3>
+<p class="where">Reiter: Auswahl je Messart „Zusammenfassen + Kalibrieren“</p>
+<p>Wie „Zusammenfassen“. Zusätzlich gilt: Mittel mit eigener Genauigkeit (stark streuende oder driftende Gruppen) tragen ein individuelles σ und zählen in JAG3D nicht zur Varianzkomponente der Messart. In dieser Variante ist die Streuung nur der <b>Startwert</b>. Die Automatik bestimmt für diese Mittel einen eigenen Varianzfaktor F = Σω / Σr aus ihren Verbesserungen und regelt ihre Genauigkeit mit derselben Formel wie die Gruppen nach (Korridor, Untergrenze σ<sub>a</sub> der Messart). Ist die Redundanz zu klein, bleibt die Streuung stehen.</p>
+<ul>
+  <li>Ein fester Faktor (√n) kommt nicht zum Einsatz, denn das Zusammenfassen beseitigt das Übergewicht schon. Ein zweiter Abschlag würde die Messart doppelt bestrafen.</li>
+  <li>Protokoll: Zeilen „WIEDERHOLUNGSMITTEL …“ mit F, Faktor und Anzahl der geänderten Mittel.</li>
+  <li>Testdaten (synthetisch): gleich gut wie „Zusammenfassen“ – Streckendifferenz-RMS 1,4/1,4 mm (streuende Sitzungen), 1,3/1,3 mm (stark rauschende Epochen, gutes Mittel), 1,1/1,2 mm (normale Wiederholungen). Ob die Variante bei echten Daten mit schlechten Sitzungen hilft, zeigt der Vergleich an echten Netzen; danach wird der Standard festgelegt.</li>
+</ul>
+
+<h3 id="massen">Massen-Basislinien (Epochen-Basislinien) <span class="ver">V0.488</span></h3>
+<p class="where">Reiter Klein_Method, Bereich Näherungskoordinaten: Schalter „Massen-Basislinien automatisch ausdünnen“ · Ablauf-Assistent Schritt 6</p>
+<p>GNSS-Auswertungen liefern oft eine Basislinie je Epoche – z. B. 30 min alle 1–5 s zu 8 SAPOS-Stationen, zusammen schnell 100 000 bis 300 000 Basislinien. Das kann JAG3D auf einem normalen PC nicht rechnen, und die Epochen sind zeitlich stark korreliert (als Einzelmessungen etwa Wurzel(n)-fach zu schwer). Klein_Method erkennt solche Daten und dünnt sie <b>vor der ersten Berechnung</b> aus.</p>
+<ul>
+  <li><b>Erkennung:</b> mehr als 20 000 GNSS-Basislinien oder ab 1 000 Basislinien im Mittel mindestens 20 je Punktpaar. Die Epochen dürfen in beliebiger Reihenfolge und in beliebig vielen Gruppen stehen (JAG3D legt beim Import mit Gruppentrennung je Standpunktwechsel eine neue Gruppe an) – gesammelt wird je Punktpaar.</li>
+  <li><b>Ausdünnen:</b> je Punktpaar ein <b>robustes Mittel</b> – Median und robuste Streuung je Komponente, Epochen mit mehr als 3 Streuungen Abweichung (mindestens 1 mm) werden verworfen, das Mittel aus dem Rest; Sprünge und Drift werden wie bei „Zusammenfassen“ geprüft. Die Genauigkeit des Mittels wird <b>nicht</b> durch Wurzel(n) geteilt. Die Einzelwerte bleiben deaktiviert in der Datenbank – Rücknahme jederzeit („Alles zurücknehmen …“).</li>
+  <li><b>Schalter ein (Standard):</b> automatisch beim Tab-Klick bzw. vor jeder Ausgleichung. <b>Aus:</b> die Ausgleichung bleibt bei mehr als 20 000 aktiven Basislinien gesperrt (Hinweis, Schritt 6 rot) bis „Jetzt ausdünnen“ im Ablauf-Assistenten.</li>
+  <li>Nur die <b>statistisch</b> guten Epochen bleiben: JAG3D übernimmt beim Import von Basislinien keine Fix/Float- oder RMS-Angaben. Liegt eine ganze Sitzung daneben (falscher Fix über 30 min, falsche Antennenhöhe), zeigt das erst die Ausgleichung über die anderen Stationen bzw. der statistische Test.</li>
+  <li><b>Test (synthetisch, 299 300 Basislinien, 41 Punktpaare, 2 Sitzungen, korreliertes Rauschen, 3 066 Ausreißer 5–50 cm):</b> Import und Tab-Klick ohne Absturz, Ausdünnen etwa 1 min → 41 Mittel, alle Ausreißer und einige Randepochen verworfen; danach rechnet die Ausgleichung fehlerfrei. Mit Schalter aus gesperrt, „Jetzt ausdünnen“ wirkt; Rücknahme stellt alle 299 300 wieder her.</li>
+</ul>
+
+<h3 id="massen493">Genauigkeit der zusammengefassten GNSS-Mittel <span class="ver">V0.493</span></h3>
+<p class="where">Wiederholte Messungen / Massen-Basislinien</p>
+<p>Korrektur: Die Genauigkeit eines Mittels wird nicht mehr aus dem Gruppenmodell eines Zwischenstands eingefroren.</p>
+<ul>
+  <li><b>Nur die betroffene Komponente</b> bekommt eine eigene Genauigkeit (Streuung bzw. halbe Drift). Die übrigen behalten den Gruppenwert und werden mit der Gruppe weiter kalibriert. Vorher wurden dann alle drei Komponenten mit dem Gruppenmodell dieses Zeitpunkts (a + c·Komponentenlänge) fest eingetragen – bei langen SAPOS-Basislinien und noch nicht kalibriertem c bis über 50 cm in der Lage.</li>
+  <li><b>Massen-Basislinien:</b> Genauigkeit des Mittels je Komponente = robuste Streuung der verwendeten Epochen (1,4826 · MAD, nicht durch √n geteilt, mindestens 1 mm). Gute Paare bekommen so typisch 1–3 cm, unruhige Paare automatisch ihre große Streuung.</li>
+  <li><b>Hinweis „stark streuend“</b>: Punktpaare mit mehr als 10 cm Lage-Streuung werden gemeldet (Float-Lösung oder Antenne bewegt?) und stehen im Zustandsprotokoll.</li>
+  <li><b>Bestehende Projekte:</b> Wiederholte Messungen „Alles zurücknehmen …“, danach neu ausdünnen bzw. anwenden lassen.</li>
+</ul>
+
+<h2 id="automatik">6. Automatik und Kalibrierung</h2>
+<p class="where">Reiter Klein_Method: „Klein_Method starten“, „Stop“, „Einzelschritt“, „Reset“, „Sperre aufheben“</p>
+<p>Die Automatik kalibriert die Genauigkeiten der Beobachtungen schrittweise, bis der Grenzwert des größten logPost-Werts erreicht ist. Sie läuft in Durchläufen:</p>
+<ul>
+  <li><b>Durchlauf 1</b>: Gruppenkalibrierung (σa/σb/σc je Beobachtungstyp), dann individuelle Kalibrierung.</li>
+  <li><b>Durchlauf 2</b>: individuelle Feinkalibrierung mit festen Gruppenwerten. Er ist entscheidend – ohne ihn waren die Ergebnisse im Test um ein Vielfaches schlechter.</li>
+</ul>
+<p>Erreicht eine Beobachtung die <b>Obergrenze</b> der individuellen Messunsicherheit, wird sie als grober Fehler deaktiviert und die Automatik läuft weiter (höchstens 10 je Schritt, darüber Sperre) <span class="ver">V0.454</span>.</p>
+<p>Am Ende entstehen ein <b>Laufbericht</b> und auf Wunsch ein <b>Kalibrierungsnachweis</b>.</p>
+
+<h3 id="nachlauf497">Nachlauf: Dämpfung und Rundung am Grenzwert <span class="ver">V0.497</span></h3>
+<p class="where">Automatik · Kaskade Durchlauf 2 · Log „Nachlauf-Daempfung“</p>
+<p>Im Nachlauf von Durchlauf 2 pendelte der Max-logPost oft um den Grenzwert, statt ihn zu erreichen. Dann wurde der Stand aus Durchlauf 1 übernommen.</p>
+<ul>
+  <li><b>Dämpfung:</b> Steigt der Max-logPost gegenüber der vorigen Nachlauf-Iteration wieder an, wird der nächste Korrekturschritt der individuellen Kalibrierung halbiert (höchstens bis 25 %); bei Verbesserung wächst er wieder bis 100 %.</li>
+  <li><b>Rundung:</b> Der Grenzwert gilt als erreicht, wenn der Max-logPost auf 3 Nachkommastellen gerundet nicht darüber liegt (z. B. 2,4504 bei Grenzwert 2,450).</li>
+  <li>Ist Durchlauf 2 besser als die Sicherung aus Durchlauf 1, wird er wie bisher übernommen.</li>
+</ul>
+
+<h3 id="grenzen">Grenzen der Methode <span class="ver">V1.00 RC1</span></h3>
+<p class="where">gilt für alle Ausgleichungsstufen</p>
+<p>Die Klein'sche Methode macht ein Netz statistisch stimmig. Sie macht die Messungen nicht besser. Diese Grenzen sollten bekannt sein:</p>
+<ul>
+  <li><b>Feste Grenze:</b> |logPost| ≤ 2,45 entspricht p ≤ 0,086. Auch in einem fehlerfreien Netz liegen zufällig rund 8 % der Beobachtungen darüber und werden abgewichtet. Wo das a-priori-Modell schon passt, können einzelne Neupunkte um einige Millimeter von der klassischen Lösung (VKS) abweichen. Das ist bewusst so: Kein Messwert soll im Ergebnis auffällig bleiben.</li>
+  <li><b>Untergrenzen:</b> Die Gruppengenauigkeit sinkt nicht unter 0,5 mgon bzw. 0,5 mm (elektronisch) und 0,1 mm (Nivellement). Das verhindert ein Weglaufen der Gruppenwerte, begrenzt aber die Anpassung an sehr genaue Instrumente.</li>
+  <li><b>Keine Wiederholung ersetzt:</b> Fehler, die alle Beobachtungen eines Punktes gleich treffen – etwa eine falsche Antennenhöhe bei nur einer GNSS-Sitzung –, sind für jede Ausgleichung unsichtbar. Unabhängige Wiederholungsmessungen bleiben nötig.</li>
+  <li><b>Angehobene Genauigkeiten prüfen:</b> Protokoll und Kalibrierungsnachweis zeigen, wie stark jede Genauigkeit angehoben wurde. Stark angehobene Gruppen oder viele deaktivierte Beobachtungen deuten auf Messprobleme hin und gehören geprüft, nicht nur weggerechnet.</li>
+  <li><b>„nicht prüfbar“:</b> Bei so gekennzeichneten Anschlusspunkten können die Messungen die Unsicherheit nicht bestimmen; das Ergebnis hängt dort von der Vorgabe ab.</li>
+  <li><b>Rechnung in Blöcken:</b> Die Methode gleicht das ganze Netz jeweils neu aus und ist nicht für Echtzeit ausgelegt.</li>
+  <li><b>Prüfstand:</b> Getestet an synthetischen Netzen mit bekannten Sollkoordinaten und an Praxisprojekten. Vergleiche an weiteren realen Netzen mit unabhängiger Kontrolle stehen aus.</li>
+</ul>
+
+<h2 id="grob">7. Grobe Fehler <span class="ver">Gruppen und Gegenprobe seit V0.461, Vorprüfung und Teststatistik seit V0.463, Ursachensuche seit V0.464</span></h2>
+<p class="where">Reiter: „Grobe Fehler bereinigen“ · Karte: „Max Fehler“, „Grobe Fehler bereinigen“</p>
+<p>Weicht eine Beobachtung nach der Ausgleichung linear um mehr als die „Grenze grober Fehler“ ab (Standard 0,10 m), ist „Klein_Method starten“ gesperrt, bis bereinigt ist. Die Bereinigung deaktiviert die betroffenen Beobachtungen schrittweise mit jeweils neuer Ausgleichung.</p>
+<p><b>Warum schrittweise?</b> Ein grober Fehler „verschmiert“ in der Ausgleichung auf benachbarte Beobachtungen. Würde man alles über der Grenze auf einmal herausnehmen, gingen auch gesunde Nachbarn verloren.</p>
+<p><b>Was in einem Schritt gemeinsam herausgenommen wird:</b></p>
+<ul>
+  <li><b>Häufung an einem Punkt</b> (mindestens 5 und 80 % der Ausreißer): die stärksten davon, ab der halben größten Abweichung – meist ist dann der Punkt selbst gestört (Aufstellung, Antennenhöhe, Verwechslung).</li>
+  <li><b>Verstreute Ausreißer</b> <span class="ver">V0.461</span>: die schlechteste Beobachtung und weitere über der Grenze, die mindestens halb so groß sind und <i>keinen Punkt</i> mit einer schon gewählten teilen – höchstens 10 pro Schritt. Nachbarn bleiben so drin und werden im nächsten Schritt neu bewertet.</li>
+</ul>
+<p><b>Gegenprobe</b> <span class="ver">V0.461</span>: Am Ende werden die nur mitgenommenen Beobachtungen (nicht die jeweils schlechteste) wieder aufgenommen und neu gerechnet. Liegen sie dann unter der Grenze und bleibt keine andere Beobachtung darüber, bleiben sie drin; das Bestätigungsfenster listet sie unter „Nach der Gegenprobe wieder aufgenommen“. Sonst bleibt alles wie vor der Gegenprobe.</p>
+<p><b>Gegenprobe einzeln</b> <span class="ver">V0.469</span>: Scheitert die gemeinsame Gegenprobe, wird jede Beobachtung einzeln wieder aufgenommen (höchstens 30, kleinste Abweichung zuerst). Sie bleibt drin, wenn sie danach unter der Grenze liegt und keine andere darüber. So bleiben richtige Messungen erhalten, die ein echter grober Fehler (z. B. eine Punktverwechslung) nur mitgerissen hat.</p>
+<p><b>Sicherheit:</b> Wird das Netz durch einen gemeinsamen Schritt unbestimmbar, nimmt Klein_Method ihn zurück und macht einzeln weiter. Höchstens 25 Schritte pro Durchgang – danach erneut „Grobe Fehler bereinigen“.</p>
+
+<h3>Vorprüfung vor der Ausgleichung <span class="ver">V0.463</span></h3>
+<p class="where">Menü <i>Klein_Method → Vorprüfung grober Fehler (Schleifenschlüsse, Doppelmessungen) …</i> · läuft außerdem automatisch zu Beginn von „Grobe Fehler bereinigen“</p>
+<p>Vor der Ausgleichung verschmiert ein grober Fehler noch nicht. Die Vorprüfung ändert keine Daten und prüft:</p>
+<ul>
+  <li><b>GNSS-Schleifenschlüsse:</b> alle Dreiecke aus aktiven Basislinien (je Punktpaar der Median). Toleranz = Grenze grober Fehler + 1 ppm des Umfangs. Ein Punktpaar, das in mindestens 2 und 60 % seiner Dreiecke auffällt, gilt als <b>verdächtig</b>.</li>
+  <li><b>Einzelne Basislinien</b>, die weiter als die Grenze vom Median ihres Punktpaars entfernt liegen (ab 3 Basislinien je Paar).</li>
+  <li><b>Doppelmessungen:</b> Strecken mit gleichen Instrument-/Reflektorhöhen und Nivellement hin/zurück; Spannweite über der Grenze ist auffällig.</li>
+</ul>
+<p>Im Bestätigungsfenster sind solche Beobachtungen mit „Vorprüfung auffällig“ markiert – ein starker Hinweis auf einen echten groben Fehler. Der Bericht steht im Protokoll.</p>
+<h3>Reihenfolge und Kontrollierbarkeit <span class="ver">V0.463</span></h3>
+<p>Herausgenommen wird zuerst die Beobachtung mit der <b>größten Teststatistik</b> unter denen über der Grenze – nicht die mit der größten Abweichung in Metern. Die Teststatistik berücksichtigt, wie gut eine Beobachtung kontrolliert ist; die Grenze in Metern entscheidet nur, ob sie überhaupt in Frage kommt.</p>
+<p><b>Kaum kontrollierte Beobachtungen</b> (Redundanzanteil unter 5 %) werden gesondert gemeldet: Dort wäre ein grober Fehler nicht erkennbar – im Feld absichern.</p>
+<p><b>Wiederaufnahmeprüfung:</b> Neben den mitgenommenen Beobachtungen werden auch einzeln herausgenommene GNSS-Basislinien geprüft, deren Widerspruch zu den neuen Koordinaten unter der Grenze liegt.</p>
+
+<h3>Robuste Vorauswahl und Ursachensuche <span class="ver">V0.464</span></h3>
+<p><b>Robuste Vorauswahl:</b> Liegen mindestens 3 Beobachtungen über der Grenze, nimmt Klein_Method zuerst alle in einem Schritt heraus, die die Vorprüfung als auffällig erkannt hat <i>und</i> die über der Grenze liegen (höchstens 50). Die Vorprüfung arbeitet ohne Ausgleichung – dort verschmiert ein grober Fehler nicht. Alle so herausgenommenen Beobachtungen kommen am Ende in die Gegenprobe.</p>
+<p><b>Ursachensuche (GNSS):</b> Für jede herausgenommene Basislinie wird der Widerspruch zu den neuen Koordinaten berechnet (ohne sie gerechnet, also unverfälscht). Im Bestätigungsfenster und im Protokoll stehen dann mögliche Ursachen:</p>
+<ul>
+  <li><b>Antennenhöhe:</b> Mehrere Basislinien einer Station weichen fast nur in der Höhe ab, mit gleichem Vorzeichen – „Station X: … Antennenhöhe an X prüfen“. Eine einzelne Basislinie mit reiner Höhenabweichung wird ebenfalls gemeldet.</li>
+  <li><b>Punktverwechslung:</b> Der Vektor führt zu einem anderen vorhandenen Punkt (Abstand höchstens die halbe Grenze, mindestens 2 cm) – „passt zu Punkt Y statt Z“.</li>
+</ul>
+<p>Die Hinweise sind Vorschläge – die Entscheidung trifft das Feldbuch.</p>
+
+<h3 id="stattest">Statistischer Test – kleine grobe Fehler <span class="ver">V0.483</span></h3>
+<p class="where">Reiter: „Statistischer Test …“ neben „Grobe Fehler bereinigen“ · Menü <i>Klein_Method → Statistischer Test (kleine grobe Fehler) …</i> · Ablauf-Assistent Schritt 7</p>
+<p>Die Grenze grober Fehler (Standard 10 cm) findet nur große Fehler. Kleinere – eine falsche Zielhöhe von 3 cm, eine verwechselte Prismenkonstante – hat die <b>Einzelkalibrierung der Automatik bisher still abgewichtet</b>: Sie erhöht die Genauigkeit einer auffälligen Messung, bis kein Test mehr anspricht (Beispiel: 3-cm-Fehler, σ von 1 mm auf 17,8 mm, Fehler bleibt drin).</p>
+<ul>
+  <li><b>Wann:</b> In jeder Automatik einmal, sobald die Gruppen kalibriert sind und bevor die Einzelkalibrierung beginnt. Klein_Method rechnet dafür mit den <b>Ausgangsgenauigkeiten</b> (Stand beim ersten Automatik-Start) und den kalibrierten Gruppen, danach läuft die Automatik unverändert weiter.</li>
+  <li><b>Was:</b> die Werte, die JAG3D je Beobachtung berechnet – Signifikanz des Tests, geschätzter grober Fehler, kleinster aufdeckbarer Fehler (MDB), Redundanzanteil.</li>
+  <li><b>Bericht</b> am Ende der Automatik (nur bei Befund) und jederzeit über den Knopf: auffällige Beobachtungen mit geschätztem Fehler und wie stark die Automatik sie danach abgewichtet hat; dazu kaum kontrollierte Beobachtungen, deren kleinster aufdeckbarer Fehler über der Grenze liegt.</li>
+  <li><b>„Statistisch auffällige bereinigen …“</b> – nur auf Knopfdruck: setzt die Genauigkeiten auf den Stand des Tests zurück und nimmt die signifikanten Beobachtungen mit derselben schrittweisen Bereinigung und Gegenprobe heraus (Kriterium Test statt 10 cm); du bestätigst jede einzeln. Danach die Automatik neu starten.</li>
+  <li>Signifikant heißt nicht immer grob: Bei vielen Beobachtungen fällt auch etwa 1 von 1000 gesunden auf, GNSS-Basislinien mit Sitzungsfehlern öfter. Deshalb entscheidest du je Beobachtung.</li>
+  <li>Projekte, die schon vor V0.483 mit der Automatik gerechnet wurden: Ausgangsstand sind die beim ersten Lauf ab V0.483 vorhandenen Genauigkeiten.</li>
+</ul>
+<p>Aufdeckbarkeit im Testnetz 01 (synthetisch, je 12 eingebaute Fehler einzeln):</p>
+<table>
+  <tr><th>Messart</th><th>Fehler</th><th>gefunden (Test)</th><th>gefunden (Grenze 10 cm)</th></tr>
+  <tr><td>Schrägstrecke</td><td>0,5 cm</td><td>58 %</td><td>0 %</td></tr>
+  <tr><td>Schrägstrecke</td><td>1 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Schrägstrecke</td><td>2 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Schrägstrecke</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Richtung (quer am Ziel)</td><td>1 cm</td><td>0 %</td><td>0 %</td></tr>
+  <tr><td>Richtung (quer am Ziel)</td><td>2 cm</td><td>75 %</td><td>0 %</td></tr>
+  <tr><td>Richtung (quer am Ziel)</td><td>3 cm</td><td>91 %</td><td>0 %</td></tr>
+  <tr><td>Richtung (quer am Ziel)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Zenitwinkel (quer am Ziel)</td><td>1 cm</td><td>8 %</td><td>0 %</td></tr>
+  <tr><td>Zenitwinkel (quer am Ziel)</td><td>2 cm</td><td>66 %</td><td>0 %</td></tr>
+  <tr><td>Zenitwinkel (quer am Ziel)</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Zenitwinkel (quer am Ziel)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+</table>
+
+<h3 id="befundliste">Liste auffälliger Beobachtungen <span class="ver">V0.484</span></h3>
+<p class="where">Reiter: „Statistischer Test …“ · Bericht: „Liste öffnen …“ · Ablauf-Assistent Schritt 7</p>
+<p>Die Befunde des statistischen Tests als Tabelle – sortierbar, filterbar (signifikante, kaum kontrollierte, alle), mit Mehrfachauswahl. Spalten: Messart, Standpunkt, Ziel, Ampel, geschätzter Fehler, |logPost|, Redundanzanteil, kleinster aufdeckbarer Fehler, <b>vermutete Ursache</b>, Status.</p>
+<ul>
+  <li><b>Vermutete Ursache:</b> mehrere Zenitwinkel/Nivellements eines Standpunkts mit gleichem Vorzeichen → Instrumentenhöhe; zum selben Ziel → Zielhöhe; mehrere Strecken zum selben Ziel mit ähnlichem Versatz → Prismen-/Additionskonstante; einzelne Strecke mit ≈ 17,5 / 30 / 34,4 mm → verwechselte Prismenkonstante; mehrere Richtungen eines Standpunkts → Orientierung bzw. Satzzuordnung. Vorschläge – das Feldbuch entscheidet.</li>
+  <li><b>Aktionen</b> für die gewählten Zeilen: <b>Deaktivieren</b> / <b>Aktivieren</b>; <b>Messwert korrigieren</b> um den geschätzten Fehler (terrestrisch, nur wenn das Feldbuch den Fehler bestätigt); <b>Höhen ändern …</b> (Instrumenten-/Zielhöhe); <b>Abwichten</b> (Genauigkeit = geschätzter Fehler, die Messung bleibt drin); <b>Zurücknehmen</b> bzw. <b>Alles zurücknehmen</b>.</li>
+  <li><b>Neu testen:</b> gleicht mit den Ausgangsgenauigkeiten neu aus und aktualisiert die Liste – so siehst du sofort, ob eine Korrektur gewirkt hat. Danach die Automatik neu starten.</li>
+  <li>Jede Änderung wird gemerkt (exakte Rücknahme) und steht im Zustandsprotokoll. <b>CSV …</b> speichert die Liste für Excel.</li>
+  <li>Ein automatisches Abwichten aller Befunde gibt es bewusst nicht: Das macht die Einzelkalibrierung der Automatik ohnehin – genau das soll die Liste sichtbar und entscheidbar machen.</li>
+  <li>Grenze der Einzelprüfung: Haben mehrere Strecken zum selben Ziel denselben Versatz (z. B. Prismenkonstante 17,5 mm), verschiebt sich der Zielpunkt mit, und keine einzelne Strecke fällt auf (im Test nachgewiesen). Das findet erst ein Gruppentest.</li>
+</ul>
+
+<h3 id="gruppentest">Gruppentests auf gemeinsame Ursache <span class="ver">V0.485</span></h3>
+<p class="where">Liste auffälliger Beobachtungen: „Gruppentests“ · Anzeige: „Gruppentests (gemeinsame Ursache)“</p>
+<p>Prüft, ob mehrere Beobachtungen <b>denselben</b> Fehler haben – den Fall, den der Einzeltest nicht sieht. Getestet werden: <b>Strecken zu einem Ziel</b> (Prismen-/Additionskonstante), <b>alle Beobachtungen eines Standpunkts</b> (Instrumentenhöhe) und <b>alle Beobachtungen zu einem Ziel</b> (Zielhöhe).</p>
+<ul>
+  <li><b>Wie:</b> Das gemeinsame Feld der Gruppe wird versuchsweise um ±1 cm verschoben und neu ausgeglichen. Aus den drei Verbesserungsquadratsummen folgen streng (mit allen Korrelationen, auch wenn der Zielpunkt mitwandert) der geschätzte gemeinsame Fehler, die Teststatistik (α = 0,1 %) und der kleinste aufdeckbare Gruppenfehler. Getestet wird mit den Genauigkeiten des statistischen Tests; danach ist alles exakt wie vorher.</li>
+  <li><b>Ergebnis</b> in der Liste: je Gruppe gemeinsamer Fehler, |ln p|, kleinster aufdeckbarer Fehler und Ursache. „<b>Messwert korrigieren</b>“ korrigiert bei einer Gruppenzeile das gemeinsame Feld aller Beobachtungen (Streckenwerte bzw. Instrumenten-/Zielhöhe); Deaktivieren, Aktivieren und Zurücknehmen wirken auf alle Mitglieder.</li>
+  <li><b>Einzelfehler oder gemeinsamer Fehler?</b> Erklärt ein einzelner Fehler die Gruppe besser (Einzeltest stärker als Gruppentest), wird die Gruppe nicht als gemeinsamer Fehler gemeldet, sondern „eher Einzelfehler: …“ angezeigt.</li>
+  <li><b>Test mit synthetischen Daten:</b> Prismenkonstante +17,5 mm an allen 4 Strecken zu einem Ziel → erkannt mit +17,8 mm; Instrumentenhöhe +2 cm an einem Standpunkt (30 Beobachtungen) → +21,6 mm, bei +7 mm noch erkannt (+8,6 mm). Nach „Messwert korrigieren“ Restfehler 0,0 mm. Sauberer Datensatz: 50 Gruppen, kein Fehlalarm. Gruppen mit kleinstem aufdeckbarem Fehler über dem Versatz werden zu Recht nicht gemeldet (z. B. 1 cm Prismenfehler bei 13 mm Grenze).</li>
+  <li><b>Dauer:</b> zwei Ausgleichungen je Gruppe, höchstens 60 Gruppen (die mit den größten Verbesserungen). Im Testnetz: 50 Gruppen in 13 s. Richtungen je Standpunkt werden nicht getestet – eine gemeinsame Verdrehung nimmt die Orientierungsunbekannte vollständig auf. Nicht kontrollierte Gruppen (kleinster aufdeckbarer Fehler über 0,5 m) werden nicht gelistet.</li>
+</ul>
+
+<h3 id="fehlersimulation">Fehlersimulation (Monte Carlo) <span class="ver">V0.486</span></h3>
+<p class="where">Liste auffälliger Beobachtungen: „Fehlersimulation …“</p>
+<p>Misst an <b>deinem eigenen Netz</b>, wie gut Klein_Method Fehler findet. Fehler bekannter Größe werden zufällig eingebaut, das Netz wird ausgeglichen und gezählt, wie oft der Fehler gefunden wird. Jeder Versuch wird exakt zurückgesetzt.</p>
+<ul>
+  <li><b>Eingaben:</b> Fehlergrößen in cm (vorgegeben 1 2 3 5), Versuche je Größe (vorgegeben 12) und die Messarten: Strecken, Richtungen, Zenitwinkel (Einzelfehler; bei Winkeln als Querabweichung am Ziel) sowie Prismenkonstante je Ziel und Instrumentenhöhe je Standpunkt (gemeinsamer Fehler einer Gruppe). Der Dialog zeigt die Zahl der Ausgleichungen.</li>
+  <li><b>Ergebnis</b> je Messart und Fehlergröße: gefunden in % (signifikant im Einzel- bzw. Gruppentest), in Klammern davon der größte Test im Netz, der mittlere geschätzte Fehler und der mittlere kleinste aufdeckbare Fehler. Die Tabelle steht auch im Protokoll („FEHLERSIMULATION“).</li>
+  <li>Getestet wird im Stand des statistischen Tests (Ausgangsgenauigkeiten). Danach sind Genauigkeiten, Messwerte und Höhen exakt wie vorher, die Ergebnisse bleiben gültig. Der Zufall hat einen festen Startwert – dieselbe Eingabe liefert dasselbe Ergebnis.</li>
+  <li><b>Beispiel (synthetisches Testnetz 01, 12 Versuche, 43 s):</b> Strecken 0,5 / 1 / 2 cm → 17 / 100 / 100 %; Richtungen → 8 / 17 / 75 %, 3 cm 100 %; Zenitwinkel → 0 / 17 / 83 %, 3 cm 100 %; Prismenkonstante je Ziel → 25 / 75 / 100 %; Instrumentenhöhe je Standpunkt → 33 / 67 / 100 %.</li>
+  <li>So liest du es: Was bei einer Größe unter etwa 80 % liegt, ist in deinem Netz nicht sicher aufdeckbar – dort hilft nur eine bessere Netzgeometrie oder eine zusätzliche Messung.</li>
+</ul>
+
+<h3 id="gewicht">Gewichtsverhältnis-Ampel <span class="ver">V0.487</span></h3>
+<p class="where">Klein-Menü: „Gewichtsverhältnis der Messarten …“ · Ablauf-Assistent Schritt 7</p>
+<p>Zeigt, ob eine Messart das Netz <b>übergewichtig</b> bestimmt oder falsch gewichtet ist – aus der letzten gültigen Ausgleichung, ohne neue Rechnung.</p>
+<ul>
+  <li><b>Anteil:</b> Anteil der Messart an der Bestimmung der Koordinaten (Summe 1 − Redundanzanteil). Wer hier über 70 % liegt, bestimmt das Netz fast allein; seine Fehler prägen die Koordinaten fast ungeprüft. Das Nivellement bildet ein eigenes Höhen-Teilnetz und zählt beim Anteil nicht mit.</li>
+  <li><b>Redundanz:</b> mittlerer Redundanzanteil – wie gut die Messart kontrolliert ist. Unter 20 % gelb, unter 5 % rot (praktisch unkontrolliert). Beim Nivellement mit Wechselpunkten ist ein kleiner Wert bauartbedingt (gelb mit Hinweis): Fehler sind dort nur über Schleifenschlüsse erkennbar.</li>
+  <li><b>Faktor:</b> Varianzfaktor der Messart (Ω / Summe der Redundanzanteile). 1 = Gewicht passt; außerhalb 0,5–2 gelb, außerhalb 0,25–4 rot. Über 1: Genauigkeit zu optimistisch angesetzt, unter 1: zu pessimistisch.</li>
+  <li>Der Ablauf-Assistent nennt in Schritt 7 gelbe und rote Messarten und bietet „Gewichtsverhältnis …“ an. Das Ergebnis steht im Protokoll („GEWICHTSVERHAELTNIS“).</li>
+  <li><b>Test (synthetisches Testnetz 01):</b> nach der Automatik kein Rot; Strecken künstlich mit 0,1 mm angesetzt → Faktor 339, rot „Gewicht viel zu hoch“, Anteil der Strecken steigt von 46 auf 59 %.</li>
+</ul>
+
+<h3 id="schlussangleichung496">Schlussangleichung VKS: Untergrenzen werden eingehalten <span class="ver">V0.496</span></h3>
+<p class="where">Einstellungen: „Schlussangleichung VKS“ · Grenzwerte Gruppenunsicherheit (Untergrenzen a, b, c)</p>
+<p>Die Schlussangleichung verkleinert zu pessimistische Genauigkeiten nur noch bis zur jeweiligen Untergrenze, nie darunter.</p>
+<ul>
+  <li><b>Gruppenunsicherheiten a, b, c:</b> höchstens bis zur eingestellten Untergrenze der Messart (z. B. Richtungen 0,5 mgon). Werte, die bereits an der Untergrenze liegen, bleiben unverändert.</li>
+  <li><b>Individuelle Genauigkeiten:</b> höchstens bis zur individuellen Untergrenze.</li>
+  <li>Bleibt der Faktor danach unter dem Band, liegt die Messart an ihrer Untergrenze – genauer wird sie bewusst nicht angesetzt. Log: „… (hoechstens bis zur Untergrenze)“.</li>
+</ul>
+
+<h3 id="schlussangleichung">Schlussangleichung VKS, neuer Standard, Messart-Symbole <span class="ver">V0.490</span></h3>
+<p class="where">Einstellungen: „Schlussangleichung VKS“ (Standard ja) · Wiederholte Messungen · Karte: „Messart-Symbole“</p>
+<p>Nach fertiger Automatik prüft Klein_Method den Varianzfaktor jeder Messart (Summe Ω / Summe Redundanzanteile). Liegt er unter dem VKS-Band, weil Untergrenzen die Genauigkeiten festhalten, sind die Genauigkeiten zu pessimistisch – sie werden mit Wurzel(Faktor) verkleinert und neu ausgeglichen.</p>
+<ul>
+  <li><b>Schlussangleichung VKS:</b> je Messart mit ausreichender Redundanz (Mindestredundanz der Kalibrierung) und Faktor unter dem Band werden alle individuellen Genauigkeiten (GNSS je Achse) und die Gruppenunsicherheiten mit Wurzel(Faktor) multipliziert – höchstens 3 Runden, je Runde höchstens halbiert. Nach oben wird nichts verändert (das macht die Kalibrierung). Log und Zustandsprotokoll: „SCHLUSSANGLEICHUNG VKS“. Abschaltbar in den Einstellungen.</li>
+  <li><b>Neuer Standard „Zusammenfassen + Kalibrieren“</b> für wiederholte Messungen (Vergleich mit Referenzkoordinaten: Lage im Mittel 7,6 statt 14,8 mm, deutlich weniger kaum kontrollierte Messungen). Gespeicherte Einstellungen „Zusammenfassen“ werden einmalig umgestellt, „Aus“ und „Regewichten“ bleiben.</li>
+  <li><b>Karte – Messart-Symbole:</b> JAG3D zeichnet die Messart-Symbole (GNSS violett, Strecke/Richtung/Zenit farbig) nicht auf den Punkt, sondern ein Stück entlang jeder Linie. Laufen viele GNSS-Basislinien zu fernen SAPOS-Stationen, sah das wie eine verschobene Punktwolke aus. Die Symbole sind in der Karte jetzt standardmäßig ausgeblendet (Schalter „Messart-Symbole“); Punkte und Netzplot bleiben unverändert.</li>
+  <li><b>Test (synthetisches Testnetz 01):</b> nach der Automatik Richtungen Faktor 0,40 → 1,00, Zenitwinkel 0,40 → 0,97. Richtungen künstlich 3-fach zu pessimistisch (Faktor 0,12) → 1,00 in einer Runde; zweiter Aufruf ändert nichts.</li>
+</ul>
+
+<h3 id="bericht491">Testbericht mit Empfehlung, Höhe aus 1D standardmäßig an <span class="ver">V0.491</span></h3>
+<p class="where">Bericht „Statistischer Test“ · Klein-Tab: „Höhe nur aus Höhenfestpunkten (1D)“</p>
+<p>Der Bericht des statistischen Tests sagt jetzt oben, was zu tun ist, und der empfohlene Knopf trägt „(empfohlen)“.</p>
+<ul>
+  <li><b>Kein Handlungsbedarf:</b> Hat die Automatik alle auffälligen Beobachtungen abgewichtet und gibt es keine Häufung an einem Punkt, ist „Schließen (empfohlen)“. Bereinigen würde sie nur noch ganz herausnehmen – Unterschied meist unter 1 mm.</li>
+  <li><b>Häufung an einem Punkt</b> (mindestens 3 und 40 % der Auffälligkeiten): eher ein gemeinsamer Fehler (Zentrierung, Instrumenten- oder Zielhöhe, exzentrisches Ziel). Empfohlen ist dann „Gruppentests …“ – öffnet die Liste und startet die Gruppentests.</li>
+  <li><b>Nicht abgewichtet</b> (► in der Liste): wirkt mit vollem Gewicht – dann ist „Statistisch auffällige bereinigen …“ empfohlen.</li>
+  <li><b>Höhe nur aus Höhenfestpunkten (1D)</b> ist in Projekten ohne eigene Einstellung jetzt standardmäßig ein. Angewendet wird es nur in der dynamischen bzw. fixen AGL und nur, wenn die Prüfung besteht (Höhenfestpunkte über Nivellement verbunden, ein Höhensystem); sonst bleibt alles wie vorher, ohne Meldung. Bewusst ausgeschaltet bleibt aus.</li>
+</ul>
+
+<h3 id="karte492">Karte: Messart-Symbole am Punkt <span class="ver">V0.492</span></h3>
+<p class="where">Karte: Schalter „Messart-Symbole am Punkt“</p>
+<p>Die Karte zeichnet die Messart-Symbole nicht mehr neben die Punkte.</p>
+<ul>
+  <li><b>Ein:</b> je Punkt eine Torte aus allen Messarten dort (GNSS violett, Strecke, Richtung, Zenitwinkel farbig) genau auf dem Punkt. <b>Aus</b> (Standard): nur Punkte und Linien.</li>
+  <li>Nach jedem Kartenbild wird der JAG3D-Netzplot einmal neu gezeichnet – die Karte verwendet beim Zeichnen kurz dessen Punkte und Symbol-Einstellungen; der Netzplot zeigt so immer seinen eigenen Stand, auch während die Karte offen ist.</li>
+</ul>
+
+<h3 id="stattest494">Statistischer Test als eigene Funktion <span class="ver">V0.494</span></h3>
+<p class="where">Klein-Menü bzw. Klein-Tab: „Statistischer Test …“</p>
+<p>Der statistische Test (kleine grobe Fehler) läuft nicht mehr in der Automatik, sondern auf Knopfdruck. Die Automatik wird dadurch nicht mehr unterbrochen und ist eine Ausgleichung kürzer.</p>
+<ul>
+  <li>Die Automatik merkt sich beim Übergang zur Einzelkalibrierung nur still den Stand für den Test (Ausgangsgenauigkeiten, Gruppen nach der Gruppenkalibrierung).</li>
+  <li><b>„Statistischer Test …“</b> setzt die Genauigkeiten auf diesen Stand, rechnet den Test, zeigt den Bericht mit Empfehlung und stellt danach den aktuellen Stand exakt wieder her – die Ergebnisse der Automatik bleiben gültig. Ohne gemerkten Stand (vor der ersten Automatik) testet er mit den aktuellen Genauigkeiten.</li>
+  <li>Gruppentests und Fehlersimulation stellen jetzt auch die Gruppengenauigkeiten exakt wieder her.</li>
+  <li>Ablauf-Assistent Schritt 7: grauer Hinweis mit Knopf „Statistischer Test …“; gelb erst bei offenen Befunden.</li>
+</ul>
+
+<h3 id="grob499">Grobe Fehler automatisch vor Durchlauf 1 <span class="ver">V0.499</span></h3>
+<p class="where">Klein-Tab: „Grobe Fehler automatisch bereinigen“ (Standard ja) · „GNSS-Zuschlag (ppm)“ (Standard 2,0)</p>
+<p>Bisher meldete die Prüfung nach F5 „GROBE FEHLER VERMUTET“, die Automatik lief aber erst nach „Grobe Fehler bereinigen“ von Hand. Lief sie trotzdem mit groben Fehlern, hat die Kalibrierung deren Genauigkeit aufgebläht und sie so versteckt.</p>
+<ul>
+  <li><b>Automatisch:</b> Liegt beim Start der Automatik (freie/fixe AGL) eine Beobachtung über der Grenze grober Fehler, läuft „Grobe Fehler bereinigen“ selbst – vor Durchlauf 1, ohne Bestätigungsfenster. Schrittweise mit Gegenprobe, das Netz bleibt bestimmbar. Protokoll: „GROBE FEHLER BEREINIGEN (AUTOMATIK)“; vor Phase 2 fragt Klein_Method wie bisher nach der Zuordnung.</li>
+  <li><b>Längenabhängige Grenze für GNSS:</b> Grenze = Grenze grober Fehler + ppm × Länge, z. B. 0,100 m + 2 ppm → 40 km: 0,180 m. Lange SAPOS-Basislinien werden nicht wegen normaler Troposphären- und Höheneffekte abgeschaltet.</li>
+  <li><b>Kontrolle am Laufende:</b> noch über der Grenze liegende Beobachtungen („GROBE FEHLER NACH DER AUTOMATIK“) und Beobachtungen, deren Genauigkeit auf mehr als das 5-Fache des Ausgangswerts gewachsen ist („STARK AUFGEBLAEHT“) – nur Hinweise, keine Abschaltung.</li>
+  <li>Mit „nein“ bleibt alles wie bisher: bei vermuteten groben Fehlern ist der Start gesperrt.</li>
+</ul>
+
+<h3 id="grob500">Grobe Fehler: Prüfung mit eigener Ausgleichung <span class="ver">V0.500</span></h3>
+<p class="where">Klein-Tab: „Klein_Method starten“ bei „Grobe Fehler automatisch bereinigen“ = ja</p>
+<p>Bisher prüfte die automatische Bereinigung die Verbesserungen der letzten Ausgleichung. Startete man die Automatik direkt nach dem Import (ohne F5) oder nach dem Zusammenfassen wiederholter Messungen, gab es keine passenden Verbesserungen – die Prüfung wurde still übersprungen, grobe Fehler blieben aktiv und wurden von der Kalibrierung aufgebläht.</p>
+<ul>
+  <li><b>Jetzt:</b> Vor der Prüfung gleicht Klein_Method immer selbst einmal aus. Die Verbesserungen passen damit zum aktuellen Stand (Import, zusammengefasste Wiederholungen, geänderte Genauigkeiten).</li>
+  <li><b>Protokoll:</b> „GROBE FEHLER (AUTOMATIK): vor Durchlauf 1 geprüft – keine Beobachtung über der Grenze“, wenn nichts zu tun ist; „Prüfung nicht möglich“ mit Hinweis in der Statuszeile, wenn diese Ausgleichung kein gültiges Ergebnis liefert – dann bitte von Hand bereinigen.</li>
+  <li>Ein F5 vor dem Start ist nicht mehr nötig.</li>
+</ul>
+
+<h2 id="stuetzung">8. GNSS-Stützung am Netzrand <span class="ver">seit V0.451</span></h2>
+<p class="where">Menü <i>Klein_Method → GNSS-Stützung am Netzrand prüfen (Empfindlichkeit) …</i> · Hinweis nach der Ausgleichung · Karte: gestrichelte Ringe</p>
+<p>Liegen Teile eines kombinierten Netzes außerhalb der GNSS-Stützung, werden sie nur über das Tachymeter bestimmt und können „wegdriften“. Klein_Method markiert solche Punkte (gelb ab 10 m, rot ab 50 m außerhalb) und nennt Punkte, an deren GNSS ein ganzer Randbereich hängt. Die <b>Empfindlichkeit</b> rechnet probeweise ohne deren GNSS und zeigt, wie weit sich der Rand verschieben würde.</p>
+
+<h2 id="planung">9. Prognose und Messplanung <span class="ver">seit V0.455</span></h2>
+<p class="where">Menü <i>Klein_Method → Prognose und Messplanung (GNSS nachmessen/ergänzen) …</i></p>
+<p>Bei unvollständigen Daten hilft auch die beste Rechnung nicht – wichtig ist zu wissen, <b>wo</b> das Netz schwach ist und <b>welche</b> Messung das behebt. Es werden keine Daten verändert.</p>
+<ul>
+  <li><b>Prognose je Punkt:</b> relative Fehlerellipse (Anteil über dem am besten bestimmten Neupunkt). Gelb ab 1,2-fach, rot ab 1,5-fach des Medians; in der Karte als farbiger Hof.</li>
+  <li><b>Messplanung:</b> Für die schwächsten Punkte wird rechnerisch je eine GNSS-Sitzung von einer Bezugsstation eingefügt und ausgeglichen. Bringen mehrere Punkte denselben Gewinn, werden sie zusammen genannt – den am besten zugänglichen wählen.</li>
+  <li><b>Genauigkeit der gedachten Sitzung:</b> „kurze Basislinie (5 mm Lage, 10 mm Höhe)“ oder „wie die bisherigen Sitzungen“. Lange Basislinien zu fernen Stationen sind oft viel ungenauer (1 ppm sind bei 30 km schon 30 mm).</li>
+  <li><b>Nachmess-Liste:</b> deaktivierte oder sehr unsichere Sitzungsmittel.</li>
+  <li>Bericht „…_Messplanung.txt“ im Protokollordner.</li>
+</ul>
+<div class="box"><b>Empfehlung:</b> nach der Automatik aufrufen – erst dann sind die Genauigkeiten kalibriert.</div>
+
+<h2 id="hoehen">10. Höhen und Quasigeoid <span class="ver">seit V0.446/V0.447</span></h2>
+<p class="where">Reiter: „Quasigeoid importieren …“, „Quasigeoide verwalten …“, „Höhenfestpunkte umrechnen …“, „Höhensysteme jetzt prüfen“</p>
+<ul>
+  <li>Ein <b>Quasigeoidmodell</b> (z. B. GCG2016) kann importiert werden. Damit lassen sich Normalhöhen (NHN) und ellipsoidische Höhen ineinander umrechnen: h = H + N.</li>
+  <li>Sind Höhenfestpunkte in NHN mit GNSS (ellipsoidisch) gemischt, bietet Klein_Method an, die Festhöhen auf ellipsoidische Höhen umzurechnen (zurücknehmbar).</li>
+</ul>
+
+<h3 id="festpunkt498">Dynamische AGL: Untergrenze der Festpunkte, getrennte Höhe <span class="ver">V0.498</span></h3>
+<p class="where">Klein-Tab: „Dynamische AGL: Untergrenze Festpunkte Lage/2D/3D (mm)“ und „… Höhenfestpunkte 1D (mm)“ · Schalter „Höhe nur aus Höhenfestpunkten (1D)“</p>
+<p>Ein Festpunkt, der mit den vorhandenen Messungen nicht prüfbar ist, sank bisher bis auf 0,0001 mm. Er war damit praktisch starr, und die Messungen – etwa GNSS-Basislinien – hatten keinen Einfluss mehr auf ihn.</p>
+<ul>
+  <li><b>Untergrenze (jede dynamische AGL):</b> Standard 1,0 mm für Lage/2D/3D und 0,3 mm für Höhenfestpunkte (1D), einstellbar von 0,01 bis 50 mm. Liegt ein Festpunkt am Ende daran, steht im Protokoll „FESTPUNKT AN DER UNTERGRENZE … nicht prüfbar“.</li>
+  <li><b>Getrennte Höhe (nur dynamische AGL mit „Höhe nur aus 1D“):</b> Die Lage der 3D-Festpunkte wird wie bisher kalibriert, die Höhe getrennt davon aus ihrem eigenen Testwert T_z = v_z² / (σ_z² · r_z) (Untergrenze 1 mm, Obergrenze 10 m). Passen die gegebenen Höhen zum Netz, ergibt sich ein realistisches σ_z, und die Höhe hilft beim Prüfen.</li>
+  <li>Passt die gegebene Höhe nicht (anderes Höhensystem), steigt σ_z von selbst bis 10 m – die Höhe ist dann frei. Hinweis im Protokoll: „HOEHE FREI … Hoehensystem pruefen“.</li>
+  <li>Freie und fixe AGL sind unverändert; in der fixen AGL bleibt die Höhe mit „Höhe nur aus 1D“ fest mit 10 m freigestellt.</li>
+</ul>
+
+<h3 id="dyn509">Dynamische AGL: Festpunkte enden wieder im Band <span class="ver">V0.509</span></h3>
+<p class="where">Automatik in der dynamischen AGL · Protokoll</p>
+<p>Mit V0.507/V0.508 konnte ein Festpunkt, dessen T_prio stark auf sein σ reagiert, vorzeitig als „Intervall ausgeschöpft“ gelten und mit T_prio 1,02 statt 1,00 enden. Außerdem lief am Ende der dynamischen AGL die Schlussangleichung VKS; blieb sie stehen, verschoben sich danach die T_prio-Werte aller Festpunkte.</p>
+<ul>
+  <li>„Intervall ausgeschöpft“ gilt nur noch für Festpunkte, die kaum auf ihr σ reagieren (|p| &lt; 0,1). Verlässt ein solcher Punkt später die Toleranz, wird er weiter bearbeitet.</li>
+  <li>In der dynamischen AGL gibt es keine Schlussangleichung VKS mehr – die Beobachtungen bleiben dort unverändert, die T_prio-Werte am Ende entsprechen der letzten Auswertung im Protokoll.</li>
+</ul>
+
+<h3 id="dyn507">Dynamische AGL: Intervallhalbierung und klare Abschlussmeldung <span class="ver">V0.507</span></h3>
+<p class="where">Automatik in der dynamischen AGL · Protokoll und Statuszeile am Laufende</p>
+<p>Manche Festpunkte reagieren kaum auf ihre eigene Unsicherheit: T_prio ändert sich über einen weiten Bereich von σ nur wenig, weil es vor allem vom übrigen Netz bestimmt wird. Bisher wanderte σ dann in sehr kleinen Schritten, bis die Stillstandserkennung den Lauf ohne DONE beendete.</p>
+<ul>
+  <li>Ist für einen Festpunkt ein σ mit T_prio über dem Band und eines mit T_prio unter dem Band bekannt, wird das Intervall halbiert (geometrisches Mittel). Protokoll: „Intervallhalbierung (Ziel zwischen … und … mm)“.</li>
+  <li>Ist das Intervall auf 0,1 % ausgeschöpft und liegt T_prio innerhalb von etwa 3 % um 1, gilt der Punkt als fertig – sein σ ist bestimmt. Protokoll: „Intervall ausgeschoepft“.</li>
+  <li>Die dynamische AGL kalibriert nur die Festpunkte. Liegt Max-logPost am Ende über dem Grenzwert, meldet die Statuszeile „Festpunkte kalibriert. Max-logPost liegt über dem Grenzwert – die Beobachtungen werden in der fixen Ausgleichung kalibriert.“ Das ist kein Fehler.</li>
+</ul>
+
+<h3 id="einzel506">Dynamische AGL: alle Einzelwerte der Festpunkte eingetragen <span class="ver">V0.506</span></h3>
+<p class="where">Punktgruppe „Bewegliche Anschlusspunkte“ (Einzelwerte σy, σx, σz) · Protokoll am Laufende</p>
+<p>Bisher blieb der Einzelwert eines Festpunkts leer, wenn die Messungen ihn gar nicht prüfen konnten (T_prio ≈ 0) und er vorher keinen Einzelwert hatte – z. B. die z-Komponente eines Höhenfestpunkts. JAG3D rechnete dann mit dem Gruppenwert.</p>
+<ul>
+  <li>Am Ende der dynamischen AGL bekommt jeder bewegliche Anschlusspunkt ohne Einzelwert den wirksamen Gruppenwert als Einzelwert (2D: y, x; 1D: z; 3D: y, x, z). Rechnerisch ändert sich nichts, aber kein Feld bleibt leer und eine spätere Änderung des Gruppenwerts wirkt nicht still auf diese Punkte.</li>
+  <li>Protokoll: „EINZELWERT ERGAENZT: … = Gruppenwert – T_prio …“.</li>
+  <li>Neuer Hinweis „FESTPUNKT NICHT PRUEFBAR“ für Punkte mit T_prio ≈ 0, auch wenn sie nicht an der Untergrenze liegen.</li>
+</ul>
+
+<h3 id="floor503">Untergrenze der Festpunkte nur mit GNSS, Varianzfaktor, Schlussangleichung ohne GNSS <span class="ver">V0.503</span></h3>
+<p class="where">Klein-Tab: „Dynamische AGL: Untergrenze … mit GNSS (mm)“ · Protokoll am Laufende</p>
+<p>Die Untergrenzen 1,0 mm (Lage/2D/3D) und 0,3 mm (Höhenfestpunkte 1D) schützen vor starren Festpunkten, auf die GNSS-Basislinien keinen Einfluss mehr hätten. Ohne GNSS ist dieser Schutz nicht nötig.</p>
+<ul>
+  <li><b>Untergrenze:</b> Die eingestellten Werte gelten nur, wenn das Projekt aktive GNSS-Basislinien hat. Sonst gilt 0,01 mm für Lage und Höhe – nicht prüfbare Festpunkte werden dann praktisch starr wie in der klassischen Ausgleichung, alle prüfbaren erreichen T_prio = 1. Protokoll beim Start: „UNTERGRENZE FESTPUNKTE: mit GNSS …“ bzw. „ohne GNSS – 0,01 mm“.</li>
+  <li><b>T_post und Varianzfaktor:</b> Klein_Method kalibriert die Festpunkte auf T_prio = 1. JAG3D zeigt T_post = T_prio / σ̂₀². Weicht σ̂₀² deutlich von 1 ab (unter 0,8 oder über 1,25), steht am Ende der dynamischen AGL „VARIANZFAKTOR: …“ im Protokoll. Ein kleiner Wert heißt meist: Die Gruppen-Untergrenzen (Elektronisch/Historisch) liegen über der Genauigkeit des Instruments – dann die Untergrenzen senken und die freie AGL neu rechnen.</li>
+  <li><b>Behoben:</b> In Projekten ohne GNSS brach die Schlussangleichung VKS ab („statement is not in batch mode“), eine zu weit gehende Runde blieb stehen und der Max-logPost am Ende war zu hoch.</li>
+</ul>
+
+<h3 id="hoehe1d">Höhe nur aus Höhenfestpunkten (1D) <span class="ver">V0.479</span></h3>
+<p class="where">Reiter „Steuerung“, nur in der dynamischen und fixen AGL: „Höhe nur aus Höhenfestpunkten (1D)“</p>
+<p>Bei kombinierten Netzen (GNSS, Tachymeter, Nivellement) mit eigenen Höhenfestpunkten soll die Höhe aus dem Nivellement kommen, nicht aus den ellipsoidischen Höhen der 3D-Festpunkte. Mit dem Schalter bestimmen die 3D-Fest- bzw. Anschlusspunkte nur noch die Lage (Höhe σz = 10 m, frei), die Höhe kommt ausschließlich aus den Höhenfestpunkten (1D).</p>
+<ul>
+  <li><b>Dynamische AGL:</b> Die Festpunktanalyse bewertet bei 3D-Punkten nur die Lage (Varianzfaktor und T<sub>prio</sub> aus y und x).</li>
+  <li><b>Fixe AGL:</b> Die varianzfreien 3D-Festpunkte kommen in die Gruppe „Klein_Method 3D-Festpunkte Lage (Hoehe frei)“ mit σ Lage 0,01 mm – wirkt wie varianzfrei.</li>
+  <li><b>Prüfung beim Einschalten:</b> mindestens ein Höhenfestpunkt mit Nivellement (rot sonst), empfohlen 3; in der fixen AGL mindestens einer varianzfrei; gleiches Höhensystem (NHN vorher mit dem Quasigeoid umrechnen, <a href="#hoehen">Kapitel 10</a>).</li>
+  <li><b>Stufenwechsel</b> (dynamisch → fix) passt Klein_Method beim Tab-Klick automatisch an. <b>Aus</b> stellt alle Werte exakt wieder her.</li>
+</ul>
+<div class="box">Test (GNSS-Festpunkthöhen absichtlich +30 mm falsch): fixe AGL ohne Schalter Neupunkte im Mittel +8,6 mm, mit Schalter ±0,0 mm (RMS 1,2 mm); dynamische AGL +1,8 → 0,0 mm.</div>
+
+<h3 id="rechner495">Höhenrechner: Menü, automatisches Speichern, Spalten <span class="ver">V0.495</span></h3>
+<p class="where">Menü KleinMethod → Koordinaten-/Höhenrechner …</p>
+<p>Der Rechner steht jetzt im Menü KleinMethod (unter „Koordinatenumrechnung“) statt im Menü Hilfe.</p>
+<ul>
+  <li><b>Automatisch speichern:</b> Wurde eine Datei geladen und unverändert umgerechnet, wird das Ergebnis neben dem Original gespeichert – Dateiname mit Zusatz nach dem Ziel, z. B. <i>Punkte_ellipsoidisch.txt</i>, <i>Punkte_DHHN2016.txt</i>, bei Systemwechsel zusätzlich <i>_UTM</i>, <i>_geographisch</i> bzw. <i>_geozentrisch</i>. „Speichern …“ bleibt für einen eigenen Namen.</li>
+  <li><b>Rechtsbündige Spalten:</b> Punktnamen und Werte stehen rechtsbündig untereinander (je Spalte die größte Breite, zwei Leerzeichen Abstand); Kommentar- und Fehlerzeilen bleiben unverändert.</li>
+</ul>
+
+<h3 id="rechner">Koordinaten-/Höhenrechner (DHHN2016 ↔ ellipsoidisch) <span class="ver">V0.482</span></h3>
+<p class="where">Menü <i>KleinMethod → Koordinaten-/Höhenrechner …</i> (unter „Koordinatenumrechnung“, seit V0.495; vorher im Menü Hilfe) – auch ohne geöffnetes Projekt</p>
+<p>Rechnet einzelne Punkte oder ganze Listen zwischen ETRS89-Systemen und Höhensystemen um. Der Rechner ändert kein Projekt; im Projekt rechnet Klein_Method selbst um (<a href="#import">Kapitel 2</a>).</p>
+
+<pre>P1  32500000.000  5650000.000 100.0000   →   P1  32500000.000  5650000.000 (100.0000 + N)</pre>
+<ul>
+  <li><b>Ausgangs- und Zielsystem:</b> UTM mit Zonenkennung im Rechtswert (z. B. 32500000.000), geographisch (Breite/Länge in Grad) oder geozentrisch (X/Y/Z). UTM-Zone der Ausgabe wählbar (leer = wie Eingabe bzw. aus der Länge).</li>
+  <li><b>Ausgangs- und Zielhöhe:</b> DHHN2016 (Normalhöhe über dem aktiven Quasigeoid, h = H + N) oder ellipsoidisch (GRS80). Das Quasigeoid (z. B. GCG2016) wird einmal importiert und gilt für alle Projekte; Import auch direkt im Rechner.</li>
+  <li><b>Einzeleingabe</b> mit Anzeige der Höhenanomalie N, <b>Stapelbearbeitung</b>: Datei laden oder einfügen (Leerzeichen, Tabulator oder Semikolon; Dezimalpunkt oder -komma), „Alle umrechnen“, Ergebnis speichern. Weitere Spalten bleiben erhalten, auf Wunsch wird N angehängt.</li>
+  <li>Genauigkeit: UTM ↔ geographisch ↔ geozentrisch gegen eine unabhängige Rechnung auf 0,1 mm geprüft; die Höhe so genau wie das Quasigeoidmodell.</li>
+</ul>
+
+<h2 id="export">11. Koordinatenexport <span class="ver">Höhenwahl seit V0.450</span></h2>
+<p class="where">Reiter: „Koordinaten exportieren“ mit Zielsystem und „Höhe:“</p>
+<ul>
+  <li><b>Zielsysteme:</b> Projektsystem, ETRS89/WGS84 geozentrisch oder geographisch, UTM-Zonen, weitere Systeme aus Projektionsdateien.</li>
+  <li><b>Höhe:</b> ellipsoidisch, Normalhöhe NHN (H = h − N, mit Quasigeoid) oder „wie im Zielsystem“.</li>
+  <li>Die Kopfzeile nennt System, P0 und Höhenart; Punkte außerhalb der GNSS-Stützung werden im Kopf vermerkt.</li>
+</ul>
+
+<h2 id="karte">12. Karte (OpenStreetMap) <span class="ver">Bedienleiste seit V0.456</span></h2>
+<p class="where">Reiter: „Karte (OpenStreetMap)“</p>
+<p>Die Karte zeichnet dieselben Ebenen wie der JAG3D-Netzplot (Punkte, Beobachtungen, Ellipsen, Pfeile) auf OpenStreetMap.</p>
+<table>
+  <tr><th>Schaltfläche</th><th>Wirkung</th></tr>
+  <tr><td>Verschieben</td><td>Karte ziehen (Standard); Mausrad zoomt.</td></tr>
+  <tr><td>Fensterzoom</td><td>Rechteck aufziehen, darauf wird gezoomt.</td></tr>
+  <tr><td>Vergrößern / Verkleinern</td><td>eine Zoomstufe, Mitte bleibt.</td></tr>
+  <tr><td>Gesamtansicht</td><td>alle Punkte inkl. weit entfernter Stationen <span class="ver">V0.457</span>.</td></tr>
+  <tr><td>Neu zeichnen</td><td>Daten und Ebenen neu laden.</td></tr>
+  <tr><td>Ebenen</td><td>Ebenen-Dialog des Netzplots; wirkt in Netzplot und Karte.</td></tr>
+  <tr><td>Export</td><td>Karte als PNG mit OSM-Quellenangabe.</td></tr>
+  <tr><td>Punkt suchen</td><td>Punktliste und Skalierungsfaktor wie der JAG3D-Merkmalszoom (relativ zur aktuellen Ansicht) <span class="ver">V0.459</span>.</td></tr>
+</table>
+<p>Weit entfernte Punkte, die über Messungen verbunden sind (z. B. GNSS-Referenzstationen), werden samt Basislinien gezeichnet; nur ferne Punkte <b>ohne</b> Messungen gelten als Ausreißer <span class="ver">V0.457</span>. „Netz anzeigen“ zoomt auf das eigentliche Netz.</p>
+
+<h2 id="protokoll">13. Protokoll, Log und Berichte</h2>
+<ul>
+  <li><b>Klein_Method.log</b> und das Protokoll liegen im Projektordner; seit V0.453 durchgehend in ASCII (Umlaute als ae/oe/ue).</li>
+  <li><b>Laufbericht</b> nach jeder Automatik; mit „Laufbericht teilen“ anonym ans Schwarmwissen (ohne Koordinaten, Punkt- oder Projektnamen).</li>
+  <li><b>Kalibrierungsnachweis</b>, <b>Festpunktanalyse-Bericht</b>, <b>Messplanung</b> als Textdateien im Protokollordner („Berichtsordner öffnen“).</li>
+</ul>
+
+<h3 id="schwarm100">Schwarmwissen: öffentlich, Senden ohne Token <span class="ver">V1.00 RC1</span></h3>
+<p class="where">Bereich „Schwarmwissen“ · Laufbericht teilen · Felder „Repository“ und „Vermittlungsdienst“</p>
+<p>Das Schwarmwissen läuft jetzt über das öffentliche Repository <code>htw9056/klein-method-schwarm</code>. Anwender brauchen keinen Token und kein GitHub-Konto mehr.</p>
+<ul>
+  <li>Erfahrungswerte abrufen: direkt aus dem öffentlichen Repository, ohne Token.</li>
+  <li>Laufbericht senden: mit Token-Datei direkt an GitHub, sonst über den Vermittlungsdienst. Der Dienst hält den Token geschützt und prüft jeden Bericht. Ist er nicht erreichbar, bietet Klein_Method „Im Browser senden“ an – GitHub öffnet ein ausgefülltes Formular, zum Absenden ist ein kostenloses GitHub-Konto nötig.</li>
+  <li>Gespeicherte alte Adressen (<code>klein-method-schwarm-test</code> und frühere Namen) werden einmalig auf den neuen Standard umgestellt. Wer danach bewusst wieder das Übungs-Repository einträgt, behält es.</li>
+  <li>Einrichtung für den Betreiber: <code>03_Schwarm_GitHub/Schwarmwissen_Oeffentlich_mit_Vermittlungsdienst.md</code>.</li>
+</ul>
+
+<h2 id="fehler">14. Fehlerbilder und Lösungen</h2>
+<h3 id="fziel">Sehr viele Zenitwinkel als grobe Fehler (Abweichung ≈ 1,3–1,7 m) <span class="ver">V0.466</span></h3>
+<p><b>Ursache:</b> Fast immer fehlen die <b>Zielhöhen</b> (Reflektorhöhen) im Import – sie stehen auf 0, die Instrumentenhöhe ist gesetzt. Jeder Zenitwinkel zielt dann um die Zielhöhe zu tief. <b>Lösung:</b> Messdaten mit Zielhöhen neu importieren und diese Zenitwinkel <i>nicht</i> als grobe Fehler übernehmen („Abbrechen (alles wieder aktivieren)“). Die Vorprüfung warnt davor (rot oben im Bestätigungsfenster), die Ursachensuche nennt auch einzelne Ziel- oder Instrumentenhöhen. Zusätzlich prüfen: Höhensystem der Höhenfestpunkte – eine Abweichung GNSS gegen Nivellement wird ebenfalls rot oben angezeigt.</p>
+<h3 id="f200">Mittelwertbildung meldet Abweichungen um 200 000 mgon</h3>
+<p><b>Ursache:</b> Näherungskoordinaten fehlen, die II. Lage wird nicht erkannt. <b>Lösung:</b> Bei der Rückfrage „Erst Näherungen berechnen (empfohlen)“ wählen bzw. vorher Menü <i>Näherungskoordinaten berechnen und prüfen …</i>. Die Messungen selbst sind in Ordnung.</p>
+<h3 id="fdrift">Netzrand driftet weg</h3>
+<p><b>Ursache:</b> Der Rand ist nur über das Tachymeter angebunden (fehlende GNSS-Basislinien). <b>Lösung:</b> <a href="#planung">Prognose und Messplanung</a> zeigt die Schwachstelle vor der Rechnung und nennt den Punkt, auf dem eine zusätzliche GNSS-Sitzung am meisten bringt – oft genügt eine gute Sitzung irgendwo am betroffenen Rand.</p>
+<h3 id="fz">Höhen im lokalen System „falsch“</h3>
+<p>Z ist im lokalen ellipsoidischen System die kartesische Koordinate zur Tangentialebene, keine Höhe (siehe <a href="#import">Kapitel 2</a>). Für Höhen den Export mit „Höhe: ellipsoidisch“ oder „Normalhöhe NHN“ verwenden.</p>
+<h3 id="fsperre">„GESPERRT: Obergrenze der individuellen Messunsicherheit erreicht“</h3>
+<p>Mehr als 10 Beobachtungen erreichten in einem Schritt die Obergrenze – das deutet auf ein grundsätzliches Problem (z. B. falsche Startgenauigkeiten, viele grobe Fehler). Daten prüfen, dann „Sperre aufheben“.</p>
+<h3 id="fneustart">Netzform nach Zusammenfassen/Rücknahme verzerrt</h3>
+<p>Die Kalibrierung der Automatik gehört zu den bisherigen Beobachtungen. Nach dem Zusammenfassen der wiederholten Messungen oder der Rücknahme die Automatik mit „Klein_Method starten“ neu starten (Hinweis in Protokoll und Statuszeile).</p>
+
+<h2 id="begriffe">15. Fachbegriffe</h2>
+<table>
+  <tr><th>Begriff</th><th>Bedeutung</th></tr>
+  <tr><td>P0</td><td>Bezugspunkt des lokalen Systems (Tangentialebene).</td></tr>
+  <tr><td>GNSS-Sitzung</td><td>Aufeinanderfolgende Epochen desselben Punktpaars in derselben Gruppe.</td></tr>
+  <tr><td>Sprung-/Driftprüfung</td><td>Prüfung einer Sitzung auf Sprung bzw. lineare Drift vor dem Zusammenfassen.</td></tr>
+  <tr><td>logPost</td><td>Bewertungsgröße der Klein_Method für die Kalibrierung; Grenzwert typisch 2,45.</td></tr>
+  <tr><td>Durchlauf (Kaskade)</td><td>Abschnitt der Automatik; Durchlauf 2 kalibriert individuell mit festen Gruppenwerten.</td></tr>
+  <tr><td>GNSS-Stützung</td><td>Bereich des Netzes, der durch GNSS-Messungen getragen wird.</td></tr>
+  <tr><td>Prognose</td><td>Relative Fehlerellipse je Punkt aus der Ausgleichung.</td></tr>
+  <tr><td>Messplanung</td><td>Rechnerisch eingefügte Sitzungen, um die wirksamste Nachmessung zu finden.</td></tr>
+  <tr><td>Bezugsstation</td><td>GNSS-Station, von der die gedachte Sitzung ausgeht.</td></tr>
+  <tr><td>Quasigeoid, N</td><td>Höhenanomalie; h = H + N (ellipsoidisch = Normalhöhe + N).</td></tr>
+</table>
+
+<h2 id="versionen">16. Versionsgeschichte</h2>
+<table>
+  <tr><th>Version</th><th>Wesentliche Änderung</th></tr>
+  <tr><td><a href="#v1_00_rc3">V1.00 RC3</a></td><td>EP bei Nivellement · Versionsgeschichte in Kapitel 16</td></tr>
+  <tr><td><a href="#v1_00_rc2">V1.00 RC2</a></td><td>Massen-Basislinien: verwaiste Merkeinträge, P0 ohne Nullpunkte</td></tr>
+  <tr><td><a href="#v1_00_rc1">V1.00 RC1</a></td><td>Schwarmwissen: öffentlich, Senden ohne Token · Grenzen der Methode</td></tr>
+  <tr><td><a href="#v0_509">V0.509</a></td><td>Dynamische AGL: Festpunkte enden wieder im Band</td></tr>
+  <tr><td><a href="#v0_508">V0.508</a></td><td>Beispiel C: Erwartungswerte aus der echten JAG3D-Oberfläche</td></tr>
+  <tr><td><a href="#v0_507">V0.507</a></td><td>Dynamische AGL: Intervallhalbierung, klare Abschlussmeldung; GNSS-Stützung nur mit GNSS</td></tr>
+  <tr><td><a href="#v0_506">V0.506</a></td><td>Fehlende Einzelwerte der Festpunkte werden mit dem Gruppenwert ergänzt, Hinweis „nicht prüfbar“</td></tr>
+  <tr><td><a href="#v0_505">V0.505</a></td><td>Abbruch beim Start von JAG3D mit V0.504 behoben</td></tr>
+  <tr><td><a href="#v0_504">V0.504</a></td><td>Zeigt Hintergrundarbeit im Reiterkopf und im Klein-Tab, nicht während der Automatik</td></tr>
+  <tr><td><a href="#v0_503">V0.503</a></td><td>Untergrenze 1,0/0,3 mm nur mit GNSS, sonst 0,01 mm; Hinweis Varianzfaktor (T_post); Schlussangleichung ohne GNSS behoben</td></tr>
+  <tr><td><a href="#v0_502">V0.502</a></td><td>Kein Fenster „Ablauf nicht frei“ mehr – rote Schritte im Protokoll; Feld „Deaktivierte BL“ breiter</td></tr>
+  <tr><td><a href="#v0_501">V0.501</a></td><td>Kein Neustart-Fenster mehr nach Zusammenfassen/Rücknahme, Hinweis in Protokoll und Statuszeile</td></tr>
+  <tr><td><a href="#v0_500">V0.500</a></td><td>Prüfung vor Durchlauf 1 mit eigener Ausgleichung, auch direkt nach dem Import</td></tr>
+  <tr><td><a href="#v0_499">V0.499</a></td><td>Automatisch vor Durchlauf 1 bereinigt, längenabhängige GNSS-Grenze, Kontrolle am Laufende</td></tr>
+  <tr><td><a href="#v0_498">V0.498</a></td><td>Untergrenze der Festpunkte (1,0 mm / 0,3 mm), getrennte Höhe bei „Höhe nur aus 1D“</td></tr>
+  <tr><td><a href="#v0_497">V0.497</a></td><td>Dämpfung gegen Pendeln und Rundung am Grenzwert – Durchlauf 2 wird zuverlässiger fertig</td></tr>
+  <tr><td><a href="#v0_496">V0.496</a></td><td>Schlussangleichung VKS hält die Untergrenzen der Gruppen- und individuellen Unsicherheit ein</td></tr>
+  <tr><td><a href="#v0_495">V0.495</a></td><td>Höhenrechner im Menü KleinMethod, automatisches Speichern, rechtsbündige Spalten</td></tr>
+  <tr><td><a href="#v0_494">V0.494</a></td><td>Statistischer Test als eigene Funktion, nicht mehr in der Automatik</td></tr>
+  <tr><td><a href="#v0_493">V0.493</a></td><td>Genauigkeit der GNSS-Mittel aus der Streuung statt eingefrorenem Gruppenmodell</td></tr>
+  <tr><td><a href="#v0_492">V0.492</a></td><td>Karte: Messart-Symbole auf dem Punkt, Netzplot bei offener Karte stabil</td></tr>
+  <tr><td><a href="#v0_491">V0.491</a></td><td>Testbericht mit Empfehlung und Gruppentests-Knopf, Höhe aus 1D standardmäßig ein</td></tr>
+  <tr><td><a href="#v0_490">V0.490</a></td><td>Schlussangleichung VKS, Standard Zusammenfassen + Kalibrieren, Messart-Symbole in der Karte</td></tr>
+  <tr><td><a href="#v0_489">V0.489</a></td><td>Punkte umbenennen mit Vorlagen, Vorschau, Abstandsprüfung und Rücknahme</td></tr>
+  <tr><td><a href="#v0_488">V0.488</a></td><td>Massen-Basislinien erkennen und vor der ersten Berechnung robust ausdünnen</td></tr>
+  <tr><td><a href="#v0_487">V0.487</a></td><td>Gewichtsverhältnis-Ampel je Messart</td></tr>
+  <tr><td><a href="#v0_486">V0.486</a></td><td>Fehlersimulation (Monte Carlo) am eigenen Netz</td></tr>
+  <tr><td><a href="#v0_485">V0.485</a></td><td>Gruppentests auf gemeinsame Ursache (Prismenkonstante, Instrumenten-/Zielhöhe)</td></tr>
+  <tr><td><a href="#v0_484">V0.484</a></td><td>Liste auffälliger Beobachtungen (bearbeiten, zurücknehmen, neu testen)</td></tr>
+  <tr><td><a href="#v0_483">V0.483</a></td><td>Statistischer Test vor der Einzelkalibrierung (kleine grobe Fehler)</td></tr>
+  <tr><td><a href="#v0_482">V0.482</a></td><td>Koordinaten-/Höhenrechner (Menü Hilfe), Sperre gegen mehrfache Umrechnung</td></tr>
+  <tr><td><a href="#v0_481">V0.481</a></td><td>Vergleichsvariante „Zusammenfassen + Kalibrieren“</td></tr>
+  <tr><td><a href="#v0_480">V0.480</a></td><td>Ablauf-Assistent, Startsperre, Zustandsprotokoll, Festpunkte 0/0/0</td></tr>
+  <tr><td><a href="#v0_479">V0.479</a></td><td>Schalter „Höhe nur aus Höhenfestpunkten (1D)“ (dyn./fixe AGL)</td></tr>
+  <tr><td><a href="#v0_478">V0.478</a></td><td>Wiederholte Messungen automatisch zusammenfassen, Streuung als Mindestgenauigkeit, Regewichten entfällt; Karte wählt passende Projektion</td></tr>
+  <tr><td><a href="#v0_477">V0.477</a></td><td>Wiederholte Messungen je Messart: Regewichten (Standard) / Zusammenfassen / Aus, Vergleichsdatei</td></tr>
+  <tr><td><a href="#v0_476">V0.476</a></td><td>Projektbaum während Automatik/Bereinigung gesperrt; nur noch eine Meldung „Automatik läuft“</td></tr>
+  <tr><td><a href="#v0_475">V0.475</a></td><td>Veralteter P0 wird erkannt und neu bestimmt; Importbericht „P0 außerhalb des Netzes“; 1D-Lage relativ zum Netz</td></tr>
+  <tr><td><a href="#v0_474">V0.474</a></td><td>Wechsel-/Aufstellpunkte ohne Lage automatisch in der Mitte ihrer Nivellement-Nachbarn</td></tr>
+  <tr><td><a href="#v0_473">V0.473</a></td><td>Hilfe: Beispiel-ZIPs A–E (Rohdaten, Anleitung, Ergebnisse) zum Herunterladen</td></tr>
+  <tr><td><a href="#v0_472">V0.472</a></td><td>Hilfe: Kapitel 0 „Schritt für Schritt“ – Datenformate, Systeme und Ablauf für 1D/2D/3D</td></tr>
+  <tr><td><a href="#v0_471">V0.471</a></td><td>Importbericht: Lage der 1D-Punkte gegen die Zielweiten des Nivellements</td></tr>
+  <tr><td><a href="#v0_470">V0.470</a></td><td>Höhensystem-Prüfung mit der Lage der 1D-Höhenfestpunkte (kein Fehlalarm in großen Netzen)</td></tr>
+  <tr><td><a href="#v0_469">V0.469</a></td><td>Gegenprobe einzeln, GNSS-Paare nur für GNSS verdächtig, Erdkrümmung im Importbericht</td></tr>
+  <tr><td><a href="#v0_468">V0.468</a></td><td>Projektion, Reduktion, P0 und Umrechnung nur noch mit GNSS-Basislinien</td></tr>
+  <tr><td><a href="#v0_467">V0.467</a></td><td>Importbericht mit Ampel (Namen, gegenseitige Zenitwinkel, Lage I/II, Höhen, Einheiten, Systeme), Lage der 1D-Punkte aus dem Nivellement</td></tr>
+  <tr><td><a href="#v0_466">V0.466</a></td><td>Zielhöhen-Prüfung, Ursachensuche Tachymeter, Höhensystem-Warnung in der Bereinigung</td></tr>
+  <tr><td><a href="#v0_465">V0.465</a></td><td>Höhenpunkte (1D) bei der Umrechnung; Hilfe ohne Kopie</td></tr>
+  <tr><td><a href="#v0_464">V0.464</a></td><td>Grobe Fehler: robuste Vorauswahl, Ursachensuche (Antennenhöhe, Punktverwechslung)</td></tr>
+  <tr><td><a href="#v0_463">V0.463</a></td><td>Grobe Fehler: Vorprüfung (Schleifenschlüsse, Doppelmessungen), Teststatistik, Kontrollierbarkeit</td></tr>
+  <tr><td><a href="#v0_462">V0.462</a></td><td>Hilfe in 7 Sprachen</td></tr>
+  <tr><td><a href="#v0_461">V0.461</a></td><td>Grobe Fehler: verstreute Ausreißer gruppenweise, Gegenprobe</td></tr>
+  <tr><td><a href="#v0_460">V0.460</a></td><td>Hilfe zusätzlich im JAG3D-Menü „Hilfe“, Taste F1</td></tr>
+  <tr><td><a href="#v0_459">V0.459</a></td><td>Hilfe; Punkt suchen mit relativem Skalierungsfaktor</td></tr>
+  <tr><td>V0.458</td><td>Prüfung der Näherungskoordinaten vor der JAG3D-Mittelwertbildung</td></tr>
+  <tr><td>V0.457</td><td>Karte: Basislinien zu fernen Stationen, Punkt suchen wie Merkmalszoom</td></tr>
+  <tr><td>V0.456</td><td>Karte: Bedienleiste wie im Netzplot</td></tr>
+  <tr><td>V0.455</td><td>Prognose und Messplanung</td></tr>
+  <tr><td>V0.454</td><td>Driftende Sitzungen richtig gewichten; Obergrenze → deaktivieren statt sperren</td></tr>
+  <tr><td>V0.453</td><td>Sprung-/Driftprüfung; Neustart der Automatik nach Änderung; Log in ASCII</td></tr>
+  <tr><td>V0.452</td><td>GNSS-Sitzungen zusammenfassen</td></tr>
+  <tr><td>V0.451</td><td>GNSS-Stützung am Netzrand</td></tr>
+  <tr><td>V0.450</td><td>Export: Wahl der Höhe (ellipsoidisch / NHN)</td></tr>
+  <tr><td>V0.448–V0.449</td><td>Näherungskoordinaten überarbeitet (Erdkrümmung, Sitzungsdrift, Abschalten)</td></tr>
+  <tr><td>V0.446–V0.447</td><td>Quasigeoid, Umrechnung der Festhöhen</td></tr>
+</table>
+<h3 id="v1_00_rc3">V1.00 RC3</h3>
+<ul>
+    <li><b>EP bei Nivellement:</b> In reinen Nivellementnetzen ist EP nicht wählbar (Hinweis „reines Nivellement: nur logPost“); im Nivellement sind die Redundanzanteile klein und EP ist durch die Netzform hoch. In gemischten Netzen bewertet EP nur die übrigen Messarten, Max-EP enthält das Nivellement nicht mehr – <a href="#automatik">Kapitel 6</a>.</li>
+    <li><b>Hilfe:</b> Die Entwicklung steht nicht mehr oben, sondern vollständig in diesem Kapitel.</li>
+  </ul>
+<h3 id="v1_00_rc2">V1.00 RC2</h3>
+<ul>
+    <li><b>Massen-Basislinien:</b> Merkeinträge zu wiederholten Messungen aus einer früheren Bearbeitung oder aus einer Projektvorlage, die zu keiner vorhandenen Messung mehr gehören, werden beim Öffnen verworfen. Das automatische Ausdünnen greift dadurch wieder, und die Reihenfolgeprüfung sperrt den Start nicht mehr Mit eingeschaltetem „Massen-Basislinien automatisch ausdünnen“ wird jetzt schon direkt nach dem Öffnen ausgedünnt, eine F5 wartet darauf. – <a href="#sitzungen">Kapitel 5</a>.</li>
+    <li><b>Lokales System:</b> Neupunkte ohne Näherungskoordinaten (0/0/0) zählen beim Verlegen von P0 nicht mehr mit; ein ungültiger Bezugspunkt wird nie gespeichert – <a href="#import">Kapitel 2</a>.</li>
+    <li><b>Steuerung:</b> Das Feld „Deaktivierte BL“ ist breiter und zeigt große Zahlen vollständig.</li>
+  </ul>
+<h3 id="v1_00_rc1">V1.00 RC1</h3>
+<ul>
+    <li><b>Schwarmwissen:</b> öffentliches Repository, Abruf ohne Token, Senden ohne Token über den Vermittlungsdienst oder mit einem Klick im Browser – <a href="#schwarm100">Kapitel 13</a>.</li>
+    <li><b>Grenzen der Methode:</b> neuer Abschnitt – was die Klein'sche Methode leistet und was nicht – <a href="#grenzen">Kapitel 6</a>.</li>
+    <li><b>Steuerung:</b> „Höhe nur aus Höhenfestpunkten (1D)“ und „Ablauf-Assistent“ stehen direkt unter den Knöpfen der linken Spalte – keine Lücke mehr in der dynamischen und fixen Ausgleichung.</li>
+  </ul>
+<h3 id="v0_509">V0.509</h3>
+<ul>
+    <li><b>Dynamische AGL:</b> „Intervall ausgeschöpft“ nur noch für unempfindliche Festpunkte, keine Schlussangleichung mehr in der dynamischen AGL – siehe <a href="#dyn509">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_508">V0.508</h3>
+<ul>
+    <li><b>Beispiel C:</b> Erwartungswerte und Ergebnisordner aus einem Lauf in der echten JAG3D-Oberfläche – siehe <a href="#bsp508">Kapitel 0</a>.</li>
+  </ul>
+<h3 id="v0_507">V0.507</h3>
+<ul>
+    <li><b>Dynamische AGL:</b> kein Stillstand mehr bei unempfindlichen Festpunkten (Intervallhalbierung) und klare Abschlussmeldung – siehe <a href="#dyn507">Kapitel 10</a>.</li>
+    <li><b>GNSS-Stützung:</b> Prüfung nur noch in Projekten mit GNSS-Basislinien – die Fehlermeldung in reinen Nivellement-Netzen entfällt.</li>
+  </ul>
+<h3 id="v0_506">V0.506</h3>
+<ul>
+    <li><b>Dynamische AGL:</b> fehlende Einzelwerte der Festpunkte werden mit dem Gruppenwert ergänzt, Hinweis „nicht prüfbar“ – siehe <a href="#einzel506">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_505">V0.505</h3>
+<ul>
+    <li><b>Start:</b> Abbruch beim Start von JAG3D mit V0.504 behoben – siehe <a href="#start505">Kapitel 1</a>.</li>
+  </ul>
+<h3 id="v0_504">V0.504</h3>
+<ul>
+    <li><b>Ladekreis:</b> zeigt Hintergrundarbeit im Reiterkopf und im Klein-Tab, nicht während der Automatik – siehe <a href="#lade504">Kapitel 1</a>.</li>
+  </ul>
+<h3 id="v0_503">V0.503</h3>
+<ul>
+    <li><b>Dynamische AGL:</b> Untergrenze 1,0/0,3 mm nur mit GNSS, sonst 0,01 mm; Hinweis Varianzfaktor (T_post); Schlussangleichung ohne GNSS behoben – siehe <a href="#floor503">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_502">V0.502</h3>
+<ul>
+    <li><b>Start:</b> kein Fenster „Ablauf nicht frei“ mehr – rote Schritte im Protokoll; Feld „Deaktivierte BL“ breiter – siehe <a href="#start502">Kapitel 1</a>.</li>
+  </ul>
+<h3 id="v0_501">V0.501</h3>
+<ul>
+    <li><b>Wiederholte Messungen:</b> kein Neustart-Fenster mehr nach Zusammenfassen/Rücknahme, Hinweis in Protokoll und Statuszeile – siehe <a href="#wdh501">Kapitel 5</a>.</li>
+  </ul>
+<h3 id="v0_500">V0.500</h3>
+<ul>
+    <li><b>Grobe Fehler:</b> Prüfung vor Durchlauf 1 mit eigener Ausgleichung, auch direkt nach dem Import – siehe <a href="#grob500">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_499">V0.499</h3>
+<ul>
+    <li><b>Grobe Fehler:</b> automatisch vor Durchlauf 1 bereinigt, längenabhängige GNSS-Grenze, Kontrolle am Laufende – siehe <a href="#grob499">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_498">V0.498</h3>
+<ul>
+    <li><b>Dynamische AGL:</b> Untergrenze der Festpunkte (1,0 mm / 0,3 mm), getrennte Höhe bei „Höhe nur aus 1D“ – siehe <a href="#festpunkt498">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_497">V0.497</h3>
+<ul>
+    <li><b>Nachlauf:</b> Dämpfung gegen Pendeln und Rundung am Grenzwert – Durchlauf 2 wird zuverlässiger fertig – siehe <a href="#nachlauf497">Kapitel 6</a>.</li>
+  </ul>
+<h3 id="v0_496">V0.496</h3>
+<ul>
+    <li><b>Untergrenzen der Gruppenunsicherheit:</b> Schlussangleichung VKS hält die Untergrenzen der Gruppen- und individuellen Unsicherheit ein – siehe <a href="#schlussangleichung496">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_495">V0.495</h3>
+<ul>
+    <li><b>Höhenrechner:</b> im Menü KleinMethod, Ergebnis automatisch als <i>…_ellipsoidisch</i> gespeichert, Spalten rechtsbündig – siehe <a href="#rechner495">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_494">V0.494</h3>
+<ul>
+    <li><b>Statistischer Test als eigene Funktion:</b> nicht mehr in der Automatik, auf Knopfdruck mit exakter Wiederherstellung – siehe <a href="#stattest494">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_493">V0.493</h3>
+<ul>
+    <li><b>GNSS-Mittel:</b> Genauigkeit nur je betroffener Komponente bzw. aus der robusten Epochen-Streuung, Hinweis auf stark streuende Punktpaare – siehe <a href="#massen493">Kapitel 5</a>.</li>
+  </ul>
+<h3 id="v0_492">V0.492</h3>
+<ul>
+    <li><b>Karte:</b> Messart-Symbole genau auf dem Punkt statt daneben, Netzplot bleibt bei offener Karte richtig – siehe <a href="#karte492">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_491">V0.491</h3>
+<ul>
+    <li><b>Testbericht mit Empfehlung:</b> „Schließen (empfohlen)“, wenn nichts zu tun ist; Häufung an einem Punkt → „Gruppentests …“; „Höhe nur aus 1D“ standardmäßig ein – siehe <a href="#bericht491">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_490">V0.490</h3>
+<ul>
+    <li><b>Schlussangleichung VKS:</b> zu pessimistische Genauigkeiten an Untergrenzen werden nach der Automatik ans Band angeglichen; neuer Standard „Zusammenfassen + Kalibrieren“; Messart-Symbole in der Karte ausblendbar – siehe <a href="#schlussangleichung">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_489">V0.489</h3>
+<ul>
+    <li><b>Punkte umbenennen:</b> Vorlagen im Abrollmenü, Vorschau, Abstandsprüfung (Exzenter werden nicht verschmolzen), exakte Rücknahme – siehe <a href="#umbenennen">Kapitel 2</a>.</li>
+  </ul>
+<h3 id="v0_488">V0.488</h3>
+<ul>
+    <li><b>Massen-Basislinien:</b> sehr viele Epochen-Basislinien werden erkannt und vor der ersten Berechnung je Punktpaar zu einem robusten Mittel ausgedünnt (Schalter, Rücknahme jederzeit) – siehe <a href="#massen">Kapitel 5</a>.</li>
+  </ul>
+<h3 id="v0_487">V0.487</h3>
+<ul>
+    <li><b>Gewichtsverhältnis-Ampel:</b> je Messart Anteil an der Bestimmung, Kontrolle und Varianzfaktor – zeigt Übergewicht und falsche Gewichte, siehe <a href="#gewicht">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_486">V0.486</h3>
+<ul>
+    <li><b>Fehlersimulation (Monte Carlo):</b> misst an deinem eigenen Netz, ab welcher Größe Fehler in Strecken, Richtungen, Zenitwinkeln, Prismenkonstante und Instrumentenhöhe gefunden werden – siehe <a href="#fehlersimulation">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_485">V0.485</h3>
+<ul>
+    <li><b>Gruppentests auf gemeinsame Ursache:</b> findet Prismen-/Additionskonstante, Instrumenten- und Zielhöhe, die mehrere Beobachtungen gemeinsam betreffen – mit Korrektur der ganzen Gruppe, siehe <a href="#gruppentest">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_484">V0.484</h3>
+<ul>
+    <li><b>Liste auffälliger Beobachtungen:</b> Befunde des statistischen Tests sortieren, Ursache sehen, deaktivieren, Messwert korrigieren, Höhen ändern, abwichten, zurücknehmen, neu testen, CSV – siehe <a href="#befundliste">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_483">V0.483</h3>
+<ul>
+    <li><b>Statistischer Test – kleine grobe Fehler:</b> Test nach der Gruppenkalibrierung mit den Ausgangsgenauigkeiten, Bericht mit Abwichtung, „Statistisch auffällige bereinigen …“ auf Knopfdruck – Strecken ab 1 cm zu 100 % statt 0 % gefunden – siehe <a href="#stattest">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_482">V0.482</h3>
+<ul>
+    <li><b>Koordinaten-/Höhenrechner:</b> DHHN2016 ↔ ellipsoidisch, UTM/geographisch/geozentrisch, einzeln und als Stapel – nur im Menü Hilfe – siehe <a href="#rechner">Kapitel 10</a>. <b>Sperre gegen mehrfache Umrechnung</b> (Kopfzeile in Dateien, fremd umgerechnete Daten im Ablauf-Assistenten rot) – siehe <a href="#sperre">Kapitel 2</a>.</li>
+  </ul>
+<h3 id="v0_481">V0.481</h3>
+<ul>
+    <li><b>Zusammenfassen + Kalibrieren:</b> neue Vergleichsvariante – stark streuende Mittel starten mit der Streuung und werden in der Automatik aus ihren Verbesserungen nachkalibriert – siehe <a href="#zuskal">Kapitel 5</a>.</li>
+  </ul>
+<h3 id="v0_480">V0.480</h3>
+<ul>
+    <li><b>Ablauf-Assistent:</b> 7 geprüfte Schritte vom Import bis zur Freigabe mit Ampel und Aktion, Startsperre bei Rot (übergehbar), Zustandsprotokoll im Projekt, Umwandlung von Festpunkten 0/0/0 in Neupunkte – siehe <a href="#assistent">Kapitel 1</a>.</li>
+  </ul>
+<h3 id="v0_479">V0.479</h3>
+<ul>
+    <li><b>Höhe nur aus Höhenfestpunkten (1D):</b> Schalter in der dynamischen und fixen AGL – 3D-Fest-/Anschlusspunkte bestimmen nur die Lage – siehe <a href="#hoehe1d">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_478">V0.478</h3>
+<ul>
+    <li><b>Wiederholte Messungen automatisch zusammenfassen:</b> Standard „Zusammenfassen“, ohne Rückfrage beim Tab-Klick, nach einer Änderung und vor dem Start; Genauigkeit des Mittels mindestens die Streuung; „Regewichten“ entfällt – siehe <a href="#sitzungen">Kapitel 5</a>. Karte: passt die gewählte Projektion zu keinem Punkt, wählt sie die passende.</li>
+  </ul>
+<h3 id="v0_477">V0.477</h3>
+<ul>
+    <li><b>Wiederholte Messungen für alle Messarten:</b> Schalter je Messart „Regewichten (Standard) / Zusammenfassen / Aus“ – GNSS-Sitzungen, Richtungssätze, Strecken, Nivellement, Lasertracker-Messreihen; Rücknahme, Umstellung, Vergleichsdatei – siehe <a href="#sitzungen">Kapitel 5</a>.</li>
+  </ul>
+<h3 id="v0_476">V0.476</h3>
+<ul>
+    <li><b>Projektbaum gesperrt:</b> Solange die Automatik oder „Grobe Fehler bereinigen“ läuft, ist der Projektbaum links (Festpunkte, Messdaten …) ausgegraut und nicht anklickbar. Ein Tab-Wechsel bleibt gesperrt und zeigt höchstens eine Meldung „Automatik läuft“.</li>
+  </ul>
+<h3 id="v0_475">V0.475</h3>
+<ul>
+    <li><b>Neue Daten in einem früheren Projekt:</b> Liegt kein Punkt mehr im gespeicherten lokalen System, ignoriert Klein_Method den alten P0 und bestimmt ihn neu im Netz – Höhenfestpunkte landen nicht mehr in P0. Der Importbericht meldet rot, wenn P0 mehr als 50 km außerhalb des Netzes liegt – siehe <a href="#wf-fehler">Kapitel 0</a>.</li>
+  </ul>
+<h3 id="v0_474">V0.474</h3>
+<ul>
+    <li><b>Wechsel- und Aufstellpunkte ohne Lage:</b> Beim Tab-Klick setzt Klein_Method sie automatisch in die Mitte ihrer Nivellement-Nachbarn (Aufstellpunkt zwischen Rück- und Vorblick, Wechselpunkt zwischen den Aufstellungen) – bisher lagen sie alle in P0. Die Höhe bleibt unverändert – siehe <a href="#workflow">Kapitel 0</a>.</li>
+  </ul>
+<h3 id="v0_473">V0.473</h3>
+<ul>
+    <li><b>Beispieldaten A–E zum Herunterladen:</b> je ein ZIP mit Rohdaten, Anleitung, Soll-Koordinaten und Ergebnissen – siehe <a href="#wf-beispiele">Kapitel 0</a>.</li>
+  </ul>
+<h3 id="v0_472">V0.472</h3>
+<ul>
+    <li><b>Neues Kapitel 0 „Schritt für Schritt“:</b> Daten vorbereiten und importieren für 1D, 2D und 3D – goldene Regeln, Entscheidungstabelle, alle Dateiformate mit Beispielzeilen, Ablauf mit Menüpfaden, typische Fehler – siehe <a href="#workflow">Kapitel 0</a>.</li>
+  </ul>
+<h3 id="v0_471">V0.471</h3>
+<ul>
+    <li><b>Importbericht – Lage der 1D-Punkte:</b> Liegt ein Höhenfestpunkt weiter von seinen Nivellement-Nachbarn entfernt, als die Zielweiten erlauben, meldet der Bericht rot „Lage in einem anderen System oder mit einem anderen P0 umgerechnet?“ – meist ist dann auch die Höhe falsch – siehe <a href="#importbericht">Kapitel 2</a>.</li>
+  </ul>
+<h3 id="v0_470">V0.470</h3>
+<ul>
+    <li><b>Höhensystem-Prüfung in großen Netzen:</b> Die Höhenfestpunkte (1D) werden mit ihrer Lage umgerechnet. Bisher wurden sie in P0 angenommen – ab etwa 3,5 km Abstand führte das zu einem Fehlalarm „Höhensystem“ (Erdkrümmung r²/2R) – siehe <a href="#hoehen">Kapitel 10</a>.</li>
+  </ul>
+<h3 id="v0_469">V0.469</h3>
+<ul>
+    <li><b>Gegenprobe einzeln:</b> Gelingt die gemeinsame Gegenprobe nicht (meist, weil ein echter grober Fehler darunter die anderen verzerrt), nimmt Klein_Method die Kandidaten einzeln wieder auf. Auffällige GNSS-Punktpaare machen nur noch GNSS-Basislinien verdächtig, nicht die Tachymetermessungen zwischen denselben Punkten. <b>Importbericht:</b> gegenseitige Zenitwinkel mit Erdkrümmung und Refraktion (k = 0,13) – siehe <a href="#grob">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_468">V0.468</h3>
+<ul>
+    <li><b>Nur mit GNSS-Basislinien:</b> Umrechnung ins lokale System, Verlegen von P0 und jede Änderung von Projektion oder Bezugspunkt gibt es nur noch, wenn das Projekt aktive GNSS-Basislinien enthält. Reine Tachymeter-/Nivellementnetze behalten ihre Einstellungen – siehe <a href="#import">Kapitel 2</a>.</li>
+  </ul>
+<h3 id="v0_467">V0.467</h3>
+<ul>
+    <li><b>Importbericht mit Ampel:</b> Beim Tab-Klick (nach jedem neuen Import) und im Menü <i>Klein_Method → Importbericht …</i> prüft Klein_Method die Daten vor der Ausgleichung: Namen, gegenseitige Zenitwinkel, Lage I/II, Instrumenten- und Zielhöhen, Einheiten, Koordinaten- und Höhensystem. <b>Lage der 1D-Punkte</b> lässt sich aus dem Nivellement ableiten – siehe <a href="#importbericht">Kapitel 2</a>.</li>
+  </ul>
+<h3 id="v0_466">V0.466</h3>
+<ul>
+    <li><b>Zielhöhen und Höhensystem:</b> Die Vorprüfung warnt bei fehlenden Zielhöhen (0) und wechselnden Zielhöhen, die Ursachensuche nennt Ziel-/Instrumentenhöhen, und eine Höhensystem-Abweichung steht rot oben im Bestätigungsfenster – siehe <a href="#fziel">Fehlerbild</a>.</li>
+  </ul>
+<h3 id="v0_465">V0.465</h3>
+<ul>
+    <li><b>Höhenpunkte (1D) im lokalen System:</b> werden bei der Umrechnung mit umgerechnet – Lage aus UTM, Gauß-Krüger oder geographisch, Höhe wie eingetragen (<a href="#import">Kapitel 2</a>). <b>Hilfe</b> öffnet direkt aus dem Paketordner, ohne Kopie.</li>
+  </ul>
+<h3 id="v0_464">V0.464</h3>
+<ul>
+    <li><b>Grobe Fehler:</b> <i>robuste Vorauswahl</i> – was die Vorprüfung erkannt hat und über der Grenze liegt, kommt in einem Schritt heraus; <i>Ursachensuche</i> bei GNSS (Antennenhöhe, Punktverwechslung) – siehe <a href="#grob">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_463">V0.463</h3>
+<ul>
+    <li><b>Grobe Fehler besser erkennen:</b> neue <i>Vorprüfung</i> vor der Ausgleichung (GNSS-Schleifenschlüsse, Doppelmessungen), Reihenfolge nach Teststatistik, Hinweis auf kaum kontrollierte Beobachtungen, Wiederaufnahmeprüfung auch für einzeln herausgenommene GNSS-Basislinien – siehe <a href="#grob">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_462">V0.462</h3>
+<ul>
+    <li><b>Hilfe in 7 Sprachen:</b> Sie öffnet in der eingestellten Oberflächensprache (sonst Englisch). Oben lässt sich die Sprache wechseln. Die Übersetzungen sind maschinell erstellt – maßgeblich ist die deutsche Fassung.</li>
+  </ul>
+<h3 id="v0_461">V0.461</h3>
+<ul>
+    <li><b>Grobe Fehler schneller bereinigen:</b> Verstreute Ausreißer ohne gemeinsamen Punkt werden zu mehreren in einem Schritt herausgenommen (höchstens 10), mit Gegenprobe am Ende – siehe <a href="#grob">Kapitel 7</a>.</li>
+  </ul>
+<h3 id="v0_460">V0.460</h3>
+<ul>
+    <li><b>Hilfe aufrufen:</b> Taste <b>F1</b>, im JAG3D-Menü <i>Hilfe → Klein_Method – Hilfe …</i> oder im Menü <i>Klein_Method → Hilfe …</i>. Die Hilfe öffnet im Standardbrowser, ohne Internet, und ist auch ohne geöffnetes Projekt erreichbar.</li>
+  </ul>
+<h3 id="v0_459">V0.459</h3>
+<ul>
+    <li><b>Hilfe:</b> erste Fassung dieser Datei.</li>
+    <li><b>Karte – Punkt suchen:</b> Der Skalierungsfaktor wirkt jetzt wie im JAG3D-Netzplot <i>relativ zur aktuellen Ansicht</i> (1 = Maßstab bleibt, nur zentrieren; 0,5 = doppelt so nah).</li>
+  </ul>
+
+<p>Die ausführliche Beschreibung jeder Version mit Testergebnissen steht in <i>Anleitung.md</i> im Paket.</p>
+
+</main>
+</div>
+</body>
+</html>

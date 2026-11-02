@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<!-- V1.00 RC3 Klein_Method - Hilfe (polnisch) -->
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klein_Method – Pomoc</title>
+<style>
+  :root { --text:#1d2430; --muted:#5b6575; --line:#d9dee6; --accent:#1565c0; --bg:#ffffff; --box:#f4f7fb; --warn:#fff6e5; --warnline:#e6a700; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--text); background: var(--bg); margin: 0; line-height: 1.5; }
+  header { background: #12345a; color: #fff; padding: 18px 28px; }
+  header h1 { margin: 0; font-size: 1.6em; }
+  header p { margin: 4px 0 0; color: #c9d6e8; }
+  header .lang a { color: #ffffff; }
+  header .lang b { color: #ffffff; }
+  .wrap { display: flex; max-width: 1200px; margin: 0 auto; }
+  nav { width: 270px; flex: none; padding: 18px; border-right: 1px solid var(--line); position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; font-size: 0.93em; }
+  nav a { display: block; color: var(--text); text-decoration: none; padding: 3px 0; }
+  nav a:hover { color: var(--accent); }
+  nav .sub { padding-left: 14px; color: var(--muted); }
+  main { padding: 10px 32px 60px; flex: 1; min-width: 0; }
+  h2 { border-bottom: 2px solid var(--line); padding-bottom: 4px; margin-top: 2.2em; }
+  h3 { margin-bottom: 0.3em; }
+  .ver { display: inline-block; font-size: 0.75em; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; margin-left: 8px; vertical-align: middle; }
+  .box { background: var(--box); border-left: 4px solid var(--accent); padding: 10px 14px; margin: 12px 0; }
+  .warn { background: var(--warn); border-left: 4px solid var(--warnline); padding: 10px 14px; margin: 12px 0; }
+  .where { color: var(--muted); font-size: 0.92em; }
+  table { border-collapse: collapse; margin: 10px 0; }
+  td, th { border: 1px solid var(--line); padding: 5px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--box); }
+  code { background: var(--box); padding: 1px 4px; border-radius: 3px; }
+  pre { background: var(--box); border: 1px solid var(--line); padding: 8px 12px; overflow-x: auto; font-size: 0.9em; margin: 4px 0 10px; }
+  h4 { margin: 1.1em 0 0.2em; }
+  ol li, ul li { margin: 3px 0; }
+  @media (max-width: 800px) { .wrap { display: block; } nav { width: auto; position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Klein_Method – Pomoc</h1>
+  <p>Rozszerzenie „Metoda Kleina” dla JAG3D · Pomoc do wersji V1.00 RC3 · pierwsze wydanie (uzupełniane z każdą wersją)</p>
+  <p class="lang"><a href="Klein_Method_Hilfe_de.html">Deutsch</a> · <a href="Klein_Method_Hilfe_en.html">English</a> · <b>Polski</b> · <a href="Klein_Method_Hilfe_cs.html">Čeština</a> · <a href="Klein_Method_Hilfe_fr.html">Français</a> · <a href="Klein_Method_Hilfe_es.html">Español</a> · <a href="Klein_Method_Hilfe_pt.html">Português</a></p>
+</header>
+<div class="wrap">
+<nav>
+  <a href="#workflow"><b>0. Krok po kroku: dane i import</b></a>
+  <a href="#ablauf">1. Typowy przebieg pracy</a>
+  <a href="#import">2. Import i przeliczenie do układu lokalnego</a>
+  <a href="#naeherung">3. Współrzędne przybliżone</a>
+  <a href="#mittel">4. Uśrednianie (JAG3D)</a>
+  <a href="#sitzungen">5. Pomiary powtarzane (nadwaga)</a>
+  <a href="#automatik">6. Tryb automatyczny i kalibracja</a>
+  <a href="#grob">7. Błędy grube</a>
+  <a href="#stuetzung">8. Podparcie GNSS na skraju sieci</a>
+  <a href="#planung">9. Prognoza i planowanie pomiarów</a>
+  <a href="#hoehen">10. Wysokości i quasigeoida</a>
+  <a href="#export">11. Eksport współrzędnych</a>
+  <a href="#karte">12. Mapa (OpenStreetMap)</a>
+  <a href="#protokoll">13. Protokół, log i raporty</a>
+  <a href="#fehler">14. Problemy i rozwiązania</a>
+  <a class="sub" href="#fziel">Wiele kątów zenitalnych „błędnych”</a>
+  <a class="sub" href="#f200">200 gon przy uśrednianiu</a>
+  <a class="sub" href="#fdrift">Skraj sieci „odpływa”</a>
+  <a class="sub" href="#fz">Z nie jest wysokością</a>
+  <a class="sub" href="#fsperre">Blokada górnej granicy</a>
+  <a class="sub" href="#fneustart">Kształt sieci zniekształcony po zmianie</a>
+  <a href="#begriffe">15. Pojęcia</a>
+  <a href="#versionen">16. Historia wersji</a>
+</nav>
+<main>
+
+<div class="box"><p style="margin:0">Aktualna wersja: <b>V1.00 RC3</b>. Nowości i pełny rozwój: <a href="#versionen">rozdział 16 Historia wersji</a>.</p></div>
+
+<h2 id="workflow">0. Krok po kroku: przygotowanie i import danych (1D, 2D, 3D) <span class="ver">V0.472</span></h2>
+<p>Ten rozdział wyjaśnia, <b>co</b> należy do którego pliku, <b>jak</b> wygląda każdy wiersz, <b>który układ</b> obowiązuje i <b>w jakiej kolejności</b> klikać w JAG3D i Klein_Method. Przykładowe wiersze pochodzą z danych testowych Klein_Method (zestawy 01 i 05) – można je tam prześledzić 1:1. Kto trzyma się zasad, nie ma błędów układu. (Nazwy menu JAG3D podano po angielsku.)</p>
+<h3 id="wf-regeln">Złote zasady</h3>
+<div class="warn"><ol><li><b>Jeden projekt = jeden układ współrzędnych.</b> Albo <i>wszystkie</i> pliki są w WGS84 (geocentrycznie, dla punktów 1D UTM/geograficznie) i Klein_Method przelicza wszystko razem do układu lokalnego – <i>albo</i> wszystkie pliki są już lokalne i utworzone z <i>tym samym</i> P0. <b>Nigdy</b> nie przeliczać pojedynczych plików wcześniej własnym narzędziem lub z innym P0: punkty lądują wtedy kilometry obok, a wysokości są błędne o metry do dziesiątek metrów.</li><li><b>Jeden system wysokości.</b> GNSS daje wysokości elipsoidalne (ETRS89). Wysokości NHN (punkty wysokościowe) przelicza się po imporcie przez <i>Zarządzaj quasigeoidami … → Przelicz punkty wysokościowe …</i> (GCG2016). Sieci czysto naziemne bez GNSS pozostają w całości w NHN.</li><li><b>Zawsze podawać wysokość instrumentu i celu</b> (kolumny 3 i 4 plików tachimetrycznych). Wysokość celu 0 tylko przy celowaniu na sam znak.</li><li><b>Jednostki:</b> kąty w gonach, odległości i wysokości w metrach (JAG3D: <i>Properties → Formatter preferences</i>). Kropka dziesiętna, bez separatorów tysięcy; kolumny oddzielone spacją lub tabulatorem.</li><li><b>Nie mieszać rodzajów punktów:</b> w jednym wyrównaniu albo punkty stałe, <i>albo</i> punkty datum – inaczej JAG3D przerywa z komunikatem „reference points as well as datum points”. Wszystkie wyznaczane punkty to punkty nowe.</li><li><b>Nazwy punktów</b> muszą być zapisane identycznie we wszystkich plikach (bez spacji; „1001” to nie „01001”).</li><li><b>Dopiero gdy raport importu nie pokazuje czerwieni</b>, usuwać błędy grube i uruchamiać automatykę.</li></ol></div>
+<h3 id="wf-art">Jaką mam konfigurację?</h3>
+<table>
+<tr><th>Konfiguracja</th><th>Obserwacje</th><th>Współrzędne dostarczyć jako</th><th>Odwzorowanie w JAG3D</th><th>Przeliczenie przez Klein_Method</th></tr>
+<tr><td><b>A – 1D niwelacja</b></td><td>Leveling data</td><td>Punkty wysokościowe: nazwa, wysokość (położenie opcjonalnie)</td><td>dowolne (lokalne kartezjańskie)</td><td>nie</td></tr>
+<tr><td><b>B – 2D położenie</b></td><td>Kierunki, odległości poziome</td><td>Y/X w UTM lub Gauss-Krüger albo lokalnie</td><td>UTM lub Gauss-Krüger (z redukcjami) albo lokalne kartezjańskie</td><td>nie</td></tr>
+<tr><td><b>C – 3D naziemna</b> (tachimetr, ew. niwelacja)</td><td>Kierunki, odległości skośne, kąty zenitalne (+ niwelacja)</td><td>lokalnie: wschód, północ, wysokość (np. 200000 / 400000 / NHN)</td><td>lokalne kartezjańskie</td><td>nie (od V0.468 tylko z GNSS)</td></tr>
+<tr><td><b>D – 3D GNSS</b></td><td>Wektory GNSS 3D</td><td>geocentrycznie X/Y/Z (WGS84/ETRS89)</td><td>automatycznie „lokalne elipsoidalne”</td><td>tak, po kliknięciu zakładki</td></tr>
+<tr><td><b>E – 3D kombinowana</b> (GNSS + tachimetr + niwelacja)</td><td>wszystkie powyższe</td><td>punkty 3D geocentrycznie; punkty wysokościowe 1D z położeniem UTM/geograficznym i wysokością NHN</td><td>automatycznie „lokalne elipsoidalne”</td><td>tak – wszystko z jednym P0, potem przeliczyć punkty wysokościowe</td></tr>
+</table>
+<p>Zasada: <b>gdy tylko w projekcie są wektory GNSS, dostarczać wszystko w WGS84</b> (konfiguracja D lub E). Bez GNSS (A–C) Klein_Method nie zmienia ani odwzorowania, ani współrzędnych.</p>
+<h3 id="wf-beispiele">Dane przykładowe do pobrania <span class="ver">V0.473</span></h3>
+<p>Dla każdej konfiguracji jest pełny przykład jako ZIP: <b>dane surowe</b> we właściwym formacie, plik <b>LIESMICH</b> (po niemiecku: który plik do którego menu importu, układ, przebieg), <b>współrzędne prawdziwe</b> i <b>wyniki</b> przebiegu (raport importu, protokół Klein_Method, współrzędne wyrównane, porównanie z prawdziwymi). Sieci są syntetyczne – prawdziwe współrzędne są znane, więc własny wynik można od razu sprawdzić.</p>
+<table>
+<tr><th>ZIP</th><th>Wynik w środowisku testowym – punkty / RMS (max) w mm</th></tr>
+<tr><td><a href="Klein_Method_Beispiel_A_1D_Nivellement.zip" download>A – 1D niwelacja</a></td><td>14 / H 0,5 (1,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_B_2D_Lage.zip" download>B – 2D położenie</a></td><td>22 / O 1,8 (4,4) · N 2,8 (4,3)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip" download>C – 3D tachimetr + niwelacja</a></td><td>25 / O 1,3 (3,7) · N 2,9 (5,8) · H 3,1 (11,6)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_D_3D_GNSS.zip" download>D – 3D GNSS</a></td><td>10 / O 0,8 (1,5) · N 1,2 (2,2) · H 1,3 (2,5)</td></tr>
+<tr><td><a href="Klein_Method_Beispiel_E_3D_GNSS_Tachymeter_Nivellement.zip" download>E – 3D GNSS + tachimetr + niwelacja</a></td><td>22 / O 1,3 (2,5) · N 1,4 (3,3) · H 2,1 (7,6)</td></tr>
+</table>
+
+<h3 id="bsp508">Przykład C: wartości oczekiwane z prawdziwego interfejsu JAG3D <span class="ver">V0.508</span></h3>
+<p class="where">Rozdział 0 · dane przykładowe · Klein_Method_Beispiel_C_3D_Tachymeter_Nivellement.zip</p>
+<p>Dotychczasowe wartości przykładu C (północ 1,4 mm) pochodziły ze starszego środowiska testowego bez interfejsu JAG3D i nie były osiągalne w JAG3D – nawet z V0.473. Tabela, LIESMICH i folder wyników pokazują teraz obliczenie z V0.508 w JAG3D.</p>
+<ul>
+  <li>Wyrównanie swobodne: wschód 1,3 mm, północ 2,9 mm, wysokość 3,1 mm RMS. Północ jest średnio przesunięta o ok. 2 mm, bo rozwiązanie swobodne opiera się na obarczonych błędami punktach datum G1–G4.</li>
+  <li>Wyrównanie dynamiczne i ze stałymi punktami: północ 1,4–1,5 mm RMS.</li>
+</ul>
+<h3 id="wf-format">Formaty plików – każdy wiersz wyjaśniony</h3>
+<p>Jeden wiersz = jeden punkt lub jedna obserwacja. Kolejność kolumn dokładnie jak podano. Import w JAG3D przez menu <i>Import</i> → podmenu (w nawiasie).</p>
+<h4>Współrzędne</h4>
+<h4>Punkty wysokościowe 1D z położeniem (Import → Reference points → Reference points 1D lub Datum points → Datum points 1D)</h4>
+<p class="where">Nazwa · Y (UTM ze strefą, tu 32…) · X · wysokość [m] (NHN lub elipsoidalna)</p>
+<pre>H1   32584582.4967   5549719.1388   233.7806
+H2   32587129.2665   5549910.0463   281.5391
+H3   32585905.5472   5551389.9556   254.9403</pre>
+<p>Klein_Method potrzebuje położenia, aby poprawnie ustawić wysokość w układzie lokalnym (krzywizna Ziemi) i sprawdzić położenie względem celowych. Dozwolone: UTM (ze strefą lub bez), Gauss-Krüger lub geograficznie (kolumna 2 = długość, kolumna 3 = szerokość w stopniach). <b>Nie</b> używać samodzielnie przeliczonego położenia lokalnego z innym P0.</p>
+<h4>Punkty wysokościowe 1D bez położenia (tylko czyste sieci niwelacyjne, konfiguracja A)</h4>
+<p class="where">Nazwa · wysokość [m]</p>
+<pre>H1   233.7806
+H2   281.5391
+H3   254.9403</pre>
+
+<h4>Nowe punkty 1D: punkty przejściowe i stanowiska (Import → New points → New points 1D)</h4>
+<p class="where">Nazwa · Y · X · wysokość (0 = nieznana)</p>
+<pre>WP001        32584779.2317   5549707.0706   0.0000
+WP002        32584956.5727   5549690.2741   0.0000
+WP003        32585278.5982   5549719.0279   0.0000
+0001_H1                  0              0        0
+0002_WP001               0              0        0</pre>
+<p>Położenie 0/0 jest dozwolone – po kliknięciu zakładki Klein_Method umieszcza te punkty automatycznie pośrodku sąsiadów w niwelacji (stanowisko między odczytem wstecz i w przód, punkt przejściowy między stanowiskami; równomiernie wzdłuż linii między punktami z położeniem). Wysokość pozostaje bez zmian; wyniki niwelacji od tego nie zależą.</p>
+<h4>Punkty 2D (Import → … → Reference points 2D / New points 2D)</h4>
+<p class="where">Nazwa · Y (wschód) · X (północ) [m]</p>
+<pre>G1   198500.0000   399000.0000
+G2   201550.0000   399050.0000
+G3   201450.0000   401050.0000
+G4   198600.0000   401000.0000
+N1   199100.4214   399600.8022</pre>
+<p>Y zawsze pierwsze. W UTM/Gauss-Krüger z pasującym odwzorowaniem w JAG3D, lokalnie z „Local Cartesian system”.</p>
+<h4>Punkty 3D lokalne (konfiguracja C; Import → … → Reference points 3D / New points 3D)</h4>
+<p class="where">Nazwa · wschód · północ · wysokość [m]</p>
+<pre>G1   198500.0000   399000.0000   227.7836
+G2   201550.0000   399050.0000   276.5384
+G3   201450.0000   401050.0000   274.6342
+G4   198600.0000   401000.0000   228.1030
+N1   199100.4214   399600.8022   240.3806</pre>
+<p>Wschód/północ ze stałymi dodawanymi (tu 200000/400000), wysokość NHN. Punkty nowe mogą mieć zgrubne przybliżenia lub 0.</p>
+<h4>Punkty 3D geocentryczne WGS84/ETRS89 (konfiguracje D, E; Import → … → Reference points 3D / Datum points 3D / New points 3D)</h4>
+<p class="where">Nazwa · <b>Y</b> · <b>X</b> · Z [m] – uwaga: <b>Y przed X</b> (kolejność JAG3D)</p>
+<pre>G1   724615.1056   4035713.8466   4869464.5420
+G2   727616.3120   4035166.6365   4869534.0197
+G3   727245.4063   4033673.1226   4870815.5017
+G4   724442.3891   4034186.1428   4870747.7322
+N1   725126.7189   4035163.7138   4869858.9140</pre>
+<p>W Europie Środkowej Y ≈ 0,5–1,5 mln, X ≈ 3,8–4,2 mln, Z ≈ 4,7–5,0 mln. Przy zamienionych X i Y Klein_Method nie rozpozna punktów jako geocentrycznych. <b>Nie</b> podawać punktów 3D w UTM, gdy w projekcie jest GNSS.</p>
+<p>Opcjonalnie po współrzędnych mogą stać odchylenia standardowe (1D: σH; 2D: σY σX; 3D: σY σX σZ). Bez nich obowiązują wartości grupy.</p>
+<h4>Obserwacje</h4>
+<h4>Kierunki poziome (Import → Terrestrial observations → Direction sets)</h4>
+<p class="where">Stanowisko · cel · wysokość instrumentu [m] · wysokość celu [m] · kierunek [gon] · odległość [m]</p>
+<pre>N1   G1    1.397   1.560   189.66844   848.720
+N1   N2    1.397   1.503    60.13831   632.605
+N1   N6    1.397   1.328   360.14247   790.614
+N1   T01   1.397   1.389   289.66003   353.579
+N1   T02   1.397   1.531   106.60564   403.140</pre>
+<p>Jedno stanowisko = jeden zestaw kierunków (jedna niewiadoma orientacji). Odległość na końcu jest przybliżeniem dla dokładności – przy kierunkach nieobowiązkowa.</p>
+<h4>Odległości poziome (Import → … → Horizontal distances; głównie 2D)</h4>
+<p class="where">Stanowisko · cel · wysokość instrumentu · wysokość celu · odległość pozioma [m]</p>
+<pre>N1   G1    1.397   1.560   848.5292
+N1   N2    1.397   1.503   632.4572
+N1   N6    1.397   1.328   790.5704
+N1   T01   1.397   1.389   353.5511
+N1   T02   1.397   1.531   403.1152</pre>
+<p>W sieciach 3D zamiast tego używać odległości skośnych i kątów zenitalnych.</p>
+<h4>Odległości skośne (Import → … → Slope distances)</h4>
+<p class="where">Stanowisko · cel · wysokość instrumentu · wysokość celu · odległość skośna [m]</p>
+<pre>N1   G1    1.397   1.560   848.7214
+N1   N2    1.397   1.503   632.6066
+N1   N6    1.397   1.328   790.6146
+N1   T01   1.397   1.389   353.5766
+N1   T02   1.397   1.531   403.1419</pre>
+
+<h4>Kąty zenitalne (Import → … → Zenith angles)</h4>
+<p class="where">Stanowisko · cel · wysokość instrumentu · wysokość celu · kąt zenitalny [gon] · odległość [m]</p>
+<pre>N1   G1    1.397   1.560   101.00937   848.720
+N1   N2    1.397   1.503    99.04468   632.605
+N1   N6    1.397   1.328    99.63233   790.614
+N1   T01   1.397   1.389   100.26453   353.579
+N1   T02   1.397   1.531   100.14426   403.140</pre>
+<p>Położenie I (poniżej 200 gon). Wysokości instrumentu i celu muszą pasować do odległości skośnych – brak wysokości celu to najczęstszy błąd (zob. <a href="#fziel">problem</a>).</p>
+<h4>Niwelacja (Import → … → Leveling data)</h4>
+<p class="where">Od (stanowisko) · do (punkt celu) · różnica wysokości [m] = H(do) − H(od) · celowa [m]</p>
+<pre>0001_H1      H1      -2.44582   98.570
+0001_H1      WP001   -0.75429   98.570
+0002_WP001   WP001   -2.65508   89.083
+0002_WP001   WP002   -0.54535   89.083
+0003_WP002   WP002   -2.96676   88.508</pre>
+<p>Każde stanowisko jest osobnym nowym punktem 1D (tu „0001_H1”): odczyt wstecz i w przód jako dwa wiersze. Alternatywnie JAG3D przyjmuje 6 kolumn (od · do · wys. instrumentu · wys. celu · wartość · celowa).</p>
+<h4>Wektory GNSS 3D (Import → GNSS baselines → GNSS baselines 3D)</h4>
+<p class="where">Początek · koniec · <b>dY</b> · <b>dX</b> · dZ [m] geocentrycznie (Y przed X)</p>
+<pre>G1   G4   -172.7117   -1527.7059   1283.1907
+G1   G4   -172.7134   -1527.6957   1283.1912
+G1   N1    510.8132    -550.5477    395.3433
+G1   N1    510.8166    -550.5545    395.3328
+G1   N2   1129.6394    -499.7800    274.2554</pre>
+<p>Kilka sesji tego samego wektora to osobne wiersze – Klein_Method łączy je na życzenie (rozdział 5).</p>
+<p>Formy skrócone: bez wysokości instrumentu i celu wystarczy „stanowisko cel wartość” – sensowne tylko w sieciach 2D, w 3D brakuje wtedy wysokości.</p>
+<h3 id="wf-ablauf">Przebieg krok po kroku (konfiguracja E – pełny przypadek)</h3>
+<p class="where">Dla A–D obowiązują te same kroki bez niepotrzebnych plików – różnice w następnej części.</p>
+<ol><li><i>Project → Create new project</i>. Ustawień odwzorowania i redukcji <b>nie</b> zmieniać.</li><li><i>Import → Reference points → Reference points 3D</i> (lub <i>Datum points → Datum points 3D</i>): punkty stałe GNSS, geocentrycznie.</li><li><i>Import → New points → New points 3D</i>: wszystkie nowe punkty 3D (GNSS i tachimetryczne), geocentrycznie; przybliżenia mogą być zgrubne.</li><li><i>Import → GNSS baselines → GNSS baselines 3D</i>.</li><li><i>Import → Terrestrial observations</i>: Direction sets, Slope distances, Zenith angles – zawsze z wysokością instrumentu i celu.</li><li><i>Import → … → Reference points 1D</i> lub <i>Datum points 1D</i>: punkty wysokościowe z położeniem (UTM lub geograficznie) i wysokością NHN – <b>ten sam rodzaj punktu co w kroku 2</b>.</li><li><i>Import → New points → New points 1D</i>: punkty przejściowe i stanowiska (położenie 0/0 dozwolone); potem <i>Leveling data</i>.</li><li><b>Kliknąć zakładkę Klein_Method.</b> Na pytanie „Przeliczyć projekt do układu lokalnego (ENh)?” odpowiedzieć <b>Przelicz</b> – wszystkie punkty, wektory i punkty 1D przeliczane są z jednym P0, odwzorowanie staje się „lokalne elipsoidalne”.</li><li><i>Zarządzaj quasigeoidami …</i> (w zakładce Klein_Method): jednorazowo zaimportować GCG2016, potem <b>Przelicz punkty wysokościowe …</b> (h = NHN + ζ).</li><li><b>Przeczytać raport importu</b> (przy czerwieni pojawia się sam, inaczej menu <i>Klein_Method → Raport importu …</i>). Każdy czerwony punkt podaje przyczynę – najpierw usunąć, potem dalej. Przy „Położenie nowych punktów 1D” użyć przycisku <i>Przejmij położenie …</i>.</li><li>Pytania o <b>współrzędne przybliżone</b> i <b>łączenie sesji GNSS</b> odpowiedzieć zgodnie z zaleceniem.</li><li>Obejrzeć <i>Klein_Method → Kontrola wstępna błędów grubych</i>, potem w zakładce <b>Usuń błędy grube</b> (rozdział 7).</li><li><b>Uruchomić automatykę</b> (rozdział 6), na końcu eksport (rozdział 11).</li></ol>
+<h3 id="wf-anders">Różnice w pozostałych konfiguracjach</h3>
+<ul><li><b>A – 1D:</b> importować tylko punkty wysokościowe (nazwa, wysokość), nowe punkty 1D i niwelację. Bez przeliczenia, wysokości pozostają NHN, bez kroku quasigeoidy. Dalej od kroku 10.</li><li><b>B – 2D:</b> punkty 2D, zestawy kierunków i odległości poziome. Przed importem <i>Properties → Projection &amp; reductions</i>: wybrać UTM lub Gauss-Krüger i redukcje (sieć lokalna: „Local Cartesian system”). Bez przeliczenia przez Klein_Method.</li><li><b>C – 3D naziemna:</b> punkty 3D lokalnie (wschód, północ, NHN), kierunki, odległości skośne, kąty zenitalne, ew. niwelacja. Odwzorowanie „lokalne kartezjańskie” – bez GNSS Klein_Method nic nie zmienia. Uwaga: lokalne kartezjańskie liczy na płaszczyźnie; w sieciach powyżej ok. 1 km działa krzywizna Ziemi (1 km ≈ 8 cm, 3 km ≈ 70 cm) – wtedy lepiej włączyć GNSS lub użyć UTM/Gauss-Krüger.</li><li><b>D – 3D GNSS:</b> kroki 1–4 oraz 8, 10–13. Bez niwelacji krok 9 odpada.</li><li><b>Pliki już przeliczone lokalnie</b> (np. własnym narzędziem): używać tylko, gdy <i>wszystkie</i> powstały z tym samym P0. W razie wątpliwości importować oryginały WGS84.</li></ul>
+<h3 id="wf-fehler">Typowe błędy, skutek i rozwiązanie</h3>
+<table>
+<tr><th>Błąd</th><th>Co widać</th><th>Rozwiązanie</th></tr>
+<tr><td>Jeden plik wcześniej przeliczony do układu lokalnego z innym P0 lub własnym narzędziem</td><td>Raport importu czerwony „Położenie punktów wysokościowych … inny P0?” (km zamiast m); system wysokości obok o metry do dziesiątek metrów</td><td>Wszystkie pliki w WGS84, przeliczenie wspólnie przez Klein_Method</td></tr>
+<tr><td>Wysokości NHN nieprzeliczone (z GNSS)</td><td>Raport importu czerwony „System wysokości” o ok. ζ (w Niemczech ok. 36–50 m)</td><td><i>Zarządzaj quasigeoidami … → Przelicz punkty wysokościowe …</i></td></tr>
+<tr><td>Brak wysokości celu (0)</td><td>Bardzo wiele kątów zenitalnych jako błędy grube (1,3–1,7 m); raport czerwony „Wysokości celu” / „Wzajemne kąty zenitalne”</td><td>Ponownie wyeksportować i zaimportować pomiary z wysokościami celu – nie usuwać</td></tr>
+<tr><td>Zamienione Y i X (geocentrycznie)</td><td>Brak propozycji przeliczenia, punkty „w innym układzie”</td><td>Kolejność kolumn nazwa · Y · X · Z</td></tr>
+<tr><td>Punkty 3D w UTM zamiast geocentrycznie (z GNSS)</td><td>Współrzędne przybliżone „inny układ”, wyrównanie rozbieżne</td><td>Punkty 3D geocentrycznie (tylko punkty 1D mogą być w UTM)</td></tr>
+<tr><td>Kąty w stopniach zamiast gonów</td><td>Raport czerwony „Jednostki … stopnie jako gony?”</td><td>Ustawić formatowanie lub eksport na gony</td></tr>
+<tr><td>Punkty stałe i datum wymieszane</td><td>JAG3D: „reference points as well as datum points”</td><td>Wszystkie punkty nawiązania jednego rodzaju</td></tr>
+<tr><td>Różnie zapisane nazwy punktów</td><td>Raport „punkty bez współrzędnych” lub „bez obserwacji”</td><td>Ujednolicić nazwy</td></tr>
+<tr><td>Nowe dane zaimportowane do wcześniejszego projektu (lub jego kopii)</td><td>Punkty wysokościowe na 200000 / 400000 (P0) z błędną wysokością; raport czerwony „P0 leży … km poza siecią”</td><td>Utworzyć nowy projekt (od V0.475 Klein_Method sam rozpoznaje nieaktualny P0)</td></tr>
+</table>
+
+<h2 id="ablauf">1. Typowy przebieg pracy</h2>
+<ol>
+  <li><b>Zaimportuj dane</b> jak zwykle w JAG3D (punkty, obserwacje naziemne, wektory GNSS).</li>
+  <li><b>Otwórz projekt</b> – Klein_Method sprawdza w tle, czy potrzebne jest przeliczenie do układu lokalnego, i je proponuje (<a href="#import">rozdział 2</a>).</li>
+  <li><b>Oblicz i sprawdź współrzędne przybliżone</b> (<a href="#naeherung">rozdział 3</a>) – przede wszystkim przed uśrednianiem (<a href="#mittel">rozdział 4</a>).</li>
+  <li><b>Kliknij kartę „Klein_Method”</b> – w tle wykonywane jest wyrównanie; ewentualnie scalane są sesje GNSS (<a href="#sitzungen">rozdział 5</a>) i wyświetlane wskazówki dotyczące podparcia GNSS (<a href="#stuetzung">rozdział 8</a>).</li>
+  <li><b>Usuń błędy grube</b>, jeśli są podejrzewane (<a href="#grob">rozdział 7</a>).</li>
+  <li><b>„Uruchom Klein_Method”</b> – tryb automatyczny kalibruje dokładności (<a href="#automatik">rozdział 6</a>).</li>
+  <li><b>Sprawdź prognozę i planowanie pomiarów:</b> gdzie sieć jest słaba, co należy pomierzyć ponownie? (<a href="#planung">rozdział 9</a>)</li>
+  <li><b>Wyeksportuj współrzędne</b> w wybranym układzie współrzędnych i wysokości (<a href="#export">rozdział 11</a>).</li>
+</ol>
+
+<h3 id="assistent">Asystent przebiegu <span class="ver">V0.480</span></h3>
+<p class="where">Karta „Klein_Method” → Sterowanie: „Asystent przebiegu …” · menu <i>Klein_Method → Asystent przebiegu …</i></p>
+<p>Błąd w przebiegu (zły układ współrzędnych, wymieszane wysokości NHN i elipsoidalne, punkt stały bez współrzędnych) może zniszczyć całe wyrównanie. Dlatego asystent sprawdza siedem kroków od importu do automatyki i pokazuje dla każdego kroku sygnalizację, uzasadnienie i odpowiednie działanie:</p>
+<ul>
+  <li><b>1 Import i wiarygodność</b> – raport importu; <b>punkty stałe 0/0/0</b> (np. nazwa zaimportowana dwukrotnie, współrzędne GNSS pominięte) są czerwone i można je jednym przyciskiem zamienić na nowe punkty (grupa „Klein_Method Neupunkte (aus Festpunkten 0/0/0)”, odwracalne).</li>
+  <li><b>2 Układy współrzędnych</b> – liczba punktów geocentrycznych, UTM i lokalnych; mieszanki są czerwone.</li>
+  <li><b>3 Przeliczenie</b> (tylko z GNSS) – przeliczono? pozostałości geocentryczne? P0 ponad 50 km poza siecią?</li>
+  <li><b>4 System wysokości</b> – wysokość GNSS minus wysokość niwelacyjna we wspólnych punktach; wymieszane NHN jest czerwone (<a href="#hoehen">rozdział 10</a>).</li>
+  <li><b>5 Współrzędne przybliżone</b> – mierzone punkty bez przybliżenia (<a href="#naeherung">rozdział 3</a>).</li>
+  <li><b>6 Pomiary powtarzane</b> – uśrednione lub otwarte (<a href="#sitzungen">rozdział 5</a>).</li>
+  <li><b>7 Zwolnienie</b> – zielone, gdy żaden krok nie jest czerwony i istnieje ważne wyrównanie.</li>
+</ul>
+<div class="box"><b>Brak okna startu:</b> jeśli krok jest czerwony, „Uruchom Klein_Method” startuje bez pytania – czerwone kroki są protokołowane; proszę wcześniej sprawdzić tutaj. <b>Protokół stanu:</b> przeliczenia, odwzorowania, przeliczenie wysokości, przybliżenia, uśrednianie, wysokość z 1D, zamiana 0/0/0 i usuwanie błędów grubych są zapisywane ze znacznikiem czasu w projekcie i pokazywane w asystencie – dzięki temu wiadomo, co stało się z danymi.</div>
+
+<h3 id="start502">Start bez okna „Przebieg niegotowy” <span class="ver">V0.502</span></h3>
+<p class="where">Zakładka Klein: „Uruchom Klein_Method” · pole „Dezaktywowane BL:”</p>
+<p>Dotąd przy czerwonych krokach pojawiało się okno z pytaniem.</p>
+<ul>
+  <li>Okno zostało usunięte; czerwone kroki są zapisywane w protokole i nadal widoczne w asystencie przebiegu – sprawdzić je przed startem.</li>
+  <li>Pole „Dezaktywowane BL:” jest szersze (np. 3000000 / 3000100).</li>
+</ul>
+
+<h3 id="lade504">Wskaźnik ładowania przy pracy w tle <span class="ver">V0.504</span></h3>
+<p class="where">Okno JAG3D: nagłówek zakładki „Klein_Method” · zakładka Klein: pod paskiem stanu</p>
+<p>Wiele zadań Klein_Method działa w tle; dotąd nie było widać, czy coś jeszcze trwa.</p>
+<ul>
+  <li>Podczas takiej pracy obraca się wskaźnik w stylu Windows 11 – w nagłówku zakładki i w zakładce Klein z nazwą zadania.</li>
+  <li>Pojawia się po 300 ms i znika sam po zakończeniu (także po błędzie); nie pojawia się podczas automatyki ani gdy okno czeka na odpowiedź.</li>
+</ul>
+
+<h3 id="start505">Poprawka: start JAG3D z V0.504 <span class="ver">V0.505</span></h3>
+<p class="where">Start JAG3D</p>
+<p>V0.504 przerywała start JAG3D („Cannot bind to null”).</p>
+<ul>
+  <li>Naprawione – wskaźnik ładowania działa jak w V0.504.</li>
+</ul>
+
+<h2 id="import">2. Import i przeliczenie do układu lokalnego</h2>
+<p class="where">Menu <i>Klein_Method → Przeliczanie współrzędnych WGS84 ↔ lokalne (ENh) …</i> · Karta: „Sprawdź i przelicz projekt …”, „Cofnij przeliczenie projektu”, „Przenieś P0 do sieci i przelicz ponownie …”</p>
+<p>Jeśli współrzędne i wektory GNSS są geocentryczne (ECEF/WGS84), Klein_Method przelicza projekt do <b>lokalnego układu elipsoidalnego</b> wokół punktu odniesienia <b>P0</b> (środek ciężkości punktów wyznaczanych, stałe dodawane 200000 / 400000 / 1000 m). W nim JAG3D wyrównuje GNSS i tachimetr łącznie.</p>
+<div class="warn"><b>Ważne:</b> W układzie lokalnym kolumna Z w JAG3D <b>nie jest wysokością</b>, lecz współrzędną kartezjańską prostopadłą do płaszczyzny stycznej w P0. Wraz z odległością spada względem wysokości o ok. r²/2R (10 km ≈ 8 m, 30 km ≈ 71 m). Tak przewidziano w JAG3D. Rzeczywiste wysokości daje eksport (<a href="#export">rozdział 11</a>). Zob. też <a href="#fz">problem „Z nie jest wysokością”</a>.</div>
+<div class="warn"><b>Tylko z wektorami GNSS</b> <span class="ver">V0.468</span>: przeliczenie, przesunięcie P0 i każda zmiana odwzorowania i redukcji (także „lokalne kartezjańskie → lokalne elipsoidalne” i punkt odniesienia) następują tylko, gdy projekt zawiera aktywne wektory GNSS. Bez wektorów wszystko pozostaje tak, jak ustawiono w JAG3D; wywołanie z menu podaje powód. Cofnięcie wcześniejszego przeliczenia jest nadal możliwe.</div>
+<p>Przeliczenie można cofnąć; scalenie sesji GNSS jest wtedy wcześniej cofane automatycznie.</p>
+
+<p><b>Punkty wysokościowe (1D)</b> <span class="ver">V0.465</span>: są przeliczane razem – także gdy zostaną zaimportowane po przeliczeniu. W układzie lokalnym Z zależy od położenia (krzywizna Ziemi), dlatego każdy punkt wysokościowy potrzebuje położenia: z wprowadzonego położenia w UTM (ze strefą lub bez), Gaussa-Krügera (DHDN) lub geograficznego (długość/szerokość w stopniach), najwyżej 100 km od P0. Bez użytecznego położenia (np. 0/0) przyjmowane jest P0, a punkt jest wymieniany w pytaniu – proszę wprowadzić położenie (przy 2 km od P0 ok. 0,3 m błędu wysokości). Wysokość jest przeliczana tak, jak wprowadzono; wysokości NHN następnie przez „Przelicz punkty wysokościowe …” (quasigeoida) na elipsoidalne. Cofnięcie przeliczenia przywraca także punkty 1D.</p>
+
+<h3 id="importbericht">Raport importu (wiarygodność danych) <span class="ver">V0.467</span></h3>
+<p class="where">Automatycznie po kliknięciu zakładki po każdym nowym imporcie · Menu <i>Klein_Method → Raport importu (wiarygodność danych) …</i></p>
+<p>Błędy w danych importu pojawiają się inaczej w wyrównaniu jako pozorne błędy grube. Raport sprawdza je wcześniej i pokazuje dla każdej kontroli światło: <b>[ZIELONY]</b> w porządku, <b>[ŻÓŁTY]</b> uwaga, <b>[CZERWONY]</b> proszę wyjaśnić przed wyrównaniem. Po kliknięciu zakładki okno pojawia się tylko przy czerwonych punktach; raport zawsze trafia do protokołu i do pliku <i>&lt;czas&gt;_Importbericht.txt</i> w folderze protokołu.</p>
+<ul>
+<li><b>Nazwy:</b> punkty w obserwacjach bez współrzędnych, punkty bez obserwacji, punkty pomocnicze/stanowiska „Nr_Punkt”.</li>
+<li><b>Wzajemne kąty zenitalne:</b> różnica wysokości tam (s·cos z + i − t) plus z powrotem powinna wynosić 0 (tolerancja 3 cm + 0,1 mm/m). Jeśli wiele par różni się o 1–3 m, wysokości instrumentu lub celu są błędne.</li>
+<li><b>Położenie I/II:</b> błąd indeksu dla każdego celu, gdy kąty zenitalne są w obu położeniach.</li>
+<li><b>Wysokości instrumentu i celu:</b> kilka wysokości instrumentu na stanowisku, wysokość celu 0 przy ustawionej wysokości instrumentu (zob. <a href="#fziel">obraz błędu</a>).</li>
+<li><b>Jednostki:</b> mediana kątów zenitalnych ok. 85–94 gon wskazuje na stopnie zamiast gonów; odległości ≤ 0 lub ponad 5 km; punkty stałe z wysokością 0.</li>
+<li><b>Układy:</b> geocentryczne wektory obok punktów lokalnych; wysokość GNSS minus wysokość niwelacyjna powyżej 1 m (NHN i elipsoidalne wymieszane).</li>
+<li><b>Punkty 1D bez własnego położenia:</b> 0/0 lub kilka różnych punktów w tym samym miejscu.</li>
+<li><b>Położenie punktów 1D a celowe</b> <span class="ver">V0.471</span>: droga przez niwelację (suma celowych) jest górną granicą odległości do sąsiednich punktów z własnym położeniem (pierwszeństwo mają punkty 3D). Jeśli punkt wysokościowy leży wyraźnie dalej, przeliczono go z innym P0 lub w innym układzie – czerwony.</li>
+</ul>
+<p><b>Położenie punktów 1D z niwelacji:</b> Przyciskiem w raporcie nowe punkty 1D bez własnego położenia otrzymują położenie: stanowiska „Nr_X” położenie X, pozostałe średnią sąsiadów w niwelacji (wychodząc od punktów z położeniem). Wysokość pozostaje bez zmian. Uczciwie: wyniki niwelacji w JAG3D nie zależą od tego położenia. Jest ono potrzebne do przeliczenia punktów 1D do układu lokalnego (Z zależy od położenia), do mapy i do kontroli wiarygodności.</p>
+
+<h3 id="sperre">Blokada wielokrotnego przeliczenia <span class="ver">V0.482</span></h3>
+<p class="where">Przelicznik plików (tryb 1) i asystent przebiegu, krok 3</p>
+<p>Drugie przeliczenie lub inne P0 zniekształca całą sieć, czego nie widać po liczbach. Dlatego Klein_Method blokuje na trzech poziomach:</p>
+<ul>
+  <li><b>Pliki:</b> każdy przeliczony plik otrzymuje nagłówek <code># Klein_Method: lokal (ENh) umgerechnet am …, P0 …</code> (import JAG3D go pomija). Plik z tym nagłówkiem nie jest przeliczany ponownie w tym samym kierunku, wstecz tylko z tym samym P0. Jeśli wszystkie punkty pliku są już w układzie docelowym, przeliczenie też jest zablokowane.</li>
+  <li><b>Projekt:</b> Klein_Method przelicza tylko wartości geocentryczne i zabezpiecza każdy przeliczony wiersz – nigdy nie jest on przeliczany drugi raz.</li>
+  <li><b>Dane lokalne zaimportowane po przeliczeniu</b> (punkty stałe/dowiązania, wektory GNSS), których Klein_Method sam nie przeliczył, pochodzą z obcego przeliczenia z nieznanym P0: krok 3 asystenta przebiegu jest czerwony, automatyka zablokowana. Rozwiązanie: usuń te dane i zaimportuj je ponownie geocentrycznie. Nowe punkty z takimi przybliżeniami są zgłaszane na żółto.</li>
+</ul>
+
+<h3 id="umbenennen">Zmiana nazw punktów <span class="ver">V0.489</span></h3>
+<p class="where">Menu Klein: „Zmień nazwy punktów …”</p>
+<p>Zmienia nazwy punktów i nazwy punktów we wszystkich obserwacjach razem – z szablonami w menu rozwijanym, podglądem, kontrolą odległości przy scalaniu i dokładnym cofnięciem. Przykład: 043.905-A, -B, -C → 043.905.</p>
+<ul>
+  <li><b>Szablony:</b> usuń końcówkę „-litera” lub „-liczba/_liczba”, dodaj końcówkę, usuń przedrostek, zamień tekst, usuń zera wiodące, uzupełnij zerami do n cyfr, przesuń numer o n, własne wyrażenie regularne; własne szablony można zapisać. Zakres: punkty i obserwacje, tylko obserwacje, tylko punkty.</li>
+  <li><b>Scalanie:</b> każdy punkt jest porównywany z punktem odniesienia (istniejący punkt o tej nazwie, inaczej stały przed nowym). Zielony: w granicach tolerancji (domyślnie poziom 3 cm, wysokość 5 cm) – scalić. <b>Czerwony „ekscentr?”</b>: dalej – niezaznaczony, zachowuje nazwę. Punkty stałe o różnych współrzędnych nigdy nie są scalane. Żółty: brak współrzędnych.</li>
+  <li><b>„Cofnij ostatnią zmianę nazw”</b> przywraca wszystko dokładnie, także usunięte punkty. Potem wyrównaj ponownie; wpis w protokole stanu („PUNKTE UMBENANNT”).</li>
+  <li><b>Test (syntetyczna sieć 01):</b> końcówka dla 14 punktów (149 obserwacji) → wyrównanie bez błędów, cofnięcie dokładne; T05-B 1 cm → scalony; T05-C 50 cm → czerwony, zachowany; G1-B (punkt stały, 20 cm) → czerwony; X9-A/-B → X9, cofnięcie przywraca oba.</li>
+</ul>
+
+<h2 id="naeherung">3. Współrzędne przybliżone <span class="ver">przebudowane od V0.448</span></h2>
+<p class="where">Menu <i>Klein_Method → Oblicz i sprawdź współrzędne przybliżone …</i> oraz <i>… Cofnij ostatnie przejęcie współrzędnych przybliżonych …</i> · Karta: „Sprawdź teraz współrzędne przybliżone”</p>
+<p>Klein_Method oblicza ze wszystkich obserwacji współrzędne przybliżone dla punktów bez wartości (0/0) i sprawdza istniejące wartości. Wyniki są proponowane do przejęcia, kopia zapasowa umożliwia cofnięcie.</p>
+<ul>
+  <li><b>Sesje GNSS z dryfem lub przesunięciem &gt; 0,10 m</b> są zgłaszane; gdy większość wektorów punktu jest odrzucana, proponowane jest ich wyłączenie <span class="ver">V0.449</span>.</li>
+  <li>Przybliżenie uwzględnia krzywiznę Ziemi w układzie lokalnym i zapisane położenie punktów wysokościowych <span class="ver">V0.448</span>.</li>
+</ul>
+<div class="box"><b>Zalecenie:</b> zawsze obliczaj współrzędne przybliżone przed uśrednianiem lub wyrównaniem – zwłaszcza po dołączeniu nowych punktów tachimetrycznych do sieci GNSS.</div>
+
+<h2 id="mittel">4. Uśrednianie (JAG3D) <span class="ver">kontrola od V0.458</span></h2>
+<p class="where">Menu JAG3D „Average observations” (uśrednianie obserwacji) lub Ctrl+G</p>
+<p>Uśrednianie jest funkcją JAG3D. Rozpoznaje kąty zenitalne i kierunki w <b>II położeniu lunety</b> tylko na podstawie współrzędnych przybliżonych. Jeśli ich brak, np. 302,06 gon nie zostaje zredukowane do 97,94 gon, a JAG3D zgłasza odchyłki ok. 200 gon (<a href="#f200">problem</a>).</p>
+<p>Dlatego Klein_Method sprawdza <b>przed</b> uśrednianiem, czy istnieją pomierzone punkty bez współrzędnych przybliżonych, i pyta:</p>
+<ul>
+  <li><b>Najpierw oblicz przybliżenia (zalecane)</b> – następnie otwiera się uśrednianie.</li>
+  <li><b>Uśrednij mimo to</b> – jak dotąd.</li>
+  <li><b>Przerwij</b>.</li>
+</ul>
+<p>Żaden plik JAG3D nie jest zmieniany; jeśli Klein_Method nie znajdzie pozycji menu (np. po aktualizacji JAG3D), wszystko pozostaje jak dotąd.</p>
+
+<h2 id="sitzungen">5. Pomiary powtarzane (nadwaga) <span class="ver">GNSS od V0.452, wszystkie rodzaje od V0.477, automatycznie od V0.478</span></h2>
+<p class="where">Karta (obszar współrzędnych przybliżonych): „Pomiary powtarzane (nadwaga):” z wyborem dla każdego rodzaju „Uśrednij / Wył.”, „Zastosuj teraz …”, „Cofnij wszystko …” · Menu <i>Klein_Method → Obsłuż pomiary powtarzane …</i> / <i>Cofnij obsługę pomiarów powtarzanych …</i></p>
+<p>Bezpośrednio następujące po sobie pomiary z tego samego stanowiska do tego samego celu <b>nie są niezależne</b>: epoki GNSS jednej sesji, kilka serii kierunków, dwukrotnie mierzone odległości, serie pomiarowe laser trackera. Jako pojedyncze obserwacje ważą około √n razy za dużo i spychają pozostałe pomiary na margines. <b>Grupę powtórzeń</b> tworzą kolejne aktywne wiersze tej samej grupy obserwacji z tym samym stanowiskiem i celem (naziemne: także ta sama wysokość instrumentu i celu).</p>
+<ul>
+  <li><b>Uśrednij</b>: jedna obserwacja średnia na grupę powtórzeń; wartości pojedyncze są wyłączane (nie usuwane). Dokładność średniej = pojedynczego pomiaru (bez √n), <b>ale co najmniej rozrzut grupy</b> – sesje o dużym rozrzucie ważą przez to mniej. Średnia jest kalibrowana normalnie przez automatykę.</li>
+  <li><b>Uśrednij + kalibruj</b> (domyślnie od V0.490): jak Uśrednij; średnie z własną dokładnością (silny rozrzut lub dryf) startują z rozrzutem i są kalibrowane przez automatykę na podstawie poprawek.</li>
+  <li><b>Wył.</b>: wszystkie pomiary pojedynczo jak zaimportowano.</li>
+  <li>Wcześniej każda grupa jest sprawdzana pod kątem <b>skoku</b> (podział w miejscu skoku) i <b>dryfu</b> (dokładność = połowa dryfu). Granica = max(3 × σ pojedyncze, minimum): GNSS 0,10 m, odległości 5 mm, niwelacja 2 mm, kierunki/kąty zenitalne 5 mgon.</li>
+  <li><b>Automatycznie</b>: Klein_Method stosuje ustawienie bez pytania – przy kliknięciu karty, po zmianie wyboru i przed startem automatyki – i informuje, co uśredniono. <b>Cofnięcie</b> w każdej chwili; po cofnięciu Klein_Method uśrednia ponownie dopiero dla nowych danych.</li>
+  <li>Po każdej zmianie pojawia się uwaga w protokole i na pasku stanu, jeśli automatyka już działała – w razie potrzeby uruchomić ją ponownie (<a href="#fneustart">objaw</a>).</li>
+  <li><b>Przeważanie</b> (σ pojedyncze × √n, V0.477) usunięto: w rzeczywistej sieci (GNSS i tachimetr) punkty odbiegały o do 46 cm, przy uśrednianiu o 1–2 cm – zamrożone dokładności początkowe (25 mm + 50 ppm) nigdy nie były kalibrowane. Przeważone projekty są przełączane automatycznie przy kliknięciu karty.</li>
+  <li>Na końcu każdej zakończonej automatyki w folderze protokołów powstaje <b>plik porównawczy</b> „…_Vergleich_Wiederholungen_….txt” z etapem wyrównania, maks. logPost, obsługą dla każdego rodzaju, udziałem w całkowitej redundancji i wyrównanymi współrzędnymi.</li>
+</ul>
+<div class="box"><b>Wynik w rzeczywistej sieci</b> (5914 wektorów w 199 sesjach, 6000 pomiarów tachimetrycznych): po uśrednieniu punkty GNSS w bloku tachimetrycznym zgadzają się z czystym rozwiązaniem GNSS na 1–2 cm; punkty stałe GNSS średnio 9 mm.</div>
+
+<h3 id="wdh501">Brak okna ponownego startu po scaleniu/cofnięciu <span class="ver">V0.501</span></h3>
+<p class="where">Zakładka Klein: „Pomiary powtarzane”</p>
+<p>Dotąd okno proponowało natychmiastowy ponowny start automatyki bez F5.</p>
+<ul>
+  <li>Okno zostało usunięte; automatyka startuje tylko przez „Uruchom Klein_Method”.</li>
+  <li>Uwaga w protokole i na pasku stanu.</li>
+</ul>
+
+<h3 id="zuskal">Uśrednij + kalibruj (wariant porównawczy) <span class="ver">V0.481</span></h3>
+<p class="where">Karta: wybór dla rodzaju obserwacji „Uśrednij + kalibruj”</p>
+<p>Jak „Uśrednij”. Dodatkowo: średnie z własną dokładnością (grupy o silnym rozrzucie lub dryfie) mają indywidualne σ i w JAG3D nie wchodzą do składowej wariancji rodzaju obserwacji. W tym wariancie rozrzut jest tylko <b>wartością początkową</b>. Automatyka wyznacza dla tych średnich własny współczynnik wariancji F = Σω / Σr z ich poprawek i reguluje ich dokładność tą samą formułą co grupy (korytarz, dolna granica σ<sub>a</sub> rodzaju). Przy zbyt małej nadliczbowości rozrzut pozostaje.</p>
+<ul>
+  <li>Nie stosuje się stałego współczynnika (√n), bo uśrednianie już usuwa nadwagę. Drugie obniżenie karałoby rodzaj obserwacji podwójnie.</li>
+  <li>Protokół: wiersze „WIEDERHOLUNGSMITTEL …” z F, współczynnikiem i liczbą zmienionych średnich.</li>
+  <li>Dane testowe (syntetyczne): tak samo dobrze jak „Uśrednij” – RMS różnic odległości 1,4/1,4 mm (sesje z rozrzutem), 1,3/1,3 mm (silnie zaszumione epoki, dobra średnia), 1,1/1,2 mm (zwykłe powtórzenia). Czy wariant pomaga przy rzeczywistych danych ze słabymi sesjami, pokaże porównanie na rzeczywistych sieciach; potem zostanie ustalony standard.</li>
+</ul>
+
+<h3 id="massen">Masowe wektory (wektory epokowe) <span class="ver">V0.488</span></h3>
+<p class="where">Karta Klein_Method, obszar współrzędnych przybliżonych: przełącznik „Automatycznie przerzedzaj masowe wektory” · asystent przebiegu krok 6</p>
+<p>Opracowania GNSS często dają jeden wektor na epokę – np. 30 min co 1–5 s do 8 stacji SAPOS, razem szybko 100 000 do 300 000 wektorów. JAG3D nie policzy tego na zwykłym PC, a epoki są silnie skorelowane w czasie (jako pojedyncze obserwacje ok. pierwiastek(n) razy za ciężkie). Klein_Method rozpoznaje takie dane i przerzedza je <b>przed pierwszym obliczeniem</b>.</p>
+<ul>
+  <li><b>Rozpoznanie:</b> ponad 20 000 wektorów GNSS lub od 1 000 wektorów średnio co najmniej 20 na parę punktów. Epoki mogą być w dowolnej kolejności i w dowolnej liczbie grup (JAG3D przy imporcie z rozdzielaniem grup tworzy nową grupę przy każdej zmianie stanowiska) – zbierane są według pary punktów.</li>
+  <li><b>Przerzedzanie:</b> jedna <b>odporna średnia</b> na parę punktów – mediana i odporny rozrzut dla każdej składowej, epoki odchylone o ponad 3 rozrzuty (co najmniej 1 mm) są odrzucane, średnia z reszty; skoki i dryft sprawdzane jak przy „Uśrednianiu”. Dokładność średniej <b>nie</b> jest dzielona przez pierwiastek(n). Pojedyncze wartości pozostają dezaktywowane w bazie – cofnięcie w każdej chwili („Cofnij wszystko …”).</li>
+  <li><b>Przełącznik wł. (domyślnie):</b> automatycznie przy kliknięciu karty lub przed każdym wyrównaniem. <b>Wył.:</b> przy ponad 20 000 aktywnych wektorach wyrównanie pozostaje zablokowane (komunikat, krok 6 czerwony) aż do „Przerzedź teraz” w asystencie przebiegu.</li>
+  <li>Zostają tylko epoki <b>statystycznie</b> dobre: JAG3D przy imporcie wektorów nie przejmuje informacji fix/float ani RMS. Jeśli cała sesja jest błędna (zły fix przez 30 min, zła wysokość anteny), pokaże to dopiero wyrównanie przez inne stacje lub test statystyczny.</li>
+  <li><b>Test (syntetyczny, 299 300 wektorów, 41 par punktów, 2 sesje, szum skorelowany, 3 066 odstających 5–50 cm):</b> import i kliknięcie karty bez awarii, przerzedzanie ok. 1 min → 41 średnich, wszystkie odstające i kilka epok brzegowych odrzucone; potem wyrównanie bez błędów. Przy wyłączonym przełączniku zablokowane, „Przerzedź teraz” działa; cofnięcie przywraca wszystkie 299 300.</li>
+</ul>
+
+<h3 id="massen493">Dokładność uśrednionych wektorów GNSS <span class="ver">V0.493</span></h3>
+<p class="where">Powtórzone pomiary / masowe wektory</p>
+<p>Poprawka: dokładność średniej nie jest już zamrażana z modelu grupy stanu pośredniego.</p>
+<ul>
+  <li><b>Tylko dotknięta składowa</b> dostaje własną dokładność (rozrzut lub połowa dryfu); pozostałe zachowują wartość grupy i są dalej kalibrowane.</li>
+  <li><b>Masowe wektory:</b> dokładność średniej na składową = odporny rozrzut epok (1,4826 · MAD, min. 1 mm).</li>
+  <li><b>Uwaga „silnie rozproszone”</b>: pary punktów z rozrzutem poziomym powyżej 10 cm są zgłaszane.</li>
+  <li><b>Istniejące projekty:</b> „Cofnij wszystko …” dla powtórzonych pomiarów, potem ponownie zastosować.</li>
+</ul>
+
+<h2 id="automatik">6. Tryb automatyczny i kalibracja</h2>
+<p class="where">Karta Klein_Method: „Uruchom Klein_Method”, „Stop”, „Pojedynczy krok”, „Reset”, „Zdejmij blokadę”</p>
+<p>Tryb automatyczny kalibruje dokładności obserwacji krok po kroku, aż zostanie osiągnięta wartość graniczna największej wartości logPost. Działa w przebiegach:</p>
+<ul>
+  <li><b>Przebieg 1</b>: kalibracja grupowa (σa/σb/σc dla każdego typu obserwacji), następnie kalibracja indywidualna.</li>
+  <li><b>Przebieg 2</b>: indywidualna kalibracja dokładna przy stałych wartościach grupowych. Jest kluczowy – bez niego wyniki w teście były wielokrotnie gorsze.</li>
+</ul>
+<p>Gdy obserwacja osiągnie <b>górną granicę</b> indywidualnej niepewności pomiaru, zostaje dezaktywowana jako błąd gruby, a tryb automatyczny działa dalej (najwyżej 10 na krok, powyżej blokada) <span class="ver">V0.454</span>.</p>
+<p>Na końcu powstaje <b>raport przebiegu</b> i na życzenie <b>świadectwo kalibracji</b>.</p>
+
+<h3 id="nachlauf497">Przebieg końcowy: tłumienie i zaokrąglenie przy wartości granicznej <span class="ver">V0.497</span></h3>
+<p class="where">Automatyka · kaskada przebieg 2</p>
+<p>W przebiegu końcowym przebiegu 2 maks. logPost często oscylował wokół wartości granicznej.</p>
+<ul>
+  <li><b>Tłumienie:</b> gdy maks. logPost znowu rośnie, następny krok korekty jest zmniejszany o połowę (najwyżej do 25 %).</li>
+  <li><b>Zaokrąglenie:</b> wartość graniczna jest osiągnięta, gdy maks. logPost zaokrąglony do 3 miejsc po przecinku nie jest większy.</li>
+</ul>
+
+<h3 id="grenzen">Granice metody <span class="ver">V1.00 RC1</span></h3>
+<p class="where">dotyczy wszystkich etapów wyrównania</p>
+<p>Metoda Kleina czyni sieć statystycznie spójną. Nie poprawia pomiarów. Te granice warto znać:</p>
+<ul>
+  <li><b>Stała granica:</b> |logPost| ≤ 2,45 odpowiada p ≤ 0,086. Nawet w sieci bez błędów około 8 % obserwacji przypadkowo ją przekracza i otrzymuje mniejszą wagę. Tam, gdzie model a priori już pasuje, pojedyncze punkty nowe mogą odbiegać o kilka milimetrów od rozwiązania klasycznego (VKS). Tak jest celowo: żadna wartość pomiarowa nie powinna pozostać w wyniku odstająca.</li>
+  <li><b>Dolne granice:</b> dokładność grupy nie spada poniżej 0,5 mgon lub 0,5 mm (elektroniczne) i 0,1 mm (niwelacja). Zapobiega to dryfowaniu wartości grup, ale ogranicza dopasowanie do bardzo dokładnych instrumentów.</li>
+  <li><b>Nie zastępuje powtórzeń:</b> błędy, które jednakowo dotyczą wszystkich obserwacji punktu – np. błędna wysokość anteny przy tylko jednej sesji GNSS – są niewidoczne dla każdego wyrównania. Niezależne pomiary powtórne pozostają konieczne.</li>
+  <li><b>Sprawdzać podniesione dokładności:</b> protokół i świadectwo kalibracji pokazują, jak bardzo podniesiono każdą dokładność. Silnie podniesione grupy lub wiele wyłączonych obserwacji wskazują na problemy pomiarowe i należy je sprawdzić, a nie tylko wyrównać.</li>
+  <li><b>„niesprawdzalny”:</b> w tak oznaczonych punktach nawiązania pomiary nie mogą wyznaczyć niepewności; wynik zależy tam od wartości zadanej.</li>
+  <li><b>Obliczenia blokowe:</b> metoda za każdym razem wyrównuje całą sieć od nowa i nie jest przeznaczona do pracy w czasie rzeczywistym.</li>
+  <li><b>Podstawa testów:</b> testowana na sieciach syntetycznych ze znanymi współrzędnymi zadanymi i na projektach praktycznych. Porównania na kolejnych rzeczywistych sieciach z niezależną kontrolą są jeszcze przed nami.</li>
+</ul>
+
+<h2 id="grob">7. Błędy grube <span class="ver">grupy i kontrola krzyżowa od V0.461, kontrola wstępna i statystyka testowa od V0.463, analiza przyczyn od V0.464</span></h2>
+<p class="where">Karta: „Usuń błędy grube” · Mapa: „Max błąd”, „Usuń błędy grube”</p>
+<p>Jeśli po wyrównaniu obserwacja odbiega liniowo o więcej niż „granica błędu grubego” (domyślnie 0,10 m), „Uruchom Klein_Method” jest zablokowane do czasu oczyszczenia. Oczyszczanie dezaktywuje odpowiednie obserwacje krok po kroku, za każdym razem z nowym wyrównaniem.</p>
+<p><b>Dlaczego krok po kroku?</b> W wyrównaniu błąd gruby „rozmywa się” na sąsiednie obserwacje. Usunięcie naraz wszystkiego powyżej granicy spowodowałoby utratę także zdrowych sąsiadów.</p>
+<p><b>Co jest usuwane razem w jednym kroku:</b></p>
+<ul>
+  <li><b>Skupienie w jednym punkcie</b> (co najmniej 5 i 80 % obserwacji odstających): najsilniejsze z nich, od połowy największej odchyłki – zwykle zaburzony jest wtedy sam punkt (ustawienie, wysokość anteny, pomyłka).</li>
+  <li><b>Rozproszone obserwacje odstające</b> <span class="ver">V0.461</span>: najgorsza obserwacja i kolejne powyżej granicy, które są co najmniej o połowę tak duże i nie mają <i>wspólnego punktu</i> z już wybraną – najwyżej 10 na krok. Sąsiedzi pozostają więc w sieci i są oceniani ponownie w następnym kroku.</li>
+</ul>
+<p><b>Kontrola krzyżowa</b> <span class="ver">V0.461</span>: na końcu obserwacje usunięte tylko przy okazji (nie najgorsza w danym kroku) są przywracane i przeliczane ponownie. Jeśli leżą wtedy poniżej granicy i żadna inna obserwacja nie pozostaje powyżej, zostają; okno potwierdzenia wymienia je pod „Przywrócone po kontroli krzyżowej”. W przeciwnym razie wszystko pozostaje jak przed kontrolą.</p>
+<p><b>Kontrola pojedyncza</b> <span class="ver">V0.469</span>: Jeśli wspólna kontrola się nie powiedzie, każda obserwacja jest przywracana pojedynczo (najwyżej 30, od najmniejszej odchyłki). Pozostaje, jeśli potem jest poniżej granicy i żadna inna jej nie przekracza. Dzięki temu zostają poprawne pomiary, które prawdziwy błąd gruby (np. zamiana punktów) jedynie pociągnął za sobą.</p>
+<p><b>Bezpieczeństwo:</b> jeśli wspólny krok czyni sieć niewyznaczalną, Klein_Method go cofa i kontynuuje pojedynczo. Najwyżej 25 kroków na przebieg – potem ponownie „Usuń błędy grube”.</p>
+
+<h3>Kontrola wstępna przed wyrównaniem <span class="ver">V0.463</span></h3>
+<p class="where">Menu <i>Klein_Method → Kontrola wstępna błędów grubych (zamknięcia pętli, pomiary powtórzone) …</i> · uruchamiana też automatycznie na początku „Usuń błędy grube”</p>
+<p>Przed wyrównaniem błąd gruby jeszcze się nie rozmywa. Kontrola wstępna niczego nie zmienia i sprawdza:</p>
+<ul>
+  <li><b>Zamknięcia pętli GNSS:</b> wszystkie trójkąty z aktywnych wektorów (mediana dla pary punktów). Tolerancja = granica błędu grubego + 1 ppm obwodu. Para punktów podejrzana w co najmniej 2 i 60 % swoich trójkątów jest <b>podejrzana</b>.</li>
+  <li><b>Pojedyncze wektory</b> oddalone od mediany swojej pary punktów o więcej niż granica (od 3 wektorów na parę).</li>
+  <li><b>Pomiary powtórzone:</b> odległości przy równych wysokościach instrumentu/reflektora oraz niwelacja tam/z powrotem; rozrzut powyżej granicy jest podejrzany.</li>
+</ul>
+<p>W oknie potwierdzenia takie obserwacje są oznaczone „podejrzane w kontroli wstępnej” – silna wskazówka na rzeczywisty błąd gruby. Raport znajduje się w protokole.</p>
+<h3>Kolejność i kontrolowalność <span class="ver">V0.463</span></h3>
+<p>Najpierw usuwana jest obserwacja o <b>największej statystyce testowej</b> wśród przekraczających granicę – nie ta o największej odchyłce w metrach. Statystyka testowa uwzględnia, jak dobrze obserwacja jest kontrolowana; granica w metrach decyduje tylko, czy w ogóle jest kandydatem.</p>
+<p><b>Słabo kontrolowane obserwacje</b> (udział nadwymiarowości poniżej 5 %) są zgłaszane osobno: błąd gruby nie byłby tam wykrywalny – zabezpieczyć w terenie.</p>
+<p><b>Kontrola przywrócenia:</b> oprócz obserwacji usuniętych przy okazji sprawdzane są także pojedynczo usunięte wektory GNSS, których odchyłka od nowych współrzędnych leży poniżej granicy.</p>
+
+<h3>Wstępny wybór odporny i analiza przyczyn <span class="ver">V0.464</span></h3>
+<p><b>Wstępny wybór odporny:</b> jeśli co najmniej 3 obserwacje przekraczają granicę, Klein_Method najpierw usuwa w jednym kroku wszystkie, które kontrola wstępna uznała za podejrzane <i>i</i> które przekraczają granicę (najwyżej 50). Kontrola wstępna działa bez wyrównania – błąd gruby nie rozmywa się tam. Wszystkie tak usunięte obserwacje trafiają na końcu do kontroli krzyżowej.</p>
+<p><b>Analiza przyczyn (GNSS):</b> dla każdego usuniętego wektora obliczana jest odchyłka względem nowych współrzędnych (liczonych bez niego, więc niezniekształcona). Okno potwierdzenia i protokół podają możliwe przyczyny:</p>
+<ul>
+  <li><b>Wysokość anteny:</b> kilka wektorów jednej stacji odchyla się prawie tylko w wysokości, z tym samym znakiem – „Stacja X: … sprawdź wysokość anteny na X”. Pojedynczy wektor z czysto wysokościową odchyłką jest również zgłaszany.</li>
+  <li><b>Pomyłka punktu:</b> wektor prowadzi do innego istniejącego punktu (odległość najwyżej połowa granicy, co najmniej 2 cm) – „pasuje do punktu Y zamiast Z”.</li>
+</ul>
+<p>Wskazówki są propozycjami – decyduje dziennik polowy.</p>
+
+<h3 id="stattest">Test statystyczny – małe błędy grube <span class="ver">V0.483</span></h3>
+<p class="where">Karta: „Test statystyczny …” obok „Usuń błędy grube” · menu <i>Klein_Method → Test statystyczny (małe błędy grube) …</i> · asystent przebiegu krok 7</p>
+<p>Granica błędu grubego (standardowo 10 cm) znajduje tylko duże błędy. Mniejsze – zła wysokość celu 3 cm, pomylona stała pryzmatu – były dotąd <b>po cichu odważane przez kalibrację indywidualną automatyki</b>: podnosi ona dokładność podejrzanej obserwacji, aż żaden test nie reaguje (przykład: błąd 3 cm, σ z 1 mm na 17,8 mm, błąd pozostaje).</p>
+<ul>
+  <li><b>Kiedy:</b> raz w każdej automatyce, gdy grupy są skalibrowane, a przed rozpoczęciem kalibracji indywidualnej. Klein_Method liczy z <b>dokładnościami wyjściowymi</b> (stan przy pierwszym starcie automatyki) i skalibrowanymi grupami; potem automatyka działa dalej bez zmian.</li>
+  <li><b>Co:</b> wartości, które JAG3D liczy dla każdej obserwacji – istotność testu, szacowany błąd gruby, najmniejszy wykrywalny błąd (MDB), udział nadliczbowości.</li>
+  <li><b>Raport</b> na końcu automatyki (tylko przy wynikach) i w każdej chwili przyciskiem: podejrzane obserwacje z szacowanym błędem i tym, jak mocno automatyka obniżyła potem ich wagę; do tego słabo kontrolowane obserwacje, których MDB przekracza granicę.</li>
+  <li><b>„Usuń statystycznie podejrzane …”</b> – tylko przyciskiem: przywraca dokładności do stanu testu i usuwa istotne obserwacje tym samym usuwaniem krok po kroku z próbą kontrolną (kryterium test zamiast 10 cm); potwierdzasz każdą. Potem uruchom automatykę ponownie.</li>
+  <li>Istotna nie zawsze znaczy gruba: przy wielu obserwacjach wyróżnia się też ok. 1 na 1000 zdrowych, wektory GNSS z błędami sesji częściej. Dlatego decydujesz dla każdej obserwacji.</li>
+  <li>Projekty liczone automatyką już przed V0.483: stanem wyjściowym są dokładności obecne przy pierwszym przebiegu od V0.483.</li>
+</ul>
+<p>Wykrywalność w sieci testowej 01 (syntetycznie, po 12 wprowadzonych błędów pojedynczo):</p>
+<table>
+  <tr><th>Rodzaj</th><th>Błąd</th><th>wykryte (test)</th><th>wykryte (granica 10 cm)</th></tr>
+  <tr><td>Odległość skośna</td><td>0,5 cm</td><td>58 %</td><td>0 %</td></tr>
+  <tr><td>Odległość skośna</td><td>1 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Odległość skośna</td><td>2 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Odległość skośna</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Kierunek (poprzecznie przy celu)</td><td>1 cm</td><td>0 %</td><td>0 %</td></tr>
+  <tr><td>Kierunek (poprzecznie przy celu)</td><td>2 cm</td><td>75 %</td><td>0 %</td></tr>
+  <tr><td>Kierunek (poprzecznie przy celu)</td><td>3 cm</td><td>91 %</td><td>0 %</td></tr>
+  <tr><td>Kierunek (poprzecznie przy celu)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Kąt zenitalny (poprzecznie przy celu)</td><td>1 cm</td><td>8 %</td><td>0 %</td></tr>
+  <tr><td>Kąt zenitalny (poprzecznie przy celu)</td><td>2 cm</td><td>66 %</td><td>0 %</td></tr>
+  <tr><td>Kąt zenitalny (poprzecznie przy celu)</td><td>3 cm</td><td>100 %</td><td>0 %</td></tr>
+  <tr><td>Kąt zenitalny (poprzecznie przy celu)</td><td>5 cm</td><td>100 %</td><td>0 %</td></tr>
+</table>
+
+<h3 id="befundliste">Lista podejrzanych obserwacji <span class="ver">V0.484</span></h3>
+<p class="where">Karta: „Test statystyczny …” · raport: „Otwórz listę …” · asystent przebiegu krok 7</p>
+<p>Wyniki testu statystycznego jako tabela – sortowalna, z filtrem (istotne, słabo kontrolowane, wszystkie), z wyborem wielokrotnym. Kolumny: rodzaj obserwacji, stanowisko, cel, sygnalizacja, szacowany błąd, |logPost|, udział nadliczbowości, najmniejszy wykrywalny błąd, <b>przypuszczalna przyczyna</b>, status.</p>
+<ul>
+  <li><b>Przypuszczalna przyczyna:</b> kilka kątów zenitalnych/niwelacji z jednego stanowiska o tym samym znaku → wysokość instrumentu; do tego samego celu → wysokość celu; kilka odległości do tego samego celu z podobnym przesunięciem → stała pryzmatu/dodawania; pojedyncza odległość z ≈ 17,5 / 30 / 34,4 mm → pomylona stała pryzmatu; kilka kierunków ze stanowiska → orientacja lub przypisanie serii. Propozycje – decyduje dziennik polowy.</li>
+  <li><b>Działania</b> dla wybranych wierszy: <b>Dezaktywuj</b> / <b>Aktywuj</b>; <b>Popraw wartość pomiaru</b> o szacowany błąd (naziemne, tylko gdy dziennik polowy potwierdza błąd); <b>Zmień wysokości …</b> (instrumentu/celu); <b>Obniż wagę</b> (dokładność = szacowany błąd, pomiar pozostaje); <b>Cofnij</b> lub <b>Cofnij wszystko</b>.</li>
+  <li><b>Testuj ponownie:</b> wyrównuje ponownie z dokładnościami wyjściowymi i aktualizuje listę – od razu widać, czy poprawka zadziałała. Potem uruchom automatykę ponownie.</li>
+  <li>Każda zmiana jest zapamiętywana (dokładne cofnięcie) i trafia do protokołu stanu. <b>CSV …</b> zapisuje listę dla Excela.</li>
+  <li>Celowo nie ma automatycznego obniżania wagi wszystkich wyników: robi to i tak kalibracja indywidualna automatyki – lista ma to uwidocznić i dać decyzję.</li>
+  <li>Granica testu pojedynczego: gdy kilka odległości do tego samego celu ma to samo przesunięcie (np. stała pryzmatu 17,5 mm), punkt celu przesuwa się razem i żadna pojedyncza odległość się nie wyróżnia (wykazane w teście). To znajdzie dopiero test grupowy.</li>
+</ul>
+
+<h3 id="gruppentest">Testy grupowe na wspólną przyczynę <span class="ver">V0.485</span></h3>
+<p class="where">Lista podejrzanych obserwacji: „Testy grupowe” · widok: „Testy grupowe (wspólna przyczyna)”</p>
+<p>Sprawdza, czy kilka obserwacji ma <b>ten sam</b> błąd – przypadek, którego test pojedynczy nie widzi. Testowane są: <b>odległości do jednego celu</b> (stała pryzmatu/dodawania), <b>wszystkie obserwacje z jednego stanowiska</b> (wysokość instrumentu) i <b>wszystkie obserwacje do jednego celu</b> (wysokość celu).</p>
+<ul>
+  <li><b>Jak:</b> wspólne pole grupy jest próbnie przesuwane o ±1 cm i ponownie wyrównywane. Z trzech sum kwadratów poprawek wynikają ściśle (ze wszystkimi korelacjami, także gdy punkt celu się przesuwa) szacowany wspólny błąd, statystyka testu (α = 0,1 %) i najmniejszy wykrywalny błąd grupy. Test używa dokładności testu statystycznego; potem wszystko jest dokładnie jak wcześniej.</li>
+  <li><b>Wynik</b> na liście: dla każdej grupy wspólny błąd, |ln p|, najmniejszy wykrywalny błąd i przyczyna. Dla wiersza grupy „<b>Popraw wartość pomiaru</b>” poprawia wspólne pole wszystkich obserwacji (wartości odległości lub wysokość instrumentu/celu); dezaktywacja, aktywacja i cofnięcie działają na wszystkich członków.</li>
+  <li><b>Błąd pojedynczy czy wspólny?</b> Jeśli pojedynczy błąd lepiej wyjaśnia grupę (test pojedynczy silniejszy niż grupowy), grupa nie jest zgłaszana jako wspólny błąd, lecz pokazana jako „raczej błąd pojedynczy: …”.</li>
+  <li><b>Test na danych syntetycznych:</b> stała pryzmatu +17,5 mm na wszystkich 4 odległościach do celu → wykryto +17,8 mm; wysokość instrumentu +2 cm na stanowisku (30 obserwacji) → +21,6 mm, przy +7 mm nadal wykryto (+8,6 mm). Po „Popraw wartość pomiaru” błąd resztkowy 0,0 mm. Czysty zbiór: 50 grup, brak fałszywego alarmu. Grupy, których najmniejszy wykrywalny błąd przekracza przesunięcie, słusznie nie są zgłaszane (np. 1 cm błędu pryzmatu przy granicy 13 mm).</li>
+  <li><b>Czas:</b> dwa wyrównania na grupę, najwyżej 60 grup (z największymi poprawkami). W sieci testowej: 50 grup w 13 s. Kierunki ze stanowiska nie są testowane – wspólny obrót pochłania w całości niewiadoma orientacji. Grupy niekontrolowane (najmniejszy wykrywalny błąd ponad 0,5 m) nie są wymieniane.</li>
+</ul>
+
+<h3 id="fehlersimulation">Symulacja błędów (Monte Carlo) <span class="ver">V0.486</span></h3>
+<p class="where">Lista podejrzanych obserwacji: „Symulacja błędów …”</p>
+<p>Mierzy na <b>twojej własnej sieci</b>, jak dobrze Klein_Method znajduje błędy. Błędy znanej wielkości są losowo wprowadzane, sieć jest wyrównywana i liczy się, jak często błąd zostaje wykryty. Każda próba jest dokładnie cofana.</p>
+<ul>
+  <li><b>Dane:</b> wielkości błędów w cm (domyślnie 1 2 3 5), próby na wielkość (domyślnie 12) i rodzaje obserwacji: odległości, kierunki, kąty zenitalne (błędy pojedyncze; dla kątów jako odchylenie poprzeczne na celu) oraz stała pryzmatu na cel i wysokość instrumentu na stanowisko (wspólny błąd grupy). Okno pokazuje liczbę wyrównań.</li>
+  <li><b>Wynik</b> dla rodzaju i wielkości błędu: wykryto w % (istotny w teście pojedynczym lub grupowym), w nawiasie udział największego testu w sieci, średni szacowany błąd i średni najmniejszy wykrywalny błąd. Tabela trafia też do protokołu („FEHLERSIMULATION”).</li>
+  <li>Test odbywa się w stanie testu statystycznego (dokładności wyjściowe). Potem dokładności, wartości pomiarów i wysokości są dokładnie jak wcześniej, wyniki pozostają ważne. Losowanie ma stały punkt startowy – te same dane dają ten sam wynik.</li>
+  <li><b>Przykład (syntetyczna sieć testowa 01, 12 prób, 43 s):</b> odległości 0,5 / 1 / 2 cm → 17 / 100 / 100 %; kierunki → 8 / 17 / 75 %, 3 cm 100 %; kąty zenitalne → 0 / 17 / 83 %, 3 cm 100 %; stała pryzmatu na cel → 25 / 75 / 100 %; wysokość instrumentu na stanowisko → 33 / 67 / 100 %.</li>
+  <li>Jak czytać: co przy danej wielkości pozostaje poniżej ok. 80 %, nie jest w twojej sieci pewnie wykrywalne – pomoże tylko lepsza geometria sieci lub dodatkowy pomiar.</li>
+</ul>
+
+<h3 id="gewicht">Sygnalizacja stosunku wag <span class="ver">V0.487</span></h3>
+<p class="where">Menu Klein: „Stosunek wag rodzajów obserwacji …” · asystent przebiegu krok 7</p>
+<p>Pokazuje, czy jeden rodzaj obserwacji <b>przeważa</b> w wyznaczeniu sieci albo ma złą wagę – z ostatniego ważnego wyrównania, bez nowego obliczenia.</p>
+<ul>
+  <li><b>Udział:</b> udział rodzaju w wyznaczeniu współrzędnych (suma 1 − udział nadliczbowości). Powyżej 70 % rodzaj wyznacza sieć prawie sam; jego błędy kształtują współrzędne prawie bez kontroli. Niwelacja tworzy własną podsieć wysokościową i nie jest liczona w udziale.</li>
+  <li><b>Redundancja:</b> średni udział nadliczbowości – jak dobrze rodzaj jest kontrolowany. Poniżej 20 % żółty, poniżej 5 % czerwony (praktycznie niekontrolowany). Przy niwelacji z punktami przejściowymi mała wartość wynika z budowy (żółty z uwagą): błędy widać tam tylko w zamknięciach pętli.</li>
+  <li><b>Współczynnik:</b> współczynnik wariancji rodzaju (Ω / suma udziałów nadliczbowości). 1 = waga pasuje; poza 0,5–2 żółty, poza 0,25–4 czerwony. Powyżej 1: dokładność przyjęta zbyt optymistycznie, poniżej 1: zbyt pesymistycznie.</li>
+  <li>Krok 7 asystenta przebiegu wymienia żółte i czerwone rodzaje i oferuje „Stosunek wag …”. Wynik trafia do protokołu („GEWICHTSVERHAELTNIS”).</li>
+  <li><b>Test (syntetyczna sieć testowa 01):</b> po automatyce brak czerwonego; odległości sztucznie z 0,1 mm → współczynnik 339, czerwony „waga znacznie za wysoka”, udział odległości rośnie z 46 do 59 %.</li>
+</ul>
+
+<h3 id="schlussangleichung496">Końcowe dopasowanie VKS: dolne granice są przestrzegane <span class="ver">V0.496</span></h3>
+<p class="where">Ustawienia: „Końcowe dopasowanie VKS“ · Granice niepewności grupy (a, b, c)</p>
+<p>Końcowe dopasowanie zmniejsza zbyt pesymistyczne dokładności tylko do dolnej granicy, nigdy poniżej.</p>
+<ul>
+  <li><b>Niepewności grupy a, b, c:</b> najwyżej do dolnej granicy rodzaju obserwacji (np. kierunki 0,5 mgon); wartości na granicy pozostają bez zmian.</li>
+  <li><b>Dokładności indywidualne:</b> najwyżej do indywidualnej dolnej granicy.</li>
+</ul>
+
+<h3 id="schlussangleichung">Końcowe dopasowanie VKS, nowe ustawienie domyślne, symbole obserwacji <span class="ver">V0.490</span></h3>
+<p class="where">Ustawienia: „Końcowe dopasowanie VKS” (domyślnie tak) · Powtórzone pomiary · Mapa: „Symbole obserwacji”</p>
+<p>Po zakończonej automatyce Klein_Method sprawdza współczynnik wariancji każdego rodzaju obserwacji (suma Ω / suma udziałów nadliczbowości). Jeśli leży poniżej pasma VKS, bo dolne granice trzymają dokładności, dokładności są zbyt pesymistyczne – zostają zmniejszone o pierwiastek(współczynnik) i sieć jest wyrównana ponownie.</p>
+<ul>
+  <li><b>Końcowe dopasowanie VKS:</b> dla każdego rodzaju z wystarczającą nadliczbowością i współczynnikiem poniżej pasma wszystkie dokładności indywidualne (GNSS na oś) i niepewności grup mnoży się przez pierwiastek(współczynnik) – najwyżej 3 rundy, na rundę najwyżej o połowę. W górę nic się nie zmienia. Log i protokół stanu: „SCHLUSSANGLEICHUNG VKS”. Można wyłączyć w ustawieniach.</li>
+  <li><b>Nowe ustawienie domyślne „Scal + kalibruj”</b> dla powtórzonych pomiarów (porównanie ze współrzędnymi referencyjnymi: poziom średnio 7,6 zamiast 14,8 mm). Zapisane „Scal” zmienia się jednorazowo, „Wył.” i „Przeważ” pozostają.</li>
+  <li><b>Mapa – symbole obserwacji:</b> JAG3D rysuje symbole nie na punkcie, lecz kawałek wzdłuż każdej linii; przy wielu wektorach GNSS do odległych stacji SAPOS wyglądało to jak przesunięta chmura punktów. Symbole są teraz domyślnie ukryte na mapie (przełącznik „Symbole obserwacji”); punkty i wykres sieci bez zmian.</li>
+  <li><b>Test (syntetyczna sieć 01):</b> po automatyce kierunki 0,40 → 1,00, kąty zenitalne 0,40 → 0,97; kierunki sztucznie 3× zbyt pesymistyczne (0,12) → 1,00 w jednej rundzie.</li>
+</ul>
+
+<h3 id="bericht491">Raport testu z zaleceniem, wysokość z 1D domyślnie wł. <span class="ver">V0.491</span></h3>
+<p class="where">Raport „Test statystyczny” · zakładka Klein: „Wysokość tylko z reperów (1D)”</p>
+<p>Raport testu statystycznego mówi teraz na górze, co zrobić, a zalecany przycisk ma dopisek „(zalecane)”.</p>
+<ul>
+  <li><b>Bez potrzeby działania:</b> gdy automatyka obniżyła wagę wszystkich nieprawidłowych obserwacji i nie ma skupienia w jednym punkcie – „Zamknij (zalecane)”.</li>
+  <li><b>Skupienie w jednym punkcie</b> (co najmniej 3 i 40 %): raczej wspólny błąd – zalecane „Testy grupowe …”.</li>
+  <li><b>Bez obniżonej wagi</b> (► na liście): zalecane czyszczenie.</li>
+  <li><b>Wysokość tylko z reperów (1D)</b> jest domyślnie włączona w projektach bez własnego ustawienia; stosowana tylko w wyrównaniu dynamicznym/stałym i tylko po pozytywnej kontroli. Świadomie wyłączona pozostaje wyłączona.</li>
+</ul>
+
+<h3 id="karte492">Mapa: symbole obserwacji na punkcie <span class="ver">V0.492</span></h3>
+<p class="where">Mapa: przełącznik „Symbole obserwacji na punkcie”</p>
+<p>Mapa nie rysuje już symboli obserwacji obok punktów.</p>
+<ul>
+  <li><b>Wł.:</b> jeden wykres kołowy na punkt ze wszystkich rodzajów obserwacji dokładnie na punkcie. <b>Wył.</b> (domyślnie): tylko punkty i linie.</li>
+  <li>Po każdym obrazie mapy wykres sieci JAG3D jest raz przerysowywany, więc zawsze pokazuje własny stan, także przy otwartej mapie.</li>
+</ul>
+
+<h3 id="stattest494">Test statystyczny jako osobna funkcja <span class="ver">V0.494</span></h3>
+<p class="where">Menu Klein lub zakładka Klein: „Test statystyczny …”</p>
+<p>Test statystyczny (małe błędy grube) nie działa już w automatyce, tylko na żądanie.</p>
+<ul>
+  <li>Automatyka tylko cicho zapamiętuje stan do testu.</li>
+  <li><b>„Test statystyczny …”</b> ustawia ten stan, liczy test, pokazuje raport z zaleceniem i dokładnie przywraca bieżący stan – wyniki automatyki pozostają ważne.</li>
+  <li>Testy grupowe i symulacja błędów przywracają teraz także dokładności grup.</li>
+  <li>Asystent kroku 7: szara uwaga z przyciskiem; żółty dopiero przy otwartych wynikach.</li>
+</ul>
+
+<h3 id="grob499">Błędy grube automatycznie przed przebiegiem 1 <span class="ver">V0.499</span></h3>
+<p class="where">Zakładka Klein: „Automatycznie usuwaj błędy grube” · „Dodatek GNSS (ppm)”</p>
+<p>Dotąd automatyka startowała dopiero po ręcznym „Usuń błędy grube”; kalibracja mogła ukryć błędy grube przez zawyżenie ich dokładności.</p>
+<ul>
+  <li><b>Automatycznie:</b> przy starcie automatyki „Usuń błędy grube” uruchamia się samo przed przebiegiem 1.</li>
+  <li><b>Granica zależna od długości dla GNSS:</b> granica + ppm × długość (np. 2 ppm, 40 km → 0,180 m).</li>
+  <li><b>Kontrola na końcu:</b> tylko uwagi, bez wyłączania.</li>
+</ul>
+
+<h3 id="grob500">Błędy grube: kontrola z własnym wyrównaniem <span class="ver">V0.500</span></h3>
+<p class="where">Zakładka Klein: „Uruchom Klein_Method” przy „Automatycznie usuwaj błędy grube” = tak</p>
+<p>Dotąd kontrola korzystała z poprawek ostatniego wyrównania; po imporcie bez F5 była pomijana bez komunikatu.</p>
+<ul>
+  <li><b>Teraz:</b> przed kontrolą Klein_Method zawsze sam wykonuje jedno wyrównanie.</li>
+  <li><b>Protokół:</b> wpis także wtedy, gdy nic nie przekracza granicy lub kontrola jest niemożliwa.</li>
+</ul>
+
+<h2 id="stuetzung">8. Podparcie GNSS na skraju sieci <span class="ver">od V0.451</span></h2>
+<p class="where">Menu <i>Klein_Method → Sprawdź podparcie GNSS na skraju sieci (czułość) …</i> · Wskazówka po wyrównaniu · Mapa: przerywane okręgi</p>
+<p>Jeśli części sieci kombinowanej leżą poza podparciem GNSS, są wyznaczane tylko tachimetrem i mogą „odpływać”. Klein_Method oznacza takie punkty (żółte od 10 m, czerwone od 50 m poza podparciem) i wskazuje punkty, od których GNSS zależy cały obszar brzegowy. <b>Czułość</b> liczy próbnie bez ich GNSS i pokazuje, jak daleko przesunąłby się skraj.</p>
+
+<h2 id="planung">9. Prognoza i planowanie pomiarów <span class="ver">od V0.455</span></h2>
+<p class="where">Menu <i>Klein_Method → Prognoza i planowanie pomiarów (ponowny pomiar/uzupełnienie GNSS) …</i></p>
+<p>Przy niepełnych danych nawet najlepsze obliczenie nie pomoże – ważne jest wiedzieć, <b>gdzie</b> sieć jest słaba i <b>który</b> pomiar to naprawi. Żadne dane nie są zmieniane.</p>
+<ul>
+  <li><b>Prognoza dla punktu:</b> względna elipsa błędów (część ponad najlepiej wyznaczonym punktem). Żółty od 1,2-krotności, czerwony od 1,5-krotności mediany; na mapie jako kolorowa otoczka.</li>
+  <li><b>Planowanie pomiarów:</b> dla najsłabszych punktów obliczeniowo wstawiana jest jedna sesja GNSS ze stacji odniesienia i wykonywane wyrównanie. Jeśli kilka punktów daje ten sam zysk, są wymieniane razem – wybierz najlepiej dostępny.</li>
+  <li><b>Dokładność zakładanej sesji:</b> „krótki wektor (5 mm poziom, 10 mm wysokość)” lub „jak dotychczasowe sesje”. Długie wektory do odległych stacji są często znacznie mniej dokładne (1 ppm to przy 30 km już 30 mm).</li>
+  <li><b>Lista do ponownego pomiaru:</b> dezaktywowane lub bardzo niepewne średnie sesji.</li>
+  <li>Raport „…_Messplanung.txt” w folderze protokołu.</li>
+</ul>
+<div class="box"><b>Zalecenie:</b> wywołać po trybie automatycznym – dopiero wtedy dokładności są skalibrowane.</div>
+
+<h2 id="hoehen">10. Wysokości i quasigeoida <span class="ver">od V0.446/V0.447</span></h2>
+<p class="where">Karta: „Importuj quasigeoidę …”, „Zarządzaj quasigeoidami …”, „Przelicz punkty wysokościowe …”, „Sprawdź teraz systemy wysokości”</p>
+<ul>
+  <li>Można zaimportować <b>model quasigeoidy</b> (np. GCG2016). Pozwala on przeliczać wysokości normalne (np. niemieckie NHN) i elipsoidalne: h = H + N.</li>
+  <li>Jeśli punkty wysokościowe w wysokościach normalnych są wymieszane z GNSS (elipsoidalnymi), Klein_Method proponuje przeliczenie wysokości stałych na elipsoidalne (z możliwością cofnięcia).</li>
+</ul>
+
+<h3 id="festpunkt498">AGL dynamiczne: dolna granica punktów stałych, osobna wysokość <span class="ver">V0.498</span></h3>
+<p class="where">Zakładka Klein: dolne granice punktów stałych (mm) · przełącznik „Wysokość tylko z reperów (1D)”</p>
+<p>Niesprawdzalny punkt stały spadał dotąd do 0,0001 mm i był praktycznie sztywny.</p>
+<ul>
+  <li><b>Dolna granica:</b> domyślnie 1,0 mm położenie/2D/3D i 0,3 mm 1D, regulowana od 0,01 do 50 mm.</li>
+  <li><b>Osobna wysokość (tylko z „Wysokość tylko z 1D”):</b> wysokość punktów 3D kalibrowana osobno (1 mm do 10 m); jeśli nie pasuje do sieci, staje się swobodna.</li>
+</ul>
+
+<h3 id="dyn509">AGL dynamiczne: punkty stałe znów kończą w paśmie <span class="ver">V0.509</span></h3>
+<p class="where">Automatyka w AGL dynamicznym · protokół</p>
+<p>W V0.507/V0.508 punkt stały, którego T_prio silnie reaguje na σ, mógł zbyt wcześnie zostać uznany za „przedział wyczerpany” i zakończyć z T_prio 1,02 zamiast 1,00. Ponadto na końcu AGL dynamicznego wykonywało się końcowe dopasowanie VKS; jeśli zostało zachowane, wartości T_prio wszystkich punktów stałych przesuwały się.</p>
+<ul>
+  <li>„Przedział wyczerpany” dotyczy już tylko punktów stałych, które prawie nie reagują na σ (|p| &lt; 0,1). Jeśli taki punkt później wyjdzie poza tolerancję, jest dalej przetwarzany.</li>
+  <li>AGL dynamiczne nie wykonuje już końcowego dopasowania VKS – obserwacje pozostają bez zmian, a końcowe wartości T_prio odpowiadają ostatniej ocenie w protokole.</li>
+</ul>
+
+<h3 id="dyn507">AGL dynamiczne: połowienie przedziału i jasny komunikat końcowy <span class="ver">V0.507</span></h3>
+<p class="where">Automatyka w AGL dynamicznym · protokół i wiersz stanu na końcu</p>
+<p>Niektóre punkty stałe prawie nie reagują na własną niepewność: T_prio zmienia się niewiele w szerokim zakresie σ, bo zależy głównie od reszty sieci. Dotąd σ przesuwało się wtedy bardzo małymi krokami, aż wykrywanie stagnacji kończyło obliczenie bez DONE.</p>
+<ul>
+  <li>Jeśli dla punktu stałego znane jest σ z T_prio powyżej pasma i σ z T_prio poniżej pasma, przedział jest połowiony (średnia geometryczna). Protokół: „Intervallhalbierung (Ziel zwischen … und … mm)”.</li>
+  <li>Jeśli przedział jest wyczerpany do 0,1 %, a T_prio leży w granicach ok. 3 % od 1, punkt uznaje się za gotowy – jego σ jest wyznaczone. Protokół: „Intervall ausgeschoepft”.</li>
+  <li>AGL dynamiczne kalibruje tylko punkty stałe. Jeśli Max-logPost na końcu przekracza wartość graniczną, wiersz stanu podaje „Punkty stałe skalibrowane. Max-logPost przekracza wartość graniczną – obserwacje są kalibrowane w wyrównaniu ze stałymi punktami.” To nie jest błąd.</li>
+</ul>
+
+<h3 id="einzel506">AGL dynamiczne: wszystkie wartości indywidualne punktów stałych wpisane <span class="ver">V0.506</span></h3>
+<p class="where">Grupa punktów „ruchome punkty nawiązania”</p>
+<p>Dotąd wartość indywidualna pozostawała pusta, gdy punkt nie był kontrolowalny (T_prio ≈ 0).</p>
+<ul>
+  <li>Na końcu brakujące wartości są uzupełniane wartością grupy (bez zmiany wyniku), wpis w protokole „EINZELWERT ERGAENZT”.</li>
+  <li>Nowa uwaga „FESTPUNKT NICHT PRUEFBAR” dla punktów z T_prio ≈ 0.</li>
+</ul>
+
+<h3 id="floor503">Dolna granica punktów stałych tylko z GNSS <span class="ver">V0.503</span></h3>
+<p class="where">Zakładka Klein: „AGL dynamiczne: dolna granica … z GNSS (mm)”</p>
+<p>Granice 1,0 mm i 0,3 mm chronią przed sztywnymi punktami stałymi przy GNSS.</p>
+<ul>
+  <li>Bez aktywnych wektorów GNSS obowiązuje 0,01 mm.</li>
+  <li>Uwaga „VARIANZFAKTOR” w protokole, gdy σ̂₀² odbiega od 1 (T_post = T_prio / σ̂₀²).</li>
+  <li>Naprawiono: końcowe skalowanie VKS w projektach bez GNSS.</li>
+</ul>
+
+<h3 id="hoehe1d">Wysokość tylko z punktów wysokościowych (1D) <span class="ver">V0.479</span></h3>
+<p class="where">Karta „Sterowanie”, tylko w wyrównaniu dynamicznym i stałym: „Wysokość tylko z punktów wysokościowych (1D)”</p>
+<p>W sieciach łączonych (GNSS, tachimetr, niwelacja) z własnymi punktami wysokościowymi wysokość powinna pochodzić z niwelacji, a nie z wysokości elipsoidalnych punktów stałych 3D. Z przełącznikiem punkty stałe/dowiązania 3D wyznaczają tylko położenie (wysokość σz = 10 m, wolna); wysokość pochodzi wyłącznie z punktów wysokościowych (1D).</p>
+<ul>
+  <li><b>Wyrównanie dynamiczne:</b> analiza punktów stałych ocenia dla punktów 3D tylko położenie (współczynnik wariancji i T<sub>prio</sub> z y i x).</li>
+  <li><b>Wyrównanie stałe:</b> bezwariancyjne punkty stałe 3D trafiają do grupy „Klein_Method 3D-Festpunkte Lage (Hoehe frei)” z σ położenia 0,01 mm – działa jak bezwariancyjne.</li>
+  <li><b>Kontrola przy włączaniu:</b> co najmniej jeden punkt wysokościowy z niwelacją (inaczej czerwony), zalecane 3; w wyrównaniu stałym co najmniej jeden bezwariancyjny; ten sam system wysokości (NHN najpierw przeliczyć quasigeoidą, <a href="#hoehen">rozdział 10</a>).</li>
+  <li><b>Zmianę etapu</b> (dynamiczny → stały) Klein_Method dostosowuje automatycznie przy kliknięciu karty. <b>Wył.</b> przywraca wszystkie wartości dokładnie.</li>
+</ul>
+<div class="box">Test (wysokości punktów stałych GNSS celowo +30 mm błędne): wyrównanie stałe bez przełącznika nowe punkty średnio +8,6 mm, z przełącznikiem ±0,0 mm (RMS 1,2 mm); dynamiczne +1,8 → 0,0 mm.</div>
+
+<h3 id="rechner495">Kalkulator wysokości: menu, autozapis, kolumny <span class="ver">V0.495</span></h3>
+<p class="where">Menu KleinMethod → Kalkulator współrzędnych/wysokości …</p>
+<p>Kalkulator jest teraz w menu KleinMethod zamiast w menu Pomoc.</p>
+<ul>
+  <li><b>Autozapis:</b> wynik wczytanego i niezmienionego pliku jest zapisywany obok oryginału z dopiskiem, np. <i>_ellipsoidisch</i>.</li>
+  <li><b>Kolumny wyrównane do prawej:</b> nazwy punktów i wartości jedna pod drugą.</li>
+</ul>
+
+<h3 id="rechner">Kalkulator współrzędnych/wysokości (DHHN2016 ↔ elipsoidalna) <span class="ver">V0.482</span></h3>
+<p class="where">Menu <i>KleinMethod → Kalkulator współrzędnych/wysokości …</i> (pod „Przeliczenie współrzędnych”, od V0.495; wcześniej w menu Pomoc) – także bez otwartego projektu</p>
+<p>Przelicza pojedyncze punkty lub całe listy między układami ETRS89 i systemami wysokości. Kalkulator nie zmienia żadnego projektu; w projekcie Klein_Method przelicza sam (<a href="#import">rozdział 2</a>).</p>
+
+<pre>P1  32500000.000  5650000.000 100.0000   →   P1  32500000.000  5650000.000 (100.0000 + N)</pre>
+<ul>
+  <li><b>Układ źródłowy i docelowy:</b> UTM z numerem strefy we współrzędnej wschodniej (np. 32500000.000), geograficzne (szerokość/długość w stopniach) lub geocentryczne (X/Y/Z). Strefa UTM wyjścia do wyboru (puste = jak wejście lub z długości).</li>
+  <li><b>Wysokość źródłowa i docelowa:</b> DHHN2016 (wysokość normalna nad aktywną quasigeoidą, h = H + N) lub elipsoidalna (GRS80). Quasigeoidę (np. GCG2016) importuje się raz i obowiązuje dla wszystkich projektów; import także bezpośrednio w kalkulatorze.</li>
+  <li><b>Pojedynczy punkt</b> ze wskazaniem anomalii wysokości N, <b>przetwarzanie wsadowe</b>: wczytaj lub wklej plik (spacja, tabulator lub średnik; kropka lub przecinek), „Przelicz wszystko”, zapisz wynik. Dalsze kolumny zostają, opcjonalnie dołączane jest N.</li>
+  <li>Dokładność: UTM ↔ geograficzne ↔ geocentryczne sprawdzone niezależnym obliczeniem do 0,1 mm; wysokość tak dokładna jak model quasigeoidy.</li>
+</ul>
+
+<h2 id="export">11. Eksport współrzędnych <span class="ver">wybór wysokości od V0.450</span></h2>
+<p class="where">Karta: „Eksportuj współrzędne” z układem docelowym i „Wysokość:”</p>
+<ul>
+  <li><b>Układy docelowe:</b> układ projektu, ETRS89/WGS84 geocentryczny lub geograficzny, strefy UTM, dalsze układy z plików odwzorowań.</li>
+  <li><b>Wysokość:</b> elipsoidalna, wysokość normalna NHN (H = h − N, z quasigeoidą) lub „jak w układzie docelowym”.</li>
+  <li>Nagłówek podaje układ, P0 i rodzaj wysokości; punkty poza podparciem GNSS są w nim odnotowane.</li>
+</ul>
+
+<h2 id="karte">12. Mapa (OpenStreetMap) <span class="ver">pasek narzędzi od V0.456</span></h2>
+<p class="where">Karta: „Mapa (OpenStreetMap)”</p>
+<p>Mapa rysuje te same warstwy co wykres sieci JAG3D (punkty, obserwacje, elipsy, strzałki) na OpenStreetMap.</p>
+<table>
+  <tr><th>Przycisk</th><th>Działanie</th></tr>
+  <tr><td>Przesuń</td><td>przeciąganie mapy (domyślnie); kółko myszy powiększa.</td></tr>
+  <tr><td>Powiększenie okna</td><td>zaznacz prostokąt, mapa zostanie do niego powiększona.</td></tr>
+  <tr><td>Powiększ / Pomniejsz</td><td>jeden poziom powiększenia, środek pozostaje.</td></tr>
+  <tr><td>Widok całości</td><td>wszystkie punkty łącznie z odległymi stacjami <span class="ver">V0.457</span>.</td></tr>
+  <tr><td>Odśwież</td><td>ponowne wczytanie danych i warstw.</td></tr>
+  <tr><td>Warstwy</td><td>okno warstw wykresu sieci; działa na wykres sieci i mapę.</td></tr>
+  <tr><td>Eksport</td><td>mapa jako PNG z informacją o źródle OSM.</td></tr>
+  <tr><td>Szukaj punktu</td><td>lista punktów i współczynnik skali jak w powiększeniu obiektu JAG3D (względem bieżącego widoku) <span class="ver">V0.459</span>.</td></tr>
+</table>
+<p>Odległe punkty połączone pomiarami (np. stacje referencyjne GNSS) są rysowane wraz z wektorami; tylko odległe punkty <b>bez</b> pomiarów są traktowane jako odstające <span class="ver">V0.457</span>. „Pokaż sieć” powiększa do właściwej sieci.</p>
+
+<h2 id="protokoll">13. Protokół, log i raporty</h2>
+<ul>
+  <li><b>Klein_Method.log</b> i protokół znajdują się w folderze projektu; od V0.453 w całości w ASCII (umlauty jako ae/oe/ue). Log i protokół są zawsze pisane po niemiecku.</li>
+  <li><b>Raport przebiegu</b> po każdym trybie automatycznym; przez „Udostępnij raport przebiegu” anonimowo do wiedzy roju (bez współrzędnych, nazw punktów i projektów).</li>
+  <li><b>Świadectwo kalibracji</b>, <b>raport analizy punktów stałych</b>, <b>planowanie pomiarów</b> jako pliki tekstowe w folderze protokołu („Otwórz folder raportów”).</li>
+</ul>
+
+<h3 id="schwarm100">Wiedza roju: publicznie, wysyłanie bez tokenu <span class="ver">V1.00 RC1</span></h3>
+<p class="where">Sekcja „Wiedza roju” · Udostępnij raport przebiegu · pola „Repozytorium” i „Usługa pośrednicząca”</p>
+<p>Wiedza roju korzysta teraz z publicznego repozytorium <code>htw9056/klein-method-schwarm</code>. Użytkownicy nie potrzebują już tokenu ani konta GitHub.</p>
+<ul>
+  <li>Pobieranie wartości doświadczalnych: bezpośrednio z publicznego repozytorium, bez tokenu.</li>
+  <li>Wysyłanie raportu: z plikiem tokenu bezpośrednio do GitHub, w przeciwnym razie przez usługę pośredniczącą. Usługa przechowuje token w sposób chroniony i sprawdza każdy raport. Jeśli jest niedostępna, Klein_Method proponuje „Wyślij w przeglądarce” – GitHub otwiera wypełniony formularz; do wysłania potrzebne jest bezpłatne konto GitHub.</li>
+  <li>Zapisane stare adresy (<code>klein-method-schwarm-test</code> i wcześniejsze nazwy) są jednorazowo przestawiane na nowy standard. Kto potem świadomie wpisze repozytorium ćwiczeniowe, zachowa je.</li>
+  <li>Konfiguracja dla operatora: <code>03_Schwarm_GitHub/Schwarmwissen_Oeffentlich_mit_Vermittlungsdienst.md</code>.</li>
+</ul>
+
+<h2 id="fehler">14. Problemy i rozwiązania</h2>
+<h3 id="fziel">Bardzo wiele kątów zenitalnych jako błędy grube (odchyłka ≈ 1,3–1,7 m) <span class="ver">V0.466</span></h3>
+<p><b>Przyczyna:</b> prawie zawsze w imporcie brakuje <b>wysokości celu</b> (wysokości reflektora) – wynoszą 0, a wysokość instrumentu jest ustawiona. Każdy kąt zenitalny celuje wtedy za nisko o wysokość celu. <b>Rozwiązanie:</b> zaimportować pomiary ponownie z wysokościami celu i <i>nie</i> przyjmować tych kątów jako błędów grubych („Przerwij (aktywuj wszystko ponownie)”). Kontrola wstępna ostrzega przed tym (na czerwono u góry okna potwierdzenia), analiza przyczyn wskazuje też pojedyncze wysokości celu lub instrumentu. Sprawdzić także system wysokości punktów wysokościowych – niezgodność GNSS z niwelacją również pojawia się na czerwono u góry.</p>
+<h3 id="f200">Uśrednianie zgłasza odchyłki ok. 200 000 mgon</h3>
+<p><b>Przyczyna:</b> brak współrzędnych przybliżonych, II położenie lunety nie jest rozpoznawane. <b>Rozwiązanie:</b> w pytaniu wybrać „Najpierw oblicz przybliżenia (zalecane)” lub wcześniej menu <i>Oblicz i sprawdź współrzędne przybliżone …</i>. Same pomiary są w porządku.</p>
+<h3 id="fdrift">Skraj sieci „odpływa”</h3>
+<p><b>Przyczyna:</b> skraj jest dowiązany tylko tachimetrem (brak wektorów GNSS). <b>Rozwiązanie:</b> <a href="#planung">Prognoza i planowanie pomiarów</a> pokazuje słabe miejsce przed obliczeniem i wskazuje punkt, na którym dodatkowa sesja GNSS daje najwięcej – często wystarczy jedna dobra sesja gdziekolwiek na danym skraju.</p>
+<h3 id="fz">Wysokości w układzie lokalnym „błędne”</h3>
+<p>W lokalnym układzie elipsoidalnym Z jest współrzędną kartezjańską względem płaszczyzny stycznej, a nie wysokością (zob. <a href="#import">rozdział 2</a>). Dla wysokości użyj eksportu z „Wysokość: elipsoidalna” lub „wysokość normalna NHN”.</p>
+<h3 id="fsperre">„ZABLOKOWANE: osiągnięto górną granicę indywidualnej niepewności pomiaru”</h3>
+<p>Ponad 10 obserwacji osiągnęło w jednym kroku górną granicę – wskazuje to na zasadniczy problem (np. błędne dokładności początkowe, wiele błędów grubych). Sprawdź dane, następnie „Zdejmij blokadę”.</p>
+<h3 id="fneustart">Kształt sieci zniekształcony po scaleniu/cofnięciu</h3>
+<p>Kalibracja trybu automatycznego odnosi się do dotychczasowych obserwacji. Po scaleniu lub cofnięciu uruchomić automatykę ponownie przez „Uruchom Klein_Method”.</p>
+
+<h2 id="begriffe">15. Pojęcia</h2>
+<table>
+  <tr><th>Pojęcie</th><th>Znaczenie</th></tr>
+  <tr><td>P0</td><td>punkt odniesienia układu lokalnego (płaszczyzna styczna).</td></tr>
+  <tr><td>Sesja GNSS</td><td>kolejne epoki tej samej pary punktów w tej samej grupie.</td></tr>
+  <tr><td>Kontrola skoków/dryfu</td><td>sprawdzenie sesji pod kątem skoku lub liniowego dryfu przed scaleniem.</td></tr>
+  <tr><td>logPost</td><td>wielkość oceny Klein_Method dla kalibracji; wartość graniczna typowo 2,45.</td></tr>
+  <tr><td>Przebieg (kaskada)</td><td>etap trybu automatycznego; przebieg 2 kalibruje indywidualnie przy stałych wartościach grupowych.</td></tr>
+  <tr><td>Podparcie GNSS</td><td>obszar sieci wyznaczony przez pomiary GNSS.</td></tr>
+  <tr><td>Prognoza</td><td>względna elipsa błędów dla punktu z wyrównania.</td></tr>
+  <tr><td>Planowanie pomiarów</td><td>obliczeniowo wstawione sesje w celu znalezienia najskuteczniejszego pomiaru uzupełniającego.</td></tr>
+  <tr><td>Stacja odniesienia</td><td>stacja GNSS, z której wychodzi zakładana sesja.</td></tr>
+  <tr><td>Quasigeoida, N</td><td>anomalia wysokości; h = H + N (elipsoidalna = normalna + N).</td></tr>
+</table>
+
+<h2 id="versionen">16. Historia wersji</h2>
+<table>
+  <tr><th>Wersja</th><th>Główna zmiana</th></tr>
+  <tr><td><a href="#v1_00_rc3">V1.00 RC3</a></td><td>EP w niwelacji · historia wersji w rozdziale 16</td></tr>
+  <tr><td><a href="#v1_00_rc2">V1.00 RC2</a></td><td>Masowe linie bazowe: osierocone zapisy, P0 bez punktów zerowych</td></tr>
+  <tr><td><a href="#v1_00_rc1">V1.00 RC1</a></td><td>Wiedza roju: publicznie, wysyłanie bez tokenu · Granice metody</td></tr>
+  <tr><td><a href="#v0_509">V0.509</a></td><td>AGL dynamiczne: punkty stałe znów kończą w paśmie</td></tr>
+  <tr><td><a href="#v0_508">V0.508</a></td><td>Przykład C: wartości oczekiwane z prawdziwego interfejsu JAG3D</td></tr>
+  <tr><td><a href="#v0_507">V0.507</a></td><td>AGL dynamiczne: połowienie przedziału, jasny komunikat końcowy; wsparcie GNSS tylko z GNSS</td></tr>
+  <tr><td><a href="#v0_506">V0.506</a></td><td>Brakujące wartości indywidualne uzupełniane wartością grupy</td></tr>
+  <tr><td><a href="#v0_505">V0.505</a></td><td>Naprawiono przerwanie startu JAG3D z V0.504</td></tr>
+  <tr><td><a href="#v0_504">V0.504</a></td><td>Praca w tle w nagłówku zakładki i w zakładce Klein, nie podczas automatyki</td></tr>
+  <tr><td><a href="#v0_503">V0.503</a></td><td>Granica 1,0/0,3 mm tylko z GNSS, inaczej 0,01 mm; uwaga o współczynniku wariancji</td></tr>
+  <tr><td><a href="#v0_502">V0.502</a></td><td>Brak okna przy czerwonych krokach, pole „Dezaktywowane BL” szersze</td></tr>
+  <tr><td><a href="#v0_501">V0.501</a></td><td>Brak okna ponownego startu, uwaga w protokole i na pasku stanu</td></tr>
+  <tr><td><a href="#v0_500">V0.500</a></td><td>Kontrola przed przebiegiem 1 z własnym wyrównaniem, także zaraz po imporcie</td></tr>
+  <tr><td><a href="#v0_499">V0.499</a></td><td>Automatycznie przed przebiegiem 1, granica GNSS zależna od długości</td></tr>
+  <tr><td><a href="#v0_498">V0.498</a></td><td>Dolna granica punktów stałych, osobna wysokość</td></tr>
+  <tr><td><a href="#v0_497">V0.497</a></td><td>Tłumienie oscylacji i zaokrąglenie przy wartości granicznej</td></tr>
+  <tr><td><a href="#v0_496">V0.496</a></td><td>Końcowe dopasowanie VKS przestrzega dolnych granic</td></tr>
+  <tr><td><a href="#v0_495">V0.495</a></td><td>Kalkulator wysokości w menu KleinMethod, autozapis, kolumny do prawej</td></tr>
+  <tr><td><a href="#v0_494">V0.494</a></td><td>Test statystyczny jako osobna funkcja, poza automatyką</td></tr>
+  <tr><td><a href="#v0_493">V0.493</a></td><td>Dokładność średnich GNSS z rozrzutu zamiast zamrożonego modelu grupy</td></tr>
+  <tr><td><a href="#v0_492">V0.492</a></td><td>Mapa: symbole obserwacji na punkcie, wykres sieci stabilny przy otwartej mapie</td></tr>
+  <tr><td><a href="#v0_491">V0.491</a></td><td>Raport testu z zaleceniem i przyciskiem testów grupowych, wysokość z 1D domyślnie wł.</td></tr>
+  <tr><td><a href="#v0_490">V0.490</a></td><td>Końcowe dopasowanie VKS, domyślnie scal + kalibruj, symbole obserwacji na mapie</td></tr>
+  <tr><td><a href="#v0_489">V0.489</a></td><td>Zmiana nazw punktów z szablonami, podglądem, kontrolą odległości i cofnięciem</td></tr>
+  <tr><td><a href="#v0_488">V0.488</a></td><td>Rozpoznawanie masowych wektorów i odporne przerzedzanie przed pierwszym obliczeniem</td></tr>
+  <tr><td><a href="#v0_487">V0.487</a></td><td>Sygnalizacja stosunku wag rodzajów obserwacji</td></tr>
+  <tr><td><a href="#v0_486">V0.486</a></td><td>Symulacja błędów (Monte Carlo) na własnej sieci</td></tr>
+  <tr><td><a href="#v0_485">V0.485</a></td><td>Testy grupowe na wspólną przyczynę (stała pryzmatu, wysokość instrumentu/celu)</td></tr>
+  <tr><td><a href="#v0_484">V0.484</a></td><td>Lista podejrzanych obserwacji (edycja, cofanie, ponowny test)</td></tr>
+  <tr><td><a href="#v0_483">V0.483</a></td><td>Test statystyczny przed kalibracją indywidualną (małe błędy grube)</td></tr>
+  <tr><td><a href="#v0_482">V0.482</a></td><td>Kalkulator współrzędnych/wysokości (menu Pomoc), blokada wielokrotnego przeliczenia</td></tr>
+  <tr><td><a href="#v0_481">V0.481</a></td><td>Wariant porównawczy „Uśrednij + kalibruj”</td></tr>
+  <tr><td><a href="#v0_480">V0.480</a></td><td>Asystent przebiegu, blokada startu, protokół stanu, punkty stałe 0/0/0</td></tr>
+  <tr><td><a href="#v0_479">V0.479</a></td><td>Przełącznik „Wysokość tylko z punktów wysokościowych (1D)” (wyrównanie dyn./stałe)</td></tr>
+  <tr><td><a href="#v0_478">V0.478</a></td><td>Automatyczne uśrednianie pomiarów powtarzanych, rozrzut jako minimalna dokładność, przeważanie usunięte; mapa wybiera pasujące odwzorowanie</td></tr>
+  <tr><td><a href="#v0_477">V0.477</a></td><td>Pomiary powtarzane dla każdego rodzaju: przeważ (domyślnie) / uśrednij / wył., plik porównawczy</td></tr>
+  <tr><td><a href="#v0_476">V0.476</a></td><td>Drzewo projektu zablokowane podczas automatyki/usuwania; tylko jeden komunikat „Automatyka działa”</td></tr>
+  <tr><td><a href="#v0_475">V0.475</a></td><td>Nieaktualny P0 rozpoznawany i wyznaczany na nowo; raport „P0 poza siecią”; położenie 1D względem sieci</td></tr>
+  <tr><td><a href="#v0_474">V0.474</a></td><td>Punkty przejściowe/stanowiska bez położenia automatycznie pośrodku sąsiadów w niwelacji</td></tr>
+  <tr><td><a href="#v0_473">V0.473</a></td><td>Pomoc: przykładowe ZIP A–E (dane surowe, instrukcja, wyniki) do pobrania</td></tr>
+  <tr><td><a href="#v0_472">V0.472</a></td><td>Pomoc: rozdział 0 „Krok po kroku” – formaty danych, układy i przebieg dla 1D/2D/3D</td></tr>
+  <tr><td><a href="#v0_471">V0.471</a></td><td>Raport importu: położenie punktów 1D a celowe niwelacji</td></tr>
+  <tr><td><a href="#v0_470">V0.470</a></td><td>Kontrola systemu wysokości z położeniem punktów wysokościowych 1D (bez fałszywego alarmu w dużych sieciach)</td></tr>
+  <tr><td><a href="#v0_469">V0.469</a></td><td>Kontrola pojedyncza, pary GNSS podejrzane tylko dla GNSS, krzywizna Ziemi w raporcie importu</td></tr>
+  <tr><td><a href="#v0_468">V0.468</a></td><td>Odwzorowanie, redukcja, P0 i przeliczenie tylko z wektorami GNSS</td></tr>
+  <tr><td><a href="#v0_467">V0.467</a></td><td>Raport importu z sygnalizacją (nazwy, wzajemne kąty zenitalne, położenie I/II, wysokości, jednostki, układy), położenie punktów 1D z niwelacji</td></tr>
+  <tr><td><a href="#v0_466">V0.466</a></td><td>Kontrola wysokości celu, analiza przyczyn tachimetru, ostrzeżenie o systemie wysokości</td></tr>
+  <tr><td><a href="#v0_465">V0.465</a></td><td>Punkty wysokościowe (1D) w przeliczeniu; pomoc bez kopii</td></tr>
+  <tr><td><a href="#v0_464">V0.464</a></td><td>Błędy grube: wstępny wybór odporny, analiza przyczyn (wysokość anteny, pomyłka punktu)</td></tr>
+  <tr><td><a href="#v0_463">V0.463</a></td><td>Błędy grube: kontrola wstępna (zamknięcia pętli, pomiary powtórzone), statystyka testowa, kontrolowalność</td></tr>
+  <tr><td><a href="#v0_462">V0.462</a></td><td>Pomoc w 7 językach</td></tr>
+  <tr><td><a href="#v0_461">V0.461</a></td><td>Błędy grube: rozproszone obserwacje odstające grupami, kontrola krzyżowa</td></tr>
+  <tr><td><a href="#v0_460">V0.460</a></td><td>Pomoc także w menu JAG3D „Help”, klawisz F1</td></tr>
+  <tr><td><a href="#v0_459">V0.459</a></td><td>Pomoc; szukanie punktu ze względnym współczynnikiem skali</td></tr>
+  <tr><td>V0.458</td><td>Kontrola współrzędnych przybliżonych przed uśrednianiem JAG3D</td></tr>
+  <tr><td>V0.457</td><td>Mapa: wektory do odległych stacji, szukanie punktu jak powiększenie obiektu</td></tr>
+  <tr><td>V0.456</td><td>Mapa: pasek narzędzi jak na wykresie sieci</td></tr>
+  <tr><td>V0.455</td><td>Prognoza i planowanie pomiarów</td></tr>
+  <tr><td>V0.454</td><td>Prawidłowa waga sesji z dryfem; górna granica → dezaktywacja zamiast blokady</td></tr>
+  <tr><td>V0.453</td><td>Kontrola skoków/dryfu; ponowne uruchomienie trybu automatycznego po zmianie; log w ASCII</td></tr>
+  <tr><td>V0.452</td><td>Scalanie sesji GNSS</td></tr>
+  <tr><td>V0.451</td><td>Podparcie GNSS na skraju sieci</td></tr>
+  <tr><td>V0.450</td><td>Eksport: wybór wysokości (elipsoidalna / NHN)</td></tr>
+  <tr><td>V0.448–V0.449</td><td>Przebudowa współrzędnych przybliżonych (krzywizna Ziemi, dryf sesji, wyłączanie)</td></tr>
+  <tr><td>V0.446–V0.447</td><td>Quasigeoida, przeliczanie wysokości stałych</td></tr>
+</table>
+<h3 id="v1_00_rc3">V1.00 RC3</h3>
+<ul>
+    <li><b>EP w niwelacji:</b> w sieciach wyłącznie niwelacyjnych EP nie można wybrać (uwaga „tylko niwelacja: tylko logPost”); w niwelacji udziały nadwymiarowości są małe, a EP jest wysokie z powodu geometrii sieci. W sieciach mieszanych EP ocenia tylko pozostałe rodzaje obserwacji, Max-EP nie zawiera już niwelacji – <a href="#automatik">rozdział 6</a>.</li>
+    <li><b>Pomoc:</b> rozwój nie jest już pokazywany na górze, lecz w całości w tym rozdziale.</li>
+  </ul>
+<h3 id="v1_00_rc2">V1.00 RC2</h3>
+<ul>
+    <li><b>Masowe linie bazowe:</b> zapisy powtórzonych pomiarów z wcześniejszego opracowania lub z szablonu projektu, które nie należą już do żadnej istniejącej obserwacji, są odrzucane przy otwarciu projektu. Automatyczne przerzedzanie znów działa, a kontrola kolejności nie blokuje już startu Przy włączonym „Automatycznie przerzedzaj masowe wektory” przerzedzanie odbywa się teraz zaraz po otwarciu; F5 czeka na jego zakończenie. – <a href="#sitzungen">rozdział 5</a>.</li>
+    <li><b>Układ lokalny:</b> nowe punkty bez współrzędnych przybliżonych (0/0/0) nie są już uwzględniane przy przenoszeniu P0; nieprawidłowy punkt odniesienia nigdy nie jest zapisywany – <a href="#import">rozdział 2</a>.</li>
+    <li><b>Sterowanie:</b> pole „Dezaktywowane WG” jest szersze i pokazuje duże liczby w całości.</li>
+  </ul>
+<h3 id="v1_00_rc1">V1.00 RC1</h3>
+<ul>
+    <li><b>Wiedza roju:</b> publiczne repozytorium, pobieranie bez tokenu, wysyłanie bez tokenu przez usługę pośredniczącą lub jednym kliknięciem w przeglądarce – <a href="#schwarm100">rozdział 13</a>.</li>
+    <li><b>Granice metody:</b> nowy podrozdział – co metoda Kleina robi, a czego nie – <a href="#grenzen">rozdział 6</a>.</li>
+    <li><b>Sterowanie:</b> „Wysokość tylko z punktów wysokościowych (1D)” i „Asystent przebiegu” znajdują się bezpośrednio pod przyciskami lewej kolumny – brak luki w wyrównaniu dynamicznym i stałym.</li>
+  </ul>
+<h3 id="v0_509">V0.509</h3>
+<ul>
+    <li><b>AGL dynamiczne:</b> „przedział wyczerpany” tylko dla mało czułych punktów stałych, brak końcowego dopasowania VKS w AGL dynamicznym – zob. <a href="#dyn509">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_508">V0.508</h3>
+<ul>
+    <li><b>Przykład C:</b> wartości oczekiwane i folder wyników z obliczenia w prawdziwym interfejsie JAG3D – zob. <a href="#bsp508">rozdział 0</a>.</li>
+  </ul>
+<h3 id="v0_507">V0.507</h3>
+<ul>
+    <li><b>AGL dynamiczne:</b> koniec stagnacji przy mało czułych punktach stałych (połowienie przedziału) i jasny komunikat końcowy – zob. <a href="#dyn507">rozdział 10</a>.</li>
+    <li><b>Wsparcie GNSS:</b> sprawdzanie tylko w projektach z wektorami GNSS – znika komunikat błędu w czystych sieciach niwelacyjnych.</li>
+  </ul>
+<h3 id="v0_506">V0.506</h3>
+<ul>
+    <li><b>AGL dynamiczne:</b> brakujące wartości indywidualne uzupełniane wartością grupy – <a href="#einzel506">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_505">V0.505</h3>
+<ul>
+    <li><b>Start:</b> naprawiono przerwanie startu JAG3D z V0.504 – <a href="#start505">rozdział 1</a>.</li>
+  </ul>
+<h3 id="v0_504">V0.504</h3>
+<ul>
+    <li><b>Wskaźnik ładowania:</b> praca w tle w nagłówku zakładki i w zakładce Klein, nie podczas automatyki – <a href="#lade504">rozdział 1</a>.</li>
+  </ul>
+<h3 id="v0_503">V0.503</h3>
+<ul>
+    <li><b>AGL dynamiczne:</b> granica 1,0/0,3 mm tylko z GNSS, inaczej 0,01 mm; uwaga o współczynniku wariancji – <a href="#floor503">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_502">V0.502</h3>
+<ul>
+    <li><b>Start:</b> brak okna przy czerwonych krokach, pole „Dezaktywowane BL” szersze – <a href="#start502">rozdział 1</a>.</li>
+  </ul>
+<h3 id="v0_501">V0.501</h3>
+<ul>
+    <li><b>Pomiary powtarzane:</b> brak okna ponownego startu, uwaga w protokole i na pasku stanu – <a href="#wdh501">rozdział 5</a>.</li>
+  </ul>
+<h3 id="v0_500">V0.500</h3>
+<ul>
+    <li><b>Błędy grube:</b> kontrola przed przebiegiem 1 z własnym wyrównaniem, także zaraz po imporcie – <a href="#grob500">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_499">V0.499</h3>
+<ul>
+    <li><b>Błędy grube:</b> automatycznie przed przebiegiem 1, granica GNSS zależna od długości – <a href="#grob499">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_498">V0.498</h3>
+<ul>
+    <li><b>AGL dynamiczne:</b> dolna granica punktów stałych, osobna wysokość – <a href="#festpunkt498">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_497">V0.497</h3>
+<ul>
+    <li><b>Przebieg końcowy:</b> tłumienie oscylacji i zaokrąglenie przy wartości granicznej – <a href="#nachlauf497">rozdział 6</a>.</li>
+  </ul>
+<h3 id="v0_496">V0.496</h3>
+<ul>
+    <li><b>Dolne granice niepewności grupy:</b> Końcowe dopasowanie VKS przestrzega dolnych granic – <a href="#schlussangleichung496">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_495">V0.495</h3>
+<ul>
+    <li><b>Kalkulator wysokości:</b> w menu KleinMethod, autozapis, kolumny do prawej – zob. <a href="#rechner495">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_494">V0.494</h3>
+<ul>
+    <li><b>Test statystyczny jako osobna funkcja</b> – zob. <a href="#stattest494">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_493">V0.493</h3>
+<ul>
+    <li><b>Średnie GNSS:</b> dokładność tylko dla dotkniętej składowej lub z odpornego rozrzutu epok – zob. <a href="#massen493">rozdział 5</a>.</li>
+  </ul>
+<h3 id="v0_492">V0.492</h3>
+<ul>
+    <li><b>Mapa:</b> symbole obserwacji na punkcie zamiast obok, wykres sieci poprawny przy otwartej mapie – zob. <a href="#karte492">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_491">V0.491</h3>
+<ul>
+    <li><b>Raport testu z zaleceniem:</b> „Zamknij (zalecane)”, gdy nic nie trzeba robić; skupienie → „Testy grupowe …”; wysokość z 1D domyślnie wł. – zob. <a href="#bericht491">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_490">V0.490</h3>
+<ul>
+    <li><b>Końcowe dopasowanie VKS:</b> zbyt pesymistyczne dokładności na dolnych granicach są po automatyce dopasowane do pasma; nowe ustawienie domyślne „Scal + kalibruj”; symbole obserwacji na mapie można ukryć – zob. <a href="#schlussangleichung">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_489">V0.489</h3>
+<ul>
+    <li><b>Zmiana nazw punktów:</b> szablony w menu rozwijanym, podgląd, kontrola odległości (ekscentry nie są scalane), dokładne cofnięcie – zob. <a href="#umbenennen">rozdział 2</a>.</li>
+  </ul>
+<h3 id="v0_488">V0.488</h3>
+<ul>
+    <li><b>Masowe wektory:</b> bardzo wiele wektorów epokowych jest rozpoznawanych i przed pierwszym obliczeniem przerzedzanych do jednej odpornej średniej na parę punktów (przełącznik, cofnięcie w każdej chwili) – zob. <a href="#massen">rozdział 5</a>.</li>
+  </ul>
+<h3 id="v0_487">V0.487</h3>
+<ul>
+    <li><b>Sygnalizacja stosunku wag:</b> dla każdego rodzaju udział w wyznaczeniu, kontrola i współczynnik wariancji – pokazuje przewagę i złe wagi, zob. <a href="#gewicht">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_486">V0.486</h3>
+<ul>
+    <li><b>Symulacja błędów (Monte Carlo):</b> mierzy na własnej sieci, od jakiej wielkości wykrywane są błędy odległości, kierunków, kątów zenitalnych, stałej pryzmatu i wysokości instrumentu – zob. <a href="#fehlersimulation">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_485">V0.485</h3>
+<ul>
+    <li><b>Testy grupowe na wspólną przyczynę:</b> znajdują stałą pryzmatu/dodawania, wysokość instrumentu i celu wspólne dla wielu obserwacji – z poprawą całej grupy, zob. <a href="#gruppentest">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_484">V0.484</h3>
+<ul>
+    <li><b>Lista podejrzanych obserwacji:</b> sortowanie wyników testu statystycznego, przyczyna, dezaktywacja, poprawa wartości, zmiana wysokości, obniżenie wagi, cofanie, ponowny test, CSV – zob. <a href="#befundliste">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_483">V0.483</h3>
+<ul>
+    <li><b>Test statystyczny – małe błędy grube:</b> test po kalibracji grup z dokładnościami wyjściowymi, raport z obniżeniem wagi, „Usuń statystycznie podejrzane …” przyciskiem – odległości od 1 cm wykryte w 100 % zamiast 0 % – zob. <a href="#stattest">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_482">V0.482</h3>
+<ul>
+    <li><b>Kalkulator współrzędnych/wysokości:</b> DHHN2016 ↔ elipsoidalna, UTM/geograficzne/geocentryczne, pojedynczo i wsadowo – tylko w menu Pomoc – zob. <a href="#rechner">rozdział 10</a>. <b>Blokada wielokrotnego przeliczenia</b> (nagłówek w plikach, obco przeliczone dane czerwone w asystencie przebiegu) – zob. <a href="#sperre">rozdział 2</a>.</li>
+  </ul>
+<h3 id="v0_481">V0.481</h3>
+<ul>
+    <li><b>Uśrednij + kalibruj:</b> nowy wariant porównawczy – średnie o silnym rozrzucie startują z rozrzutem i są kalibrowane przez automatykę na podstawie poprawek – zob. <a href="#zuskal">rozdział 5</a>.</li>
+  </ul>
+<h3 id="v0_480">V0.480</h3>
+<ul>
+    <li><b>Asystent przebiegu:</b> 7 sprawdzanych kroków od importu do zwolnienia z sygnalizacją i działaniem, blokada startu przy czerwonym (można pominąć), protokół stanu w projekcie, zamiana punktów stałych 0/0/0 na nowe punkty – zob. <a href="#assistent">rozdział 1</a>.</li>
+  </ul>
+<h3 id="v0_479">V0.479</h3>
+<ul>
+    <li><b>Wysokość tylko z punktów wysokościowych (1D):</b> przełącznik w wyrównaniu dynamicznym i stałym – punkty stałe/dowiązania 3D wyznaczają tylko położenie – zob. <a href="#hoehe1d">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_478">V0.478</h3>
+<ul>
+    <li><b>Automatyczne uśrednianie pomiarów powtarzanych:</b> domyślnie „Uśrednij”, bez pytania przy kliknięciu karty, po zmianie i przed startem; dokładność średniej co najmniej rozrzut; „Przeważ” usunięto – zob. <a href="#sitzungen">rozdział 5</a>. Mapa: jeśli wybrane odwzorowanie nie pasuje do żadnego punktu, wybiera pasujące.</li>
+  </ul>
+<h3 id="v0_477">V0.477</h3>
+<ul>
+    <li><b>Pomiary powtarzane dla wszystkich rodzajów obserwacji:</b> przełącznik dla każdego rodzaju „Przeważ (domyślnie) / Uśrednij / Wył.” – sesje GNSS, serie kierunków, odległości, niwelacja, serie laser trackera; cofanie, przełączanie, plik porównawczy – zob. <a href="#sitzungen">rozdział 5</a>.</li>
+  </ul>
+<h3 id="v0_476">V0.476</h3>
+<ul>
+    <li><b>Drzewo projektu zablokowane:</b> podczas automatyki lub „Usuwania błędów grubych” drzewo projektu po lewej (punkty stałe, obserwacje …) jest wyszarzone i nie da się go kliknąć. Zmiana karty pozostaje zablokowana i wyświetla najwyżej jeden komunikat „Automatyka działa”.</li>
+  </ul>
+<h3 id="v0_475">V0.475</h3>
+<ul>
+    <li><b>Nowe dane we wcześniejszym projekcie:</b> jeśli żaden punkt nie leży już w zapisanym układzie lokalnym, Klein_Method pomija stary P0 i wyznacza go na nowo w sieci – punkty wysokościowe nie trafiają już do P0. Raport importu pokazuje czerwień, gdy P0 leży ponad 50 km poza siecią – zob. <a href="#wf-fehler">rozdział 0</a>.</li>
+  </ul>
+<h3 id="v0_474">V0.474</h3>
+<ul>
+    <li><b>Punkty przejściowe i stanowiska bez położenia:</b> po kliknięciu zakładki Klein_Method umieszcza je automatycznie pośrodku sąsiadów w niwelacji (stanowisko między odczytem wstecz i w przód, punkt przejściowy między stanowiskami) – dotąd wszystkie leżały w P0. Wysokość bez zmian – zob. <a href="#workflow">rozdział 0</a>.</li>
+  </ul>
+<h3 id="v0_473">V0.473</h3>
+<ul>
+    <li><b>Dane przykładowe A–E do pobrania:</b> po jednym ZIP z danymi surowymi, instrukcją, współrzędnymi prawdziwymi i wynikami – zob. <a href="#wf-beispiele">rozdział 0</a>.</li>
+  </ul>
+<h3 id="v0_472">V0.472</h3>
+<ul>
+    <li><b>Nowy rozdział 0 „Krok po kroku”:</b> przygotowanie i import danych 1D, 2D i 3D – złote zasady, tabela decyzyjna, wszystkie formaty plików z przykładami, przebieg ze ścieżkami menu, typowe błędy – zob. <a href="#workflow">rozdział 0</a>.</li>
+  </ul>
+<h3 id="v0_471">V0.471</h3>
+<ul>
+    <li><b>Raport importu – położenie punktów 1D:</b> jeśli punkt wysokościowy leży dalej od sąsiadów w niwelacji, niż pozwalają celowe, raport pokazuje na czerwono „położenie przeliczone w innym układzie lub z innym P0?” – zwykle błędna jest wtedy też wysokość – zob. <a href="#importbericht">rozdział 2</a>.</li>
+  </ul>
+<h3 id="v0_470">V0.470</h3>
+<ul>
+    <li><b>Kontrola systemu wysokości w dużych sieciach:</b> punkty wysokościowe (1D) są przeliczane z ich położeniem. Dotąd przyjmowano je w P0 – od ok. 3,5 km odległości powodowało to fałszywy alarm „system wysokości” (krzywizna Ziemi r²/2R) – zob. <a href="#hoehen">rozdział 10</a>.</li>
+  </ul>
+<h3 id="v0_469">V0.469</h3>
+<ul>
+    <li><b>Kontrola pojedyncza:</b> Jeśli wspólna kontrola się nie powiedzie (zwykle dlatego, że prawdziwy błąd gruby wśród nich zniekształca pozostałe), Klein_Method przywraca kandydatów pojedynczo. Podejrzane pary punktów GNSS czynią podejrzanymi tylko wektory GNSS, a nie pomiary tachimetryczne między tymi samymi punktami. <b>Raport importu:</b> wzajemne kąty zenitalne z krzywizną Ziemi i refrakcją (k = 0,13) – zob. <a href="#grob">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_468">V0.468</h3>
+<ul>
+    <li><b>Tylko z wektorami GNSS:</b> przeliczenie do układu lokalnego, przesunięcie P0 i każda zmiana odwzorowania lub punktu odniesienia następują tylko wtedy, gdy projekt zawiera aktywne wektory GNSS. Sieci czysto tachimetryczne/niwelacyjne zachowują swoje ustawienia – zob. <a href="#import">rozdział 2</a>.</li>
+  </ul>
+<h3 id="v0_467">V0.467</h3>
+<ul>
+    <li><b>Raport importu z sygnalizacją świetlną:</b> Po kliknięciu zakładki (po każdym nowym imporcie) i w menu <i>Klein_Method → Raport importu …</i> Klein_Method sprawdza dane przed wyrównaniem: nazwy, wzajemne kąty zenitalne, położenie I/II, wysokości instrumentu i celu, jednostki, układ współrzędnych i wysokości. <b>Położenie punktów 1D</b> można wyprowadzić z niwelacji – zob. <a href="#importbericht">rozdział 2</a>.</li>
+  </ul>
+<h3 id="v0_466">V0.466</h3>
+<ul>
+    <li><b>Wysokości celu i system wysokości:</b> kontrola wstępna ostrzega przed brakującymi (0) i zmiennymi wysokościami celu, analiza przyczyn wskazuje wysokości celu/instrumentu, a niezgodność systemu wysokości jest pokazana na czerwono u góry okna potwierdzenia – zob. <a href="#fziel">problem</a>.</li>
+  </ul>
+<h3 id="v0_465">V0.465</h3>
+<ul>
+    <li><b>Punkty wysokościowe (1D) w układzie lokalnym:</b> są przeliczane razem z przeliczeniem – położenie z UTM, Gaussa-Krügera lub geograficzne, wysokość jak wprowadzona (<a href="#import">rozdział 2</a>). <b>Pomoc</b> otwiera się bezpośrednio z folderu pakietu, bez kopii.</li>
+  </ul>
+<h3 id="v0_464">V0.464</h3>
+<ul>
+    <li><b>Błędy grube:</b> <i>wstępny wybór odporny</i> – to, co wykryła kontrola wstępna i przekracza granicę, jest usuwane w jednym kroku; <i>analiza przyczyn</i> dla GNSS (wysokość anteny, pomyłka punktu) – zob. <a href="#grob">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_463">V0.463</h3>
+<ul>
+    <li><b>Lepsze wykrywanie błędów grubych:</b> nowa <i>kontrola wstępna</i> przed wyrównaniem (zamknięcia pętli GNSS, pomiary powtórzone), kolejność według statystyki testowej, wskazówka o słabo kontrolowanych obserwacjach, kontrola przywrócenia także dla pojedynczo usuniętych wektorów GNSS – zob. <a href="#grob">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_462">V0.462</h3>
+<ul>
+    <li><b>Pomoc w 7 językach:</b> otwiera się w ustawionym języku interfejsu (w przeciwnym razie po angielsku). Język można zmienić u góry strony. Tłumaczenia wykonano maszynowo – rozstrzygająca jest wersja niemiecka.</li>
+  </ul>
+<h3 id="v0_461">V0.461</h3>
+<ul>
+    <li><b>Szybsze usuwanie błędów grubych:</b> rozproszone obserwacje odstające bez wspólnego punktu są usuwane po kilka w jednym kroku (najwyżej 10), z kontrolą krzyżową na końcu – zob. <a href="#grob">rozdział 7</a>.</li>
+  </ul>
+<h3 id="v0_460">V0.460</h3>
+<ul>
+    <li><b>Wywołanie pomocy:</b> klawisz <b>F1</b>, w menu JAG3D <i>Help → Klein_Method – Pomoc …</i> lub w menu <i>Klein_Method → Pomoc …</i>. Pomoc otwiera się w domyślnej przeglądarce, bez internetu, także bez otwartego projektu.</li>
+  </ul>
+<h3 id="v0_459">V0.459</h3>
+<ul>
+    <li><b>Pomoc:</b> pierwsze wydanie tego pliku.</li>
+    <li><b>Mapa – Szukaj punktu:</b> współczynnik skali działa teraz jak na wykresie sieci JAG3D, <i>względem bieżącego widoku</i> (1 = skala bez zmian, tylko wyśrodkowanie; 0,5 = dwa razy bliżej).</li>
+  </ul>
+
+<p>Szczegółowy opis każdej wersji z wynikami testów znajduje się w <i>Anleitung.md</i> (po niemiecku) w pakiecie.</p>
+
+</main>
+</div>
+</body>
+</html>
